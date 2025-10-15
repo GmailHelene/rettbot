@@ -92,9 +92,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'crypto-vendor': ['libsodium-wrappers', 'argon2-browser'],
-          'ui-vendor': ['framer-motion', 'lucide-react']
+          'react-vendor': ['react', 'react-dom']
         }
       }
     }

@@ -47,14 +47,30 @@ export default function LegalChat() {
     setError('');
 
     try {
-      // Note: This should call a chat API endpoint
-      // For now, we'll simulate with a simple response
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const response = await fetch('/api/legal/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: input,
+          conversation_history: messages.slice(-10).map(m => ({
+            role: m.role,
+            content: m.content
+          }))
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Kunne ikke få svar fra AI');
+      }
+
+      const data = await response.json();
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `Dette er en simulert respons. I produksjon ville dette være en fullstendig AI-respons basert på OpenAI GPT-4 med kunnskap om norsk lov.\n\nDitt spørsmål: "${input}"\n\nFor å få ekte svar, må vi koble til OpenAI API med /api/chat endpoint.`,
+        content: data.response || data.answer || 'Ingen svar mottatt',
         timestamp: new Date().toISOString()
       };
 
@@ -88,11 +104,11 @@ export default function LegalChat() {
             </Link>
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
-                <MessageCircle className="w-8 h-8 mr-3 text-purple-600" />
+                <MessageCircle className="w-6 h-6 mr-3 text-purple-600" />
                 Juridisk Chat
               </h1>
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                Chat med AI om juridiske spørsmål
+                AI-drevet juridisk rådgivning • GPT-4 Turbo
               </p>
             </div>
           </div>

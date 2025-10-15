@@ -1,0 +1,5 @@
+﻿
+class ChatMessage(BaseModel):
+    message: str = Field(..., description="User's chat message")
+    conversation_history: Optional[List[Dict[str, str]]] = Field(None, description="Previous conversation")
+

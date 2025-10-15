@@ -120,7 +120,7 @@ export default function TrialSimulator() {
             </Link>
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
-                <Briefcase className="w-8 h-8 mr-3 text-indigo-600" />
+                <Briefcase className="w-6 h-6 mr-3 text-indigo-600" />
                 Rettssal Simulator
               </h1>
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">

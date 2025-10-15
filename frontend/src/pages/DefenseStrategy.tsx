@@ -87,7 +87,7 @@ export default function DefenseStrategy() {
             </Link>
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
-                <Shield className="w-8 h-8 mr-3 text-green-600" />
+                <Shield className="w-6 h-6 mr-3 text-green-600" />
                 Forsvarsstrategi
               </h1>
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">

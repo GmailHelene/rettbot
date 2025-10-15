@@ -95,7 +95,7 @@ export default function PenaltiesLookup() {
             </Link>
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
-                <Scale className="w-8 h-8 mr-3 text-red-600" />
+                <Scale className="w-6 h-6 mr-3 text-red-600" />
                 Strafferamme Lookup
               </h1>
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">

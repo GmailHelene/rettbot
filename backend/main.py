@@ -132,6 +132,29 @@ frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
 if frontend_dist.exists():
     app.mount("/assets", StaticFiles(directory=str(frontend_dist / "assets")), name="assets")
     logger.info(f"Mounted frontend static files from {frontend_dist}")
+    # Serve PWA files if present
+    manifest_candidates = [frontend_dist / "manifest.webmanifest", frontend_dist / "manifest.json"]
+
+    @app.get("/manifest.webmanifest")
+    async def serve_manifest():
+        for mf in manifest_candidates:
+            if mf.exists():
+                return FileResponse(mf)
+        raise HTTPException(status_code=404, detail="Manifest not found")
+
+    @app.get("/registerSW.js")
+    async def serve_register_sw():
+        f = frontend_dist / "registerSW.js"
+        if f.exists():
+            return FileResponse(f)
+        raise HTTPException(status_code=404, detail="registerSW.js not found")
+
+    @app.get("/sw.js")
+    async def serve_sw():
+        f = frontend_dist / "sw.js"
+        if f.exists():
+            return FileResponse(f)
+        raise HTTPException(status_code=404, detail="Service worker not found")
 
 # ============================================
 # Request/Response Models
@@ -181,6 +204,12 @@ class LegalResearchRequest(BaseModel):
     case_type: Optional[str] = Field(None, description="Type of case (criminal, civil, etc.)")
     context: Optional[str] = Field(None, description="Additional context")
     encrypted_data: Optional[str] = Field(None, description="Encrypted case data")
+
+
+class ChatRequest(BaseModel):
+    """Simple chat request for Legal Chat UI"""
+    message: str
+    conversation_history: Optional[List[Dict[str, str]]] = None
 
 class DefenseStrategyRequest(BaseModel):
     """Request for defense strategy"""
@@ -1100,6 +1129,54 @@ async def legal_research(request: LegalResearchRequest):
     except Exception as e:
         logger.error(f"Error in legal research: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Research failed: {str(e)}")
+
+
+@app.post("/api/legal/chat")
+async def legal_chat(request: ChatRequest):
+    """Simple legal chat endpoint used by the frontend chat UI
+
+    This endpoint forwards the user's message and a short conversation history to the AI engine
+    and returns a concise assistant reply. It is intentionally lightweight to match the UI expectations.
+    """
+    try:
+        logger.info(f"Legal chat message received (len={len(request.message)})")
+
+        # Compose a compact prompt for the AI. Use conversation_history if provided to give context.
+        history_text = ""
+        if request.conversation_history:
+            for h in request.conversation_history[-10:]:
+                role = h.get("role", "user")
+                content = h.get("content", "")
+                history_text += f"{role}: {content}\n"
+
+        prompt = (
+            "Du er RettBot, en hjelpsom, kortfattet og nøyaktig norsk juridisk assistent. "
+            "Svar tydelig på brukerens spørsmål, oppgi relevante lovhenvisninger når mulig, og hold svaret kort (2-6 setninger).\n"
+            f"Kontekst:\n{history_text}\nBruker: {request.message}\nSvar:" 
+        )
+
+        # Use the ai_engine.simple_summary helper for a concise output
+        ai_response = None
+        if ai_engine and os.getenv("OPENAI_API_KEY"):
+            try:
+                ai_response = await ai_engine.simple_summary(prompt)
+            except Exception as e:
+                logger.error(f"AI chat error: {str(e)}")
+                ai_response = None
+
+        if not ai_response:
+            # Fallback deterministic reply
+            ai_response = "Beklager, jeg har ikke tilgang til AI for øyeblikket. Prøv igjen senere eller still et kortere spørsmål."
+
+        return {
+            "success": True,
+            "response": ai_response,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+    except Exception as e:
+        logger.error(f"Error in legal chat: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Chat failed: {str(e)}")
 
 @app.post("/api/defense/strategy")
 async def build_defense_strategy(request: DefenseStrategyRequest):

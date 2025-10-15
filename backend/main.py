@@ -15,7 +15,7 @@ import logging
 from datetime import datetime
 
 # Import AI engine
-from ai_engine.openai_integration import OpenAIEngine
+from backend.ai_engine.openai_integration import OpenAIEngine
 
 # Load environment variables
 load_dotenv()

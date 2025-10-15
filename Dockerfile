@@ -1,4 +1,5 @@
 # RettBot+ Production Dockerfile
+# Build timestamp: 2025-10-15 07:55 UTC
 FROM python:3.11-slim
 
 # Set working directory
@@ -30,7 +31,7 @@ COPY frontend/package*.json /app/frontend/
 WORKDIR /app/frontend
 RUN npm ci --legacy-peer-deps
 
-# Copy application code
+# Copy application code (includes start.py)
 WORKDIR /app
 COPY . .
 

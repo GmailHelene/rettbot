@@ -3,9 +3,9 @@ import Dashboard from './pages/Dashboard';
 import PenaltiesLookup from './pages/PenaltiesLookup';
 import TrialSimulator from './pages/TrialSimulator';
 import RightsProtection from './pages/RightsProtection';
+import EvidenceAnalysis from './pages/EvidenceAnalysis';
 
-// Placeholder components - we'll build these next
-const EvidenceAnalysis = () => <div className="p-8">Evidence Analysis - Coming Soon</div>;
+// Placeholder components - building next
 const LegalResearch = () => <div className="p-8">Legal Research - Coming Soon</div>;
 const DefenseStrategy = () => <div className="p-8">Defense Strategy - Coming Soon</div>;
 const DocumentGenerator = () => <div className="p-8">Document Generator - Coming Soon</div>;

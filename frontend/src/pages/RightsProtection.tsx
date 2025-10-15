@@ -252,7 +252,7 @@ export default function RightsProtection() {
                         </>
                       ) : (
                         <>
-                          <Send className="w-5 h-5" />
+                          <Send className="w-4 h-4" />
                           Generer Formell Klage
                         </>
                       )}

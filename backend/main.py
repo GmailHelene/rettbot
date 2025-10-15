@@ -156,6 +156,13 @@ if frontend_dist.exists():
             return FileResponse(f)
         raise HTTPException(status_code=404, detail="Service worker not found")
 
+    @app.get("/workbox-{filename}")
+    async def serve_workbox(filename: str):
+        f = frontend_dist / f"workbox-{filename}"
+        if f.exists():
+            return FileResponse(f)
+        raise HTTPException(status_code=404, detail="Workbox file not found")
+
 # ============================================
 # Request/Response Models
 # ============================================

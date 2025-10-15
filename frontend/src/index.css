@@ -36,9 +36,17 @@
     @apply w-full px-4 py-3 bg-white border-2 border-neutral-300 rounded-xl focus:border-blue-600 focus:outline-none transition-all;
   }
 
-  /* Fix for header icons that are too large */
+  /* Header icons - much smaller and better designed */
   .header-icon {
-    @apply w-6 h-6;
+    @apply w-4 h-4 text-current opacity-70 hover:opacity-100 transition-opacity duration-200;
+  }
+  
+  .header-icon-main {
+    @apply w-5 h-5 text-current opacity-80 hover:opacity-100 transition-all duration-200;
+  }
+  
+  .header-title-icon {
+    @apply w-5 h-5 text-current opacity-90 hover:opacity-100 transition-all duration-200;
   }
 }
 

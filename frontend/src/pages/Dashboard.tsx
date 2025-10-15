@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { 
   Scale, 
   FileSearch, 
@@ -9,7 +10,11 @@ import {
   Gavel,
   ShieldAlert,
   MessageSquare,
-  Briefcase
+  Briefcase,
+  LogIn,
+  LogOut,
+  User,
+  FolderOpen
 } from 'lucide-react';
 
 interface Feature {
@@ -22,6 +27,8 @@ interface Feature {
 }
 
 export default function Dashboard() {
+  const { user, isAuthenticated, logout } = useAuth();
+
   const features: Feature[] = [
     {
       id: 'evidence',
@@ -120,9 +127,45 @@ export default function Dashboard() {
               </p>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                Status: <span className="text-green-600 font-semibold">Online</span>
-              </span>
+              {isAuthenticated ? (
+                <>
+                  <div className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
+                    <User className="w-4 h-4" />
+                    <span>{user?.full_name}</span>
+                  </div>
+                  <Link
+                    to="/my-cases"
+                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <FolderOpen className="w-4 h-4" />
+                    <span>Mine Saker</span>
+                  </Link>
+                  <button
+                    onClick={logout}
+                    className="flex items-center space-x-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Logg ut</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    className="flex items-center space-x-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    <span>Logg inn</span>
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <User className="w-4 h-4" />
+                    <span>Opprett konto</span>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

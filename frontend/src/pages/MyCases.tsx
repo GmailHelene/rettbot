@@ -41,7 +41,7 @@ export default function MyCases() {
   const loadCases = async () => {
     try {
       setLoading(true);
-      const response = await fetch('https://rettbot.com/api/cases', {
+      const response = await fetch('/api/cases', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -62,7 +62,7 @@ export default function MyCases() {
 
   const loadCaseDetails = async (caseId: number) => {
     try {
-      const response = await fetch(`https://rettbot.com/api/cases/${caseId}`, {
+      const response = await fetch(`/api/cases/${caseId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -89,7 +89,7 @@ export default function MyCases() {
         .map(e => e.trim())
         .filter(e => e.length > 0);
 
-      const response = await fetch('https://rettbot.com/api/cases', {
+      const response = await fetch('/api/cases', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -129,7 +129,7 @@ export default function MyCases() {
     }
 
     try {
-      const response = await fetch(`https://rettbot.com/api/cases/${caseId}`, {
+      const response = await fetch(`/api/cases/${caseId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

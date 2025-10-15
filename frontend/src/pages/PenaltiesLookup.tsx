@@ -37,7 +37,7 @@ export default function PenaltiesLookup() {
     setResult(null);
 
     try {
-      const response = await fetch('https://rettbot.com/api/legal/penalties', {
+      const response = await fetch('/api/legal/penalties', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

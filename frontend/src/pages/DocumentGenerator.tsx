@@ -46,7 +46,7 @@ export default function DocumentGenerator() {
     setResult(null);
 
     try {
-      const response = await fetch('https://rettbot.com/api/legal/document', {
+      const response = await fetch('/api/legal/document', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

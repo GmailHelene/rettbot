@@ -74,7 +74,7 @@ export default function TrialSimulator() {
     try {
       const evidenceList = evidence.trim() ? evidence.split('\n').filter(e => e.trim()) : ['Ingen bevis oppgitt'];
       
-      const response = await fetch('https://rettbot.com/api/trial/simulate', {
+      const response = await fetch('/api/trial/simulate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

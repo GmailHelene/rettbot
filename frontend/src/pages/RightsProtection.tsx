@@ -40,7 +40,7 @@ export default function RightsProtection() {
     setResult(null);
 
     try {
-      const response = await fetch('https://rettbot.com/api/rights/violations', {
+      const response = await fetch('/api/rights/violations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -67,7 +67,7 @@ export default function RightsProtection() {
     setComplaint('');
 
     try {
-      const response = await fetch('https://rettbot.com/api/rights/appeal', {
+      const response = await fetch('/api/rights/appeal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

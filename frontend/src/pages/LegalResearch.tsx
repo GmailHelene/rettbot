@@ -54,7 +54,7 @@ export default function LegalResearch() {
     setResult(null);
 
     try {
-      const response = await fetch('https://rettbot.com/api/legal/research', {
+      const response = await fetch('/api/legal/research', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -82,23 +82,23 @@ export default function LegalResearch() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm">
+      <header className="header-professional">
         <div className="max-w-6xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex items-center">
             <Link
               to="/"
-              className="mr-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              className="mr-4 p-2 hover:bg-slate-100 rounded-lg transition-colors"
             >
-              <ArrowLeft className="header-icon" />
+              <ArrowLeft className="header-nav-icon" />
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
-                <Scale className="header-title-icon mr-3 text-purple-600" />
+              <h1 className="header-title flex items-center">
+                <Scale className="header-title-icon mr-3" />
                 Juridisk Research
               </h1>
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              <p className="header-subtitle">
                 Søk i norsk lov, EMD-praksis og rettspraksis
               </p>
             </div>
@@ -112,9 +112,9 @@ export default function LegalResearch() {
           {/* Left Column - Search Form */}
           <div className="space-y-6">
             {/* Main Query */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                <Search className="w-5 h-5 mr-2" />
+            <div className="card-professional">
+              <h2 className="text-xl font-semibold text-slate-800 mb-4 flex items-center">
+                <Search className="icon-sm mr-2" />
                 Juridisk spørsmål *
               </h2>
               <textarea
@@ -122,12 +122,12 @@ export default function LegalResearch() {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="F.eks: Hva er strafferammen for grov narkotikaforbrytelse etter straffeloven §231?"
                 rows={5}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent bg-white text-slate-900"
               />
             </div>
 
             {/* Case Type */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <div className="card-professional">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                 Sakstype (valgfritt)
               </h2>

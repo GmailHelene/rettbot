@@ -3,7 +3,7 @@ RettBot+ Backend API
 FastAPI REST API for zero-knowledge AI legal assistant
 """
 
-from fastapi import FastAPI, HTTPException, Depends, File, UploadFile, status
+from fastapi import FastAPI, HTTPException, Depends, File, UploadFile, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -16,6 +16,17 @@ from pathlib import Path
 from dotenv import load_dotenv
 import logging
 from datetime import datetime, timedelta
+import uuid
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from security_enhancements import (
+    check_rate_limit, 
+    validate_password_strength, 
+    SecurityHeaders, 
+    get_client_ip,
+    session_security
+)
 import jwt
 import bcrypt
 import secrets
@@ -194,6 +205,77 @@ class CaseUpdate(BaseModel):
     description: Optional[str] = None
     facts: Optional[str] = None
     evidence: Optional[List[str]] = None
+
+# Password Reset Token Storage (in production, use database)
+reset_tokens = {}
+
+class PasswordResetRequest(BaseModel):
+    email: str
+
+class PasswordResetToken(BaseModel):
+    token: str
+
+class PasswordResetConfirm(BaseModel):
+    token: str
+    new_password: str
+
+# Email configuration
+SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USERNAME = os.getenv("SMTP_USERNAME", "")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+FROM_EMAIL = os.getenv("FROM_EMAIL", "noreply@rettbot.com")
+
+def send_password_reset_email(email: str, reset_token: str, base_url: str = "http://localhost:5173"):
+    """Send password reset email"""
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = FROM_EMAIL
+        msg['To'] = email
+        msg['Subject'] = "RettBot - Tilbakestill passord"
+        
+        # Create reset link
+        reset_url = f"{base_url}/reset-password?token={reset_token}"
+        
+        # Email body in Norwegian
+        body = f"""
+Hei,
+
+Du har bedt om å tilbakestille passordet ditt for RettBot.
+
+Klikk på lenken nedenfor for å lage et nytt passord:
+{reset_url}
+
+Denne lenken er gyldig i 1 time.
+
+Hvis du ikke ba om denne tilbakestillingen, kan du ignorere denne e-posten.
+
+Med vennlig hilsen,
+RettBot Team
+
+---
+Denne e-posten er automatisk generert. Ikke svar på denne e-posten.
+        """
+        
+        msg.attach(MIMEText(body, 'plain', 'utf-8'))
+        
+        # Send email
+        if SMTP_USERNAME and SMTP_PASSWORD:
+            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+            server.starttls()
+            server.login(SMTP_USERNAME, SMTP_PASSWORD)
+            text = msg.as_string()
+            server.sendmail(FROM_EMAIL, email, text)
+            server.quit()
+            return True
+        else:
+            # In development, just log the reset URL
+            print(f"Password reset URL for {email}: {reset_url}")
+            return True
+            
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+        return False
 
 # Existing Models
 class EvidenceAnalysisRequest(BaseModel):
@@ -502,6 +584,154 @@ Innsynsbegjæringen tas til følge. Dokumentene utleveres innen [frist].
 [Navn]
 [Kontaktinfo]
         """
+    },
+    {
+        "keywords": ["korrupt politi", "korrupsjon", "politi kontakter", "misbruk av makt", "inhabil politi", "korrupt saksbehandling"],
+        "situation": "Mistanke om korrupsjon/inhabilitet hos politi eller andre offentlige tjenestemenn",
+        "legal_basis": "Straffeloven §§ 387-392 (korrupsjon) / Politiloven § 28 (habilitet) / EMK art. 6 (rettferdig rettergang)",
+        "signs_of_corruption": [
+            "Uforklarlige avslag på åpenbart begrunnede søknader (besøksforbud, anmeldelser)",
+            "Saksbehandling som avviker betydelig fra standard praksis",
+            "Manglende etterforskning av alvorlige anmeldelser",
+            "Unormalt tette forbindelser mellom tjenestemann og anmeldt person",
+            "Rask henleggelse av saker uten reell etterforskning",
+            "Nekting av innsyn i saksdokumenter uten lovlig grunn"
+        ],
+        "your_information_rights": {
+            "basic_rights": [
+                "Rett til innsyn i alle saksdokumenter (strpl § 242) - inkludert politirapporter, avhørsreferater, vurderingsnotater",
+                "Rett til kopi av dine egne forklaringer og anmeldelser",
+                "Rett til begrunnelse for alle vedtak og beslutninger",
+                "Rett til å vite hvilke tjenestemannen som har behandlet saken"
+            ],
+            "advanced_access_rights": [
+                "Rett til innsyn i saksbehandlernes kvalifikasjoner og habilitetsvurderinger",
+                "Rett til informasjon om eventuelle interessekonflikter",
+                "Rett til å se henvisning til presedenser/lignende saker",
+                "Rett til dokumentasjon av beslutningsprosessen",
+                "Rett til korrespondanse mellom avdelinger/instanser"
+            ],
+            "what_they_must_reveal": [
+                "Hvem som har deltatt i saksbehandlingen",
+                "Hvilket juridisk grunnlag beslutningen bygger på",
+                "Hvilke faktiske forhold som er lagt til grunn",
+                "Hvilke hensyn som er vektlagt",
+                "Eventuelle alternative løsninger som er vurdert"
+            ]
+        },
+        "how_to_expose_corruption": {
+            "document_everything": [
+                "Be om skriftlig begrunnelse for alle vedtak",
+                "Logg alle kontakter: dato, navn, hva som ble sagt",
+                "Be om navn og tittel på alle involverte tjenestemannen",
+                "Sammenlign behandling med lignende saker (be om eksempler)",
+                "Dokumenter avvik fra normal saksbehandlingstid"
+            ],
+            "request_specific_documents": [
+                "Saksjournal - viser hvem som har gjort hva når",
+                "Interne notater og vurderinger",
+                "E-postkorrespondanse om saken",
+                "Møtereferater hvor saken er diskutert",
+                "Habilitetserklæringer fra saksbehandlere",
+                "Prosedyrer og instrukser som skal følges"
+            ],
+            "use_freedom_of_information": [
+                "Be om innsyn i politiets generelle rutiner for denne type saker",
+                "Sammenlign din sak med anonymiserte lignende saker",
+                "Be om statistikk: hvor mange lignende saker som innvilges/avslås",
+                "Se hvilke kriterier som normalt anvendes",
+                "Få tilgang til interne retningslinjer og prosedyrer"
+            ]
+        },
+        "escalation_strategy": {
+            "level_1": "Formell klage til samme organ med krav om ny saksbehandler",
+            "level_2": "Klage til overordnet myndighet + krav om innsyn i alt",
+            "level_3": "Anmeldelse til Spesialenheten for politisaker (korrupsjon/misbruk)",
+            "level_4": "Klage til Sivilombudet (langvarig/usaklig saksbehandling)",
+            "level_5": "Kontakt media + politikere (offentlig press)",
+            "level_6": "Søksmål mot staten (erstatning + tvungen saksbehandling)"
+        },
+        "special_procedures": {
+            "when_police_is_corrupt": [
+                "Anmeld direkte til Spesialenheten (bypasser lokalt politi)",
+                "Kontakt påtalemyndigheten direkte (statsadvokat)",
+                "Be om at ny politikrets overtar saken",
+                "Kontakt Kripos for alvorlige korrupsjonssaker"
+            ],
+            "protecting_yourself": [
+                "Aldri møt alene - ta med vitne eller advokat",
+                "Alle kommunikasjon skriftlig (e-post, brev)",
+                "Ta opptak av samtaler (lovlig når du er part)",
+                "Kopier alle dokumenter umiddelbart",
+                "Lagre alt på flere steder (sky, backup, fysisk)"
+            ],
+            "building_your_case": [
+                "Samle likebehandlingseksempler (andre som fikk medhold)",
+                "Dokumenter tidslinje og sammenhenger",
+                "Finn vitner til korrupt atferd",
+                "Få advokat til å stille kritiske spørsmål",
+                "Be journalister om å stille spørsmål til politiet"
+            ]
+        },
+        "legal_template_corruption": """
+TIL: [Spesialenheten for politisaker / Politidistrikt]
+ANMELDELSE: MISBRUK AV STILLING/KORRUPSJON
+
+Dato: [DATO]
+Gjelder: [Tjenestemannens navn og stilling]
+
+SAMMENDRAG:
+Jeg anmelder [navn] for misbruk av offentlig stilling i forbindelse med behandling av min sak vedrørende [kort beskrivelse].
+
+FAKTUM:
+[Detaljert kronologisk fremstilling]
+
+KORRUPSJONSINDIKATORER:
+1. Uforklarlig avvik fra normal saksbehandling
+2. [Spesifiser hva som er unormalt]
+3. Mulige interessekonflikter: [beskriv forbindelser]
+4. Manglende saklighet i vedtak
+
+BEVIS:
+1. E-postkorrespondanse [vedlegg 1]
+2. Vedtak med mangelfull begrunnelse [vedlegg 2]
+3. Sammenligning med lignende saker [vedlegg 3]
+4. Vitner til korrupt atferd [liste]
+
+ANMODNING:
+1. Etterforskning av den anmeldte
+2. Ny saksbehandling av min opprinnelige sak
+3. Innsyn i all korrespondanse om saken
+4. Vurdering av andre saker tjenestemann har behandlet
+
+Jeg står til disposisjon for ytterligere opplysninger.
+
+[Navn]
+[Kontaktinfo]
+        """,
+        "children_protection_special": {
+            "when_children_threatened": [
+                "ØYEBLIKKELIG: Ring Barnevernet (Kommunen eller BUFetat regionkontor)",
+                "Parallelt: Anmeld til politiet i ANNET distrikt enn der truende person har kontakter",
+                "Kontakt Fylkesmannen (Statsforvalteren) - har tilsynsansvar med Barnevernet",
+                "Ring Krisesenter for umiddelbar beskyttelse",
+                "Dokumenter ALLE trusler - video, lydopptak, vitner"
+            ],
+            "emergency_contacts": [
+                "BUFetat regionkontor: [finnes på bufdir.no]",
+                "Krisesentertelefonen: 116 006",
+                "Redd Barna: 116 111",
+                "Barnevernsvakten (din kommune)",
+                "Spesialenheten: 22 40 60 00"
+            ],
+            "when_system_fails": [
+                "Kontakt PRESS umiddelbart - barn i fare er alltid mediesak",
+                "Ring stortingsrepresentanter fra ditt fylke",
+                "Kontakt barneombudet: barneombudet.no",
+                "Europeiske menneskerettighetsdomstolen (EMD) - art. 3 og 8",
+                "FN barnekomite - konvensjon om barnets rettigheter"
+            ]
+        }
     }
 ]
 
@@ -772,9 +1002,133 @@ def decrypt_data(encrypted_data: str) -> dict:
 # Authentication Endpoints
 # ============================================
 
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    """Add security headers to all responses"""
+    response = await call_next(request)
+    
+    # Add security headers
+    headers = SecurityHeaders.get_headers()
+    for key, value in headers.items():
+        response.headers[key] = value
+    
+    return response
+
+@app.post("/api/auth/forgot-password")
+async def forgot_password(request: PasswordResetRequest, req: Request):
+    """Request password reset"""
+    # Rate limiting for password reset requests
+    check_rate_limit(req, max_requests=3, window_minutes=60)
+    
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Check if user exists
+        cursor.execute("SELECT id, email FROM users WHERE email = ?", (request.email,))
+        user = cursor.fetchone()
+        
+        if not user:
+            # Don't reveal if email exists or not for security
+            return {"message": "If the email exists, a reset link has been sent"}
+        
+        # Generate reset token
+        reset_token = str(uuid.uuid4())
+        expires_at = datetime.utcnow() + timedelta(hours=1)
+        
+        # Store token (in production, use database)
+        reset_tokens[reset_token] = {
+            "email": request.email,
+            "expires_at": expires_at
+        }
+        
+        # Send email
+        email_sent = send_password_reset_email(request.email, reset_token)
+        
+        if not email_sent:
+            raise HTTPException(status_code=500, detail="Failed to send reset email")
+        
+        return {"message": "If the email exists, a reset link has been sent"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Forgot password error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
+@app.post("/api/auth/validate-reset-token")
+async def validate_reset_token(request: PasswordResetToken):
+    """Validate password reset token"""
+    token_data = reset_tokens.get(request.token)
+    
+    if not token_data:
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
+    
+    if datetime.utcnow() > token_data["expires_at"]:
+        # Remove expired token
+        del reset_tokens[request.token]
+        raise HTTPException(status_code=400, detail="Token has expired")
+    
+    return {"message": "Token is valid"}
+
+@app.post("/api/auth/reset-password")
+async def reset_password(request: PasswordResetConfirm, req: Request):
+    """Reset password with token"""
+    # Rate limiting for password reset attempts
+    check_rate_limit(req, max_requests=5, window_minutes=60)
+    
+    try:
+        # Validate token
+        token_data = reset_tokens.get(request.token)
+        
+        if not token_data:
+            raise HTTPException(status_code=400, detail="Invalid or expired token")
+        
+        if datetime.utcnow() > token_data["expires_at"]:
+            # Remove expired token
+            del reset_tokens[request.token]
+            raise HTTPException(status_code=400, detail="Token has expired")
+        
+        # Validate password strength
+        validate_password_strength(request.new_password)
+        
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Update password
+        password_hash = hash_password(request.new_password)
+        cursor.execute(
+            "UPDATE users SET password_hash = ? WHERE email = ?",
+            (password_hash, token_data["email"])
+        )
+        conn.commit()
+        
+        # Remove used token
+        del reset_tokens[request.token]
+        
+        return {"message": "Password successfully reset"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Reset password error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
 @app.post("/api/auth/register", response_model=TokenResponse)
-async def register(user: UserRegister):
+async def register(user: UserRegister, req: Request):
     """Register new user"""
+    # Rate limiting for registration attempts
+    check_rate_limit(req, max_requests=3, window_minutes=60)
+    
+    # Validate password strength
+    validate_password_strength(user.password)
+    
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
@@ -814,8 +1168,11 @@ async def register(user: UserRegister):
         raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
 
 @app.post("/api/auth/login", response_model=TokenResponse)
-async def login(credentials: UserLogin):
+async def login(credentials: UserLogin, req: Request):
     """Login user"""
+    # Rate limiting for login attempts (more restrictive)
+    check_rate_limit(req, max_requests=5, window_minutes=15)
+    
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
@@ -854,6 +1211,128 @@ async def login(credentials: UserLogin):
 async def get_current_user_info(current_user: Dict = Depends(get_current_user)):
     """Get current user information"""
     return current_user
+
+@app.post("/api/auth/forgot-password")
+async def forgot_password(request: PasswordResetRequest, req: Request):
+    """Send password reset email"""
+    check_rate_limit(req, max_requests=3, window_minutes=60)  # Very restrictive
+    
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Check if user exists
+        cursor.execute("SELECT id FROM users WHERE email = ?", (request.email,))
+        user = cursor.fetchone()
+        
+        if not user:
+            # Don't reveal if email exists or not for security
+            return {"message": "If the email exists, you will receive a reset link"}
+        
+        # Generate secure reset token
+        reset_token = str(uuid.uuid4())
+        expires_at = datetime.utcnow() + timedelta(hours=1)  # 1 hour expiry
+        
+        # Store reset token (in production, use database)
+        reset_tokens[reset_token] = {
+            "email": request.email,
+            "expires_at": expires_at,
+            "used": False
+        }
+        
+        # Send email
+        base_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+        email_sent = send_password_reset_email(request.email, reset_token, base_url)
+        
+        if not email_sent:
+            logger.error(f"Failed to send reset email to {request.email}")
+            raise HTTPException(status_code=500, detail="Failed to send reset email")
+        
+        logger.info(f"Password reset email sent to {request.email}")
+        return {"message": "If the email exists, you will receive a reset link"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Forgot password error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    finally:
+        conn.close()
+
+@app.post("/api/auth/validate-reset-token")
+async def validate_reset_token(request: PasswordResetToken):
+    """Validate if reset token is valid"""
+    token_data = reset_tokens.get(request.token)
+    
+    if not token_data:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+    
+    if token_data["used"]:
+        raise HTTPException(status_code=400, detail="Reset token has already been used")
+    
+    if datetime.utcnow() > token_data["expires_at"]:
+        # Clean up expired token
+        del reset_tokens[request.token]
+        raise HTTPException(status_code=400, detail="Reset token has expired")
+    
+    return {"message": "Token is valid"}
+
+@app.post("/api/auth/reset-password")
+async def reset_password(request: PasswordResetConfirm):
+    """Reset password using valid token"""
+    try:
+        # Validate token
+        token_data = reset_tokens.get(request.token)
+        
+        if not token_data:
+            raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+        
+        if token_data["used"]:
+            raise HTTPException(status_code=400, detail="Reset token has already been used")
+        
+        if datetime.utcnow() > token_data["expires_at"]:
+            del reset_tokens[request.token]
+            raise HTTPException(status_code=400, detail="Reset token has expired")
+        
+        # Validate password strength
+        if len(request.new_password) < 8:
+            raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+        
+        # Update password in database
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        password_hash = hash_password(request.new_password)
+        cursor.execute(
+            "UPDATE users SET password_hash = ? WHERE email = ?",
+            (password_hash, token_data["email"])
+        )
+        conn.commit()
+        
+        # Mark token as used
+        reset_tokens[request.token]["used"] = True
+        
+        # Clean up token after short delay
+        import threading
+        def cleanup_token():
+            import time
+            time.sleep(60)  # Wait 1 minute then delete
+            if request.token in reset_tokens:
+                del reset_tokens[request.token]
+        
+        threading.Thread(target=cleanup_token, daemon=True).start()
+        
+        logger.info(f"Password successfully reset for {token_data['email']}")
+        return {"message": "Password successfully reset"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Reset password error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    finally:
+        if 'conn' in locals():
+            conn.close()
 
 # ============================================
 # Case Management Endpoints (Encrypted)

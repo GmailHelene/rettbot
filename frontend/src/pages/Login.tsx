@@ -15,7 +15,7 @@ export default function Login() {
     setError('');
 
     try {
-      const response = await fetch('https://rettbot.com/api/auth/login', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -124,6 +124,16 @@ export default function Login() {
               )}
             </button>
           </form>
+
+          {/* Forgot Password Link */}
+          <div className="mt-4 text-center">
+            <Link
+              to="/forgot-password"
+              className="text-blue-600 hover:text-blue-700 text-sm font-semibold"
+            >
+              Glemt passord?
+            </Link>
+          </div>
 
           {/* Register Link */}
           <div className="mt-6 text-center">

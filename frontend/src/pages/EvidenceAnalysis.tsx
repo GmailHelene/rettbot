@@ -28,7 +28,7 @@ export default function EvidenceAnalysis() {
     setResult(null);
 
     try {
-      const response = await fetch('https://rettbot.com/api/evidence/analyze', {
+      const response = await fetch('/api/evidence/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

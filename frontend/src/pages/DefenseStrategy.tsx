@@ -45,7 +45,7 @@ export default function DefenseStrategy() {
     try {
       const evidenceList = evidence.trim() ? evidence.split('\n').filter(e => e.trim()) : [];
       
-      const response = await fetch('https://rettbot.com/api/defense/strategy', {
+      const response = await fetch('/api/defense/strategy', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -13,6 +13,8 @@ import EvidenceUpload from './pages/EvidenceUpload';
 import LegalChat from './pages/LegalChat';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import MyCases from './pages/MyCases';
 
 function App() {
@@ -24,6 +26,8 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           
           {/* App routes (available to all) */}
           <Route path="/app" element={<Dashboard />} />

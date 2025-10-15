@@ -9,12 +9,13 @@ import {
   Upload,
   Gavel,
   ShieldAlert,
-  MessageSquare,
   Briefcase,
-  LogIn,
-  LogOut,
+  MessageSquare,
   User,
-  FolderOpen
+  LogOut,
+  LogIn,
+  FolderOpen,
+  ChevronRight
 } from 'lucide-react';
 
 interface Feature {
@@ -106,45 +107,45 @@ export default function Dashboard() {
       id: 'chat',
       title: 'AI Juridisk Chat',
       description: 'Chat med AI juridisk assistent',
-      icon: <MessageSquare className="icon-lg" />,
+      icon: <MessageSquare className="icon-md" />,
       path: '/legal-chat',
       color: 'from-cyan-500 to-cyan-600'
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm">
+      <header className="header-professional">
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              <h1 className="header-title">
                 RettBot+ Dashboard
               </h1>
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                AI-drevet juridisk plattform med zero-knowledge sikkerhet
+              <p className="header-subtitle">
+                Profesjonell AI-drevet juridisk assistent
               </p>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               {isAuthenticated ? (
                 <>
-                  <div className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
-                    <User className="w-4 h-4" />
+                  <div className="flex items-center space-x-2 text-sm text-slate-700 px-3 py-2 bg-slate-100 rounded-md">
+                    <User className="icon-sm" />
                     <span>{user?.full_name}</span>
                   </div>
                   <Link
                     to="/my-cases"
-                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="btn-secondary flex items-center space-x-2"
                   >
-                    <FolderOpen className="w-4 h-4" />
+                    <FolderOpen className="icon-sm" />
                     <span>Mine Saker</span>
                   </Link>
                   <button
                     onClick={logout}
-                    className="flex items-center space-x-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
+                    className="flex items-center space-x-2 px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors text-slate-700"
                   >
-                    <LogOut className="w-4 h-4" />
+                    <LogOut className="icon-sm" />
                     <span>Logg ut</span>
                   </button>
                 </>
@@ -152,16 +153,16 @@ export default function Dashboard() {
                 <>
                   <Link
                     to="/login"
-                    className="flex items-center space-x-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
+                    className="btn-secondary flex items-center space-x-2"
                   >
-                    <LogIn className="w-4 h-4" />
+                    <LogIn className="icon-sm" />
                     <span>Logg inn</span>
                   </Link>
                   <Link
                     to="/register"
-                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="btn-primary flex items-center space-x-2"
                   >
-                    <User className="w-4 h-4" />
+                    <User className="icon-sm" />
                     <span>Opprett konto</span>
                   </Link>
                 </>
@@ -174,9 +175,9 @@ export default function Dashboard() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* Welcome Message */}
-        <div className="mb-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-lg p-6 text-white">
-          <h2 className="text-2xl font-bold mb-2">Velkommen til RettBot+</h2>
-          <p className="text-blue-100">
+        <div className="mb-8 card-professional">
+          <h2 className="text-xl font-semibold mb-2 text-slate-800">Velkommen til RettBot+</h2>
+          <p className="text-slate-600 text-sm">
             Velg en funksjon nedenfor for å komme i gang med AI-assistert juridisk arbeid.
           </p>
         </div>
@@ -187,40 +188,27 @@ export default function Dashboard() {
             <Link
               key={feature.id}
               to={feature.path}
-              className="group relative overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+              className="card-professional group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
             >
-              <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-90 group-hover:opacity-100 transition-opacity`} />
-              
-              <div className="relative p-6 text-white">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">
-                    {feature.icon}
-                  </div>
-                  <svg
-                    className="w-6 h-6 transform group-hover:translate-x-1 transition-transform"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center justify-center w-12 h-12 bg-slate-100 rounded-lg group-hover:bg-slate-200 transition-colors">
+                  {feature.icon}
                 </div>
-                
-                <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
-                <p className="text-sm text-white/90">{feature.description}</p>
+                <ChevronRight className="icon-sm text-slate-400 group-hover:text-slate-600 transition-colors" />
               </div>
+              
+              <h3 className="text-lg font-semibold mb-2 text-slate-800 group-hover:text-slate-900">
+                {feature.title}
+              </h3>
+              <p className="text-sm text-slate-600">{feature.description}</p>
             </Link>
           ))}
         </div>
 
         {/* API Status */}
-        <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        <div className="mt-8 card-professional">
+          <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
+            <Shield className="icon-sm mr-2 text-slate-600" />
             API Endpoints Status
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -238,9 +226,9 @@ export default function Dashboard() {
             ].map((endpoint) => (
               <div
                 key={endpoint}
-                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded"
+                className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200"
               >
-                <span className="text-sm text-gray-700 dark:text-gray-300 font-mono">
+                <span className="text-sm text-slate-700 font-mono">
                   /api/{endpoint}
                 </span>
                 <span className="w-2 h-2 bg-green-500 rounded-full" title="Online" />
@@ -251,9 +239,9 @@ export default function Dashboard() {
       </main>
 
       {/* Footer */}
-      <footer className="mt-12 bg-white dark:bg-gray-800 shadow-sm">
+      <footer className="mt-12 bg-white border-t border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-          <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-center text-sm text-slate-600">
             RettBot+ © 2025 | Zero-Knowledge AI Legal Defense Platform
           </p>
         </div>

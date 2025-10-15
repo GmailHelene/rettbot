@@ -44,7 +44,7 @@ export default function CorruptionAssessment() {
       const evidenceList = evidence.split('\n').filter(e => e.trim());
       const institutionsList = institutions.split('\n').filter(i => i.trim());
       
-      const response = await fetch('https://rettbot.com/api/corruption/assess', {
+      const response = await fetch('/api/corruption/assess', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

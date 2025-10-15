@@ -4,14 +4,12 @@ import PenaltiesLookup from './pages/PenaltiesLookup';
 import TrialSimulator from './pages/TrialSimulator';
 import RightsProtection from './pages/RightsProtection';
 import EvidenceAnalysis from './pages/EvidenceAnalysis';
-
-// Placeholder components - building next
-const LegalResearch = () => <div className="p-8">Legal Research - Coming Soon</div>;
-const DefenseStrategy = () => <div className="p-8">Defense Strategy - Coming Soon</div>;
-const DocumentGenerator = () => <div className="p-8">Document Generator - Coming Soon</div>;
-const CorruptionAssessment = () => <div className="p-8">Corruption Assessment - Coming Soon</div>;
-const EvidenceUpload = () => <div className="p-8">Evidence Upload - Coming Soon</div>;
-const LegalChat = () => <div className="p-8">Legal Chat - Coming Soon</div>;
+import LegalResearch from './pages/LegalResearch';
+import DefenseStrategy from './pages/DefenseStrategy';
+import DocumentGenerator from './pages/DocumentGenerator';
+import CorruptionAssessment from './pages/CorruptionAssessment';
+import EvidenceUpload from './pages/EvidenceUpload';
+import LegalChat from './pages/LegalChat';
 
 function App() {
   return (

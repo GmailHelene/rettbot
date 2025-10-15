@@ -1,22 +1,43 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Briefcase, TrendingUp, AlertCircle, Users, Target } from 'lucide-react';
+import { ArrowLeft, Briefcase, TrendingUp, AlertCircle, Users, Target, FileText } from 'lucide-react';
 
 interface SimulationResult {
-  predicted_outcome: string;
-  defense_score: number;
-  prosecution_score: number;
-  key_factors: string[];
-  recommendations: string[];
-  learning_points: string[];
-  confidence_level: string;
+  success: boolean;
+  simulation: {
+    case_summary: {
+      type: string;
+      facts: string;
+      evidence_count: number;
+      defense_skill: string;
+      prosecution_skill: string;
+    };
+    trial_phases: Array<{
+      phase: string;
+      defense: any;
+      prosecution: any;
+    }>;
+    predicted_outcome: {
+      verdict: string;
+      reasoning: string[];
+      defense_score: number;
+      prosecution_score: number;
+      confidence: string;
+    };
+  };
+  ai_expert_analysis?: string;
+  learning_points: {
+    defense: string[];
+    prosecution: string[];
+  };
 }
 
 export default function TrialSimulator() {
   const [caseType, setCaseType] = useState('');
+  const [facts, setFacts] = useState('');
+  const [evidence, setEvidence] = useState('');
   const [defenseSkill, setDefenseSkill] = useState('middels');
   const [prosecutionSkill, setProsecutionSkill] = useState('middels');
-  const [caseStrength, setCaseStrength] = useState('medium');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [error, setError] = useState('');
@@ -41,11 +62,18 @@ export default function TrialSimulator() {
       return;
     }
 
+    if (!facts.trim()) {
+      setError('Vennligst beskriv sakens fakta');
+      return;
+    }
+
     setLoading(true);
     setError('');
     setResult(null);
 
     try {
+      const evidenceList = evidence.trim() ? evidence.split('\n').filter(e => e.trim()) : ['Ingen bevis oppgitt'];
+      
       const response = await fetch('https://rettbot.com/api/trial/simulate', {
         method: 'POST',
         headers: {
@@ -53,33 +81,29 @@ export default function TrialSimulator() {
         },
         body: JSON.stringify({
           case_type: caseType,
+          facts: facts,
+          evidence: evidenceList,
           defense_skill: defenseSkill,
           prosecution_skill: prosecutionSkill,
-          case_strength: caseStrength
+          perspective: 'defense',
+          include_witnesses: true,
+          include_cross_examination: true
         }),
       });
 
       if (!response.ok) {
-        throw new Error('API request failed');
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'API request failed');
       }
 
       const data = await response.json();
       setResult(data);
-    } catch (err) {
-      setError('Kunne ikke kjøre simulering. Prøv igjen.');
+    } catch (err: any) {
+      setError(err.message || 'Kunne ikke kjøre simulering. Prøv igjen.');
       console.error('Error:', err);
     } finally {
       setLoading(false);
     }
-  };
-
-  const getSkillBadge = (skill: string) => {
-    const level = skillLevels.find(s => s.id === skill);
-    return level ? (
-      <span className={`px-3 py-1 rounded-full text-sm font-semibold ${level.color}`}>
-        {level.emoji} {level.name}
-      </span>
-    ) : null;
   };
 
   return (
@@ -136,6 +160,36 @@ export default function TrialSimulator() {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Case Facts */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                <FileText className="w-5 h-5 mr-2" />
+                Sakens fakta *
+              </h2>
+              <textarea
+                value={facts}
+                onChange={(e) => setFacts(e.target.value)}
+                placeholder="Beskriv hva som skjedde..."
+                rows={4}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+            </div>
+
+            {/* Evidence */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                <FileText className="w-5 h-5 mr-2" />
+                Bevis (ett per linje)
+              </h2>
+              <textarea
+                value={evidence}
+                onChange={(e) => setEvidence(e.target.value)}
+                placeholder="Vitneforklaring fra A&#10;DNA-bevis&#10;Overvåkingsvideo"
+                rows={4}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
             </div>
 
             {/* Defense Skill */}
@@ -199,7 +253,7 @@ export default function TrialSimulator() {
 
             <button
               onClick={handleSimulate}
-              disabled={loading || !caseType}
+              disabled={loading || !caseType || !facts.trim()}
               className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center text-lg"
             >
               {loading ? (
@@ -219,21 +273,34 @@ export default function TrialSimulator() {
           {/* Right Column - Results */}
           {result && (
             <div className="space-y-6">
+              {/* Case Summary */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  📋 Saksoversikt
+                </h2>
+                <div className="space-y-2 text-sm">
+                  <div><span className="font-semibold">Type:</span> {result.simulation.case_summary.type}</div>
+                  <div><span className="font-semibold">Bevis:</span> {result.simulation.case_summary.evidence_count} stk</div>
+                  <div><span className="font-semibold">Forsvar:</span> {result.simulation.case_summary.defense_skill}</div>
+                  <div><span className="font-semibold">Aktorat:</span> {result.simulation.case_summary.prosecution_skill}</div>
+                </div>
+              </div>
+
               {/* Outcome */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                   📊 Predikert utfall
                 </h2>
                 <div className={`p-4 rounded-lg text-center ${
-                  result.predicted_outcome.includes('Dom') || result.predicted_outcome.includes('skyldig')
+                  result.simulation.predicted_outcome.verdict.toLowerCase().includes('dom') || result.simulation.predicted_outcome.verdict.toLowerCase().includes('skyldig')
                     ? 'bg-red-100 dark:bg-red-900/20'
                     : 'bg-green-100 dark:bg-green-900/20'
                 }`}>
                   <div className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {result.predicted_outcome}
+                    {result.simulation.predicted_outcome.verdict}
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Tillitsnivå: {result.confidence_level}
+                    Tillitsnivå: {result.simulation.predicted_outcome.confidence}
                   </div>
                 </div>
               </div>
@@ -247,64 +314,82 @@ export default function TrialSimulator() {
                   <div>
                     <div className="flex justify-between mb-2">
                       <span className="text-green-600 font-semibold">Forsvar</span>
-                      <span className="font-bold">{result.defense_score}/100</span>
+                      <span className="font-bold">{result.simulation.predicted_outcome.defense_score}/100</span>
                     </div>
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
                       <div
                         className="bg-green-600 h-3 rounded-full transition-all"
-                        style={{ width: `${result.defense_score}%` }}
+                        style={{ width: `${result.simulation.predicted_outcome.defense_score}%` }}
                       />
                     </div>
                   </div>
                   <div>
                     <div className="flex justify-between mb-2">
                       <span className="text-red-600 font-semibold">Aktorat</span>
-                      <span className="font-bold">{result.prosecution_score}/100</span>
+                      <span className="font-bold">{result.simulation.predicted_outcome.prosecution_score}/100</span>
                     </div>
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
                       <div
                         className="bg-red-600 h-3 rounded-full transition-all"
-                        style={{ width: `${result.prosecution_score}%` }}
+                        style={{ width: `${result.simulation.predicted_outcome.prosecution_score}%` }}
                       />
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Key Factors */}
+              {/* Reasoning */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                  🔑 Nøkkelfaktorer
+                  🔑 Begrunnelse
                 </h2>
                 <ul className="space-y-2">
-                  {result.key_factors.map((factor, index) => (
+                  {result.simulation.predicted_outcome.reasoning.map((reason, index) => (
                     <li
                       key={index}
                       className="flex items-start bg-blue-50 dark:bg-blue-900/20 p-3 rounded"
                     >
                       <span className="text-blue-600 mr-2">•</span>
-                      <span className="text-gray-700 dark:text-gray-300">{factor}</span>
+                      <span className="text-gray-700 dark:text-gray-300">{reason}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              {/* Recommendations */}
+              {/* AI Expert Analysis */}
+              {result.ai_expert_analysis && (
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                    🤖 AI Ekspertanalyse
+                  </h2>
+                  <div className="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 whitespace-pre-line">
+                    {result.ai_expert_analysis}
+                  </div>
+                </div>
+              )}
+
+              {/* Trial Phases */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                  💡 Anbefalinger
+                  ⚖️ Rettssak faser
                 </h2>
-                <ul className="space-y-2">
-                  {result.recommendations.map((rec, index) => (
-                    <li
-                      key={index}
-                      className="flex items-start bg-purple-50 dark:bg-purple-900/20 p-3 rounded"
-                    >
-                      <span className="text-purple-600 mr-2">→</span>
-                      <span className="text-gray-700 dark:text-gray-300">{rec}</span>
-                    </li>
+                <div className="space-y-4">
+                  {result.simulation.trial_phases.map((phase, index) => (
+                    <div key={index} className="border-l-4 border-indigo-500 pl-4 py-2 bg-gray-50 dark:bg-gray-700 rounded-r">
+                      <h3 className="font-semibold text-lg text-gray-900 dark:text-white mb-2">{phase.phase}</h3>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div>
+                          <div className="font-semibold text-green-600">Forsvar</div>
+                          <div className="text-gray-600 dark:text-gray-400">{phase.defense.strategy}</div>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-red-600">Aktorat</div>
+                          <div className="text-gray-600 dark:text-gray-400">{phase.prosecution.strategy}</div>
+                        </div>
+                      </div>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
 
               {/* Learning Points */}
@@ -312,17 +397,30 @@ export default function TrialSimulator() {
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                   📚 Læringspunkter
                 </h2>
-                <ul className="space-y-2">
-                  {result.learning_points.map((point, index) => (
-                    <li
-                      key={index}
-                      className="flex items-start bg-gray-50 dark:bg-gray-700 p-3 rounded"
-                    >
-                      <span className="text-gray-600 dark:text-gray-400 mr-2">✓</span>
-                      <span className="text-gray-700 dark:text-gray-300">{point}</span>
-                    </li>
-                  ))}
-                </ul>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-semibold text-green-600 mb-2">For forsvaret:</h3>
+                    <ul className="space-y-1">
+                      {result.learning_points.defense.map((point, index) => (
+                        <li key={index} className="flex items-start bg-gray-50 dark:bg-gray-700 p-2 rounded">
+                          <span className="text-gray-600 dark:text-gray-400 mr-2">✓</span>
+                          <span className="text-gray-700 dark:text-gray-300 text-sm">{point}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-red-600 mb-2">For aktoratet:</h3>
+                    <ul className="space-y-1">
+                      {result.learning_points.prosecution.map((point, index) => (
+                        <li key={index} className="flex items-start bg-gray-50 dark:bg-gray-700 p-2 rounded">
+                          <span className="text-gray-600 dark:text-gray-400 mr-2">✓</span>
+                          <span className="text-gray-700 dark:text-gray-300 text-sm">{point}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -332,6 +430,7 @@ export default function TrialSimulator() {
               <div className="text-center text-gray-400 dark:text-gray-600">
                 <Briefcase className="w-16 h-16 mx-auto mb-4" />
                 <p className="text-lg">Konfigurer saken og kjør simulering</p>
+                <p className="text-sm mt-2">Velg sakstype, beskriv fakta og velg nivåer</p>
               </div>
             </div>
           )}

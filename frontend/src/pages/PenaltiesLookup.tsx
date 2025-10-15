@@ -43,16 +43,36 @@ export default function PenaltiesLookup() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          offense_type: selectedOffense
+          offense: selectedOffense,
+          facts: ''
         }),
       });
 
       if (!response.ok) {
-        throw new Error('API request failed');
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'API request failed');
       }
 
       const data = await response.json();
-      setResult(data);
+      
+      // Backend returns {success, results, ai_summary}
+      // We need to transform to match PenaltyData interface
+      if (data.results && data.results.length > 0) {
+        const firstResult = data.results[0];
+        const transformed: PenaltyData = {
+          offense_type: selectedOffense,
+          statute_reference: firstResult.statute,
+          minimum_penalty: firstResult.typical_penalties.split('-')[0]?.trim() || 'Ingen minimum',
+          maximum_penalty: firstResult.typical_penalties.split('-')[1]?.trim() || firstResult.typical_penalties,
+          typical_range: firstResult.typical_penalties,
+          severity_factors: firstResult.severity_factors,
+          mitigating_factors: [], // Backend doesn't provide this yet
+          evidence_considerations: firstResult.evidence_considerations
+        };
+        setResult(transformed);
+      } else {
+        throw new Error('Ingen resultater funnet');
+      }
     } catch (err) {
       setError('Kunne ikke hente straffedata. Prøv igjen.');
       console.error('Error:', err);

@@ -1,59 +1,39 @@
-import { useState } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Dashboard from './pages/Dashboard';
+import PenaltiesLookup from './pages/PenaltiesLookup';
+import TrialSimulator from './pages/TrialSimulator';
+import RightsProtection from './pages/RightsProtection';
+
+// Placeholder components - we'll build these next
+const EvidenceAnalysis = () => <div className="p-8">Evidence Analysis - Coming Soon</div>;
+const LegalResearch = () => <div className="p-8">Legal Research - Coming Soon</div>;
+const DefenseStrategy = () => <div className="p-8">Defense Strategy - Coming Soon</div>;
+const DocumentGenerator = () => <div className="p-8">Document Generator - Coming Soon</div>;
+const CorruptionAssessment = () => <div className="p-8">Corruption Assessment - Coming Soon</div>;
+const EvidenceUpload = () => <div className="p-8">Evidence Upload - Coming Soon</div>;
+const LegalChat = () => <div className="p-8">Legal Chat - Coming Soon</div>;
 
 function App() {
-  const [message] = useState('RettBot+ API er live!')
-
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      display: 'flex', 
-      flexDirection: 'column',
-      alignItems: 'center', 
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
-      color: '#ffffff',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
-    }}>
-      <h1 style={{ fontSize: '3rem', marginBottom: '2rem' }}>
-        ⚖️ RettBot+
-      </h1>
-      <p style={{ fontSize: '1.5rem', marginBottom: '3rem' }}>
-        {message}
-      </p>
-      
-      <div style={{ 
-        background: '#1a1a1a', 
-        padding: '2rem', 
-        borderRadius: '12px',
-        maxWidth: '600px',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
-      }}>
-        <h2 style={{ marginBottom: '1rem' }}>🚀 API Endpoints Klar:</h2>
-        <ul style={{ lineHeight: '2', textAlign: 'left' }}>
-          <li>✅ /api/evidence/analyze - Bevisanalyse</li>
-          <li>✅ /api/legal/research - Juridisk research</li>
-          <li>✅ /api/defense/strategy - Forsvarsstrategi</li>
-          <li>✅ /api/legal/document - Dokumentgenerering</li>
-          <li>✅ /api/corruption/assess - Korrupsjonsvurdering</li>
-          <li>✅ /api/evidence/upload - Last opp bevis</li>
-          <li>✅ /api/legal/penalties - Straffeutmåling</li>
-          <li>✅ /api/rights/violations - Rettighetsmisbruk</li>
-          <li>✅ /api/rights/appeal - Klagemal</li>
-          <li>✅ /api/trial/simulate - Rettssimulator</li>
-        </ul>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/evidence-analysis" element={<EvidenceAnalysis />} />
+        <Route path="/legal-research" element={<LegalResearch />} />
+        <Route path="/defense-strategy" element={<DefenseStrategy />} />
+        <Route path="/document-generator" element={<DocumentGenerator />} />
+        <Route path="/penalties" element={<PenaltiesLookup />} />
+        <Route path="/rights-protection" element={<RightsProtection />} />
+        <Route path="/trial-simulator" element={<TrialSimulator />} />
+        <Route path="/corruption-assessment" element={<CorruptionAssessment />} />
+        <Route path="/evidence-upload" element={<EvidenceUpload />} />
+        <Route path="/legal-chat" element={<LegalChat />} />
         
-        <div style={{ marginTop: '2rem', padding: '1rem', background: '#2d2d2d', borderRadius: '8px' }}>
-          <p style={{ fontSize: '0.9rem', opacity: 0.8 }}>
-            🔗 Test API på: <code style={{ background: '#000', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>/api/health</code>
-          </p>
-        </div>
-      </div>
-      
-      <p style={{ marginTop: '3rem', opacity: 0.6 }}>
-        Fullstendig UI kommer i FASE 2-4
-      </p>
-    </div>
-  )
+        {/* Redirect unknown routes to dashboard */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

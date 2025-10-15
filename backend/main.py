@@ -95,6 +95,70 @@ class HealthCheckResponse(BaseModel):
     timestamp: str
     openai_configured: bool
 
+
+# ============================================
+# Penalties DB (minimal, deterministic dataset)
+# ============================================
+class PenaltyQuery(BaseModel):
+    """Request to get penalties for a given offense"""
+    offense: str = Field(..., description="Free-text offense name or statute reference")
+    facts: Optional[str] = Field(None, description="Short facts to help contextualize severity")
+
+
+# Minimal mapping: offense keywords -> statutes and typical penalty ranges
+PENALTIES_DB = [
+    {
+        "keywords": ["narkotika", "drug", "drugs", "narkotisk"],
+        "statute": "Straffeloven § 231 (narkotika) / narkotikalovgivning",
+        "description": "Besittelse, innførsel eller omsetning av narkotika.",
+        "typical_penalties": {
+            "fine": "Mulig for mindre mengder (bøter)",
+            "imprisonment": "Inntil 6 år ved alvorlig omsetning; kortere ved besittelse",
+            "notes": "Avhenger av mengde, type stoff og omhandlede omsetningsledd"
+        },
+        "severity_factors": ["mengde", "handlemåte", "tidligere dommer"],
+        "evidence_considerations": ["vekt av stoffet", "laboratoriumsrapporter", "vitneobservasjoner", "transaksjonsdata"]
+    },
+    {
+        "keywords": ["vold", "physical assault", "legemsbeskadigelse"],
+        "statute": "Straffeloven § 271 (legemsbeskadigelse) og §§ 272-273",
+        "description": "Fysisk angrep som fører til skade eller fare for skade.",
+        "typical_penalties": {
+            "fine": "Mulig ved mindre hendelser",
+            "imprisonment": "Inntil 6 år for alvorlig vold; 1-3 år typisk for grovere tilfeller",
+            "notes": "Skadens omfang og bruk av våpen øker straffutmålingen"
+        },
+        "severity_factors": ["skadens alvor", "bruk av våpen", "forsett eller uaktsomhet"],
+        "evidence_considerations": ["legejournaler", "vitneforklaringer", "videoopptak", "fornærmedes forklaring"]
+    },
+    {
+        "keywords": ["tyveri", "theft", "innbrudd", "klepto"],
+        "statute": "Straffeloven §§ 311-316 (tyveri og innbrudd)",
+        "description": "Ulovlig tilegnelse av andres eiendom.",
+        "typical_penalties": {
+            "fine": "Bøter vanlig for småverdier",
+            "imprisonment": "Inntil 6 år ved grovt tyveri eller innbrudd",
+            "notes": "Verdien av det som er stjålet og tidligere forhold påvirker straffens lengde"
+        },
+        "severity_factors": ["verdi", "bruk av makt", "tidligere forhold"],
+        "evidence_considerations": ["kvitteringer", "overvåkingsvideo", "fingeravtrykk", "vitner"]
+    },
+    {
+        "keywords": ["bedrageri", "fraud", "svindel"],
+        "statute": "Straffeloven §§ 371-372 (bedrageri)",
+        "description": "Åvilling bedrageri for økonomisk vinning.",
+        "typical_penalties": {
+            "fine": "Bøter typisk ved mindre beløp",
+            "imprisonment": "Inntil 6 år ved grovt bedrageri",
+            "notes": "Beløpets størrelse og systematisk misbruk øker straffen"
+        },
+        "severity_factors": ["økonomisk skade", "systematikk", "samarbeid med andre"],
+        "evidence_considerations": ["banktransaksjoner", "kontrakter", "e-poster", "vitneforklaringer"]
+    }
+]
+
+
+
 # ============================================
 # API Endpoints
 # ============================================
@@ -297,6 +361,74 @@ async def assess_corruption_case(request: CorruptionAssessmentRequest):
     except Exception as e:
         logger.error(f"Error assessing corruption case: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Corruption assessment failed: {str(e)}")
+
+
+@app.post("/api/legal/penalties")
+async def legal_penalties(request: PenaltyQuery):
+    """
+    Return likely statutes and penalty ranges for a given offense (heuristic).
+    This is a deterministic helper to give users an overview of possible fines/prison ranges
+    and what evidence increases/decreases the likely severity.
+    """
+    try:
+        query = (request.offense or "").lower()
+        facts = (request.facts or "")
+
+        # Find matches by keyword
+        matches = []
+        for entry in PENALTIES_DB:
+            for kw in entry["keywords"]:
+                if kw in query:
+                    matches.append(entry)
+                    break
+
+        # If no matches, try fuzzy contain of main words
+        if not matches:
+            for entry in PENALTIES_DB:
+                for kw in entry["keywords"]:
+                    if kw.split()[0] in query:
+                        matches.append(entry)
+                        break
+
+        # Build response
+        results = []
+        for m in matches:
+            item = {
+                "statute": m["statute"],
+                "description": m["description"],
+                "typical_penalties": m["typical_penalties"],
+                "severity_factors": m["severity_factors"],
+                "evidence_considerations": m["evidence_considerations"]
+            }
+
+            # Basic heuristic: if facts mention "store mengder" or numbers, escalate
+            if "mengde" in facts or any(c.isdigit() for c in facts):
+                item["note"] = "Fakta indikerer potensielt høyere alvorlighetsgrad - mengde eller tall funnet i fakta."
+
+            results.append(item)
+
+        if not results:
+            return {"success": True, "results": [], "message": "Ingen direkte treff i lokal DB. Vennligst prøv mer spesifikk lovtekst eller beskrivelse."}
+
+        # Optional: Enrich with AI (non-blocking; fallback to deterministic)
+        ai_summary = None
+        try:
+            if ai_engine and os.getenv("OPENAI_API_KEY"):
+                prompt = f"Given the following offense query: '{request.offense}' and facts: '{facts}', summarize likely penalties and key evidence factors under Norwegian law in short bullet points."
+                ai_summary = await ai_engine.simple_summary(prompt)
+        except Exception:
+            ai_summary = None
+
+        return {
+            "success": True,
+            "results": results,
+            "ai_summary": ai_summary,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+    except Exception as e:
+        logger.error(f"Error computing penalties: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Penalty lookup failed: {str(e)}")
 
 @app.post("/api/evidence/upload")
 async def upload_evidence_file(

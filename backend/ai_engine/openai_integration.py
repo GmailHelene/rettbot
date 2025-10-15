@@ -556,6 +556,26 @@ Svar i JSON format:
         
         return json.loads(response.choices[0].message.content)
 
+    async def simple_summary(self, prompt: str) -> Optional[str]:
+        """
+        Simple helper: ask the model for a concise bullet summary and return plain text.
+        Returns None on failure.
+        """
+        try:
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "Du er en kortfattet juridisk assistent. Gi korte punkter."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.2
+            )
+
+            return response.choices[0].message.content
+
+        except Exception:
+            return None
+
 
 # ===== USAGE EXAMPLES =====
 

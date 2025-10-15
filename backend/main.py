@@ -1497,9 +1497,9 @@ async def legal_research(request: LegalResearchRequest):
         logger.info(f"Legal research query: {request.query[:100]}...")
         
         research = await ai_engine.legal_research(
-            query=request.query,
-            case_type=request.case_type,
-            context=request.context or ""
+            question=request.query,
+            case_context=request.context or "",
+            case_type=request.case_type or "criminal"
         )
         
         return {

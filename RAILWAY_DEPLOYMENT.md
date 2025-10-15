@@ -20,7 +20,7 @@ SMTP_PASSWORD=your-app-password
 FROM_EMAIL=noreply@rettbot.com
 
 # Frontend URL (for password reset links)
-FRONTEND_URL=https://your-railway-app.railway.app
+FRONTEND_URL=https://rettbot.com
 
 # OpenAI API (for AI features)
 OPENAI_API_KEY=your-openai-api-key
@@ -64,8 +64,35 @@ railway deploy
 - [ ] Set all required environment variables in Railway
 - [ ] Verify SMTP settings work (test email sending)
 - [ ] Generate strong JWT_SECRET (min 32 chars)
-- [ ] Update FRONTEND_URL to Railway domain
+- [ ] Update FRONTEND_URL to production domain (https://rettbot.com)
+- [ ] Confirm HTTPS/SSL is enabled on Railway or via custom domain
 - [ ] Test locally one more time with production build
+
+## 🔐 HTTPS & CORS
+
+- Enable HTTPS on your Railway service or via custom domain with SSL
+- Set CORS_ORIGINS to include both apex and www:
+	- `https://rettbot.com,https://www.rettbot.com`
+- Ensure the frontend only uses https URLs in production
+
+## 📦 Railway Variables (example from your Railway project)
+
+```
+OPENAI_API_KEY=sk-... (provided)
+SECRET_KEY=EllmXvOd... (provided)
+JWT_SECRET=U_d8IwC5... (provided)
+ENVIRONMENT=production
+DEBUG=false
+LOG_LEVEL=INFO
+ALLOWED_ORIGINS=https://rettbot.com,https://www.rettbot.com
+CORS_ORIGINS=https://rettbot.com,https://www.rettbot.com
+API_HOST=0.0.0.0
+API_PORT=8000
+API_RELOAD=false
+DATABASE_URL=
+REDIS_URL=
+FRONTEND_URL=https://rettbot.com
+```
 
 ## 🎯 Current Deployment Readiness: **95%**
 

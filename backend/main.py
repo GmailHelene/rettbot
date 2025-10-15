@@ -3,21 +3,28 @@ RettBot+ Backend API
 FastAPI REST API for zero-knowledge AI legal assistant
 """
 
-from fastapi import FastAPI, HTTPException, Depends, File, UploadFile
+from fastapi import FastAPI, HTTPException, Depends, File, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional, Dict, Any
 import uvicorn
 import os
 from pathlib import Path
 from dotenv import load_dotenv
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
+import jwt
+import bcrypt
+import secrets
+from cryptography.fernet import Fernet
+import json
+import sqlite3
 
 # Import AI engine
-from backend.ai_engine.openai_integration import OpenAIEngine
+from ai_engine.openai_integration import OpenAIEngine
 
 # Load environment variables
 load_dotenv()
@@ -49,6 +56,76 @@ app.add_middleware(
 # Initialize OpenAI Engine
 ai_engine = OpenAIEngine()
 
+# ============================================
+# Authentication & Security Setup
+# ============================================
+
+# JWT Configuration
+SECRET_KEY = os.getenv("JWT_SECRET", secrets.token_urlsafe(32))
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
+
+# Encryption key for user data (store this securely!)
+ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY", Fernet.generate_key().decode())
+fernet = Fernet(ENCRYPTION_KEY.encode())
+
+# HTTP Bearer for JWT tokens
+security = HTTPBearer()
+
+# Database setup (SQLite for simplicity - use PostgreSQL in production)
+DB_PATH = Path(__file__).parent / "rettbot.db"
+
+def init_database():
+    """Initialize SQLite database with users and cases tables"""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    # Users table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            full_name TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_login TIMESTAMP
+        )
+    """)
+    
+    # Cases table (encrypted)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS cases (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            case_number TEXT UNIQUE,
+            title TEXT NOT NULL,
+            encrypted_data TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    """)
+    
+    # Documents table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS documents (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            case_id INTEGER NOT NULL,
+            filename TEXT NOT NULL,
+            encrypted_content TEXT NOT NULL,
+            file_type TEXT,
+            uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (case_id) REFERENCES cases (id)
+        )
+    """)
+    
+    conn.commit()
+    conn.close()
+    logger.info("Database initialized successfully")
+
+# Initialize database on startup
+init_database()
+
 # Mount static files (frontend)
 # Check if frontend/dist exists (production) or serve placeholder
 frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
@@ -60,6 +137,35 @@ if frontend_dist.exists():
 # Request/Response Models
 # ============================================
 
+# Authentication Models
+class UserRegister(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=8)
+    full_name: Optional[str] = None
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: Dict[str, Any]
+
+class CaseCreate(BaseModel):
+    title: str
+    description: str
+    case_type: str
+    facts: Optional[str] = None
+    evidence: Optional[List[str]] = None
+
+class CaseUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    facts: Optional[str] = None
+    evidence: Optional[List[str]] = None
+
+# Existing Models
 class EvidenceAnalysisRequest(BaseModel):
     """Request for evidence analysis"""
     file_name: str = Field(..., description="Name of the evidence file")
@@ -563,6 +669,345 @@ async def root():
 </html>
         """)
 
+# ============================================
+# Authentication Helper Functions
+# ============================================
+
+def hash_password(password: str) -> str:
+    """Hash password using bcrypt"""
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+def verify_password(password: str, hashed: str) -> bool:
+    """Verify password against hash"""
+    return bcrypt.checkpw(password.encode(), hashed.encode())
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """Create JWT access token"""
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict[str, Any]:
+    """Get current user from JWT token"""
+    try:
+        token = credentials.credentials
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+        
+        # Get user from database
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, email, full_name FROM users WHERE email = ?", (email,))
+        user = cursor.fetchone()
+        conn.close()
+        
+        if user is None:
+            raise HTTPException(status_code=401, detail="User not found")
+        
+        return {
+            "id": user[0],
+            "email": user[1],
+            "full_name": user[2]
+        }
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired")
+    except jwt.JWTError:
+        raise HTTPException(status_code=401, detail="Could not validate credentials")
+
+def encrypt_data(data: dict) -> str:
+    """Encrypt dictionary data"""
+    json_data = json.dumps(data)
+    encrypted = fernet.encrypt(json_data.encode())
+    return encrypted.decode()
+
+def decrypt_data(encrypted_data: str) -> dict:
+    """Decrypt data back to dictionary"""
+    decrypted = fernet.decrypt(encrypted_data.encode())
+    return json.loads(decrypted.decode())
+
+# ============================================
+# Authentication Endpoints
+# ============================================
+
+@app.post("/api/auth/register", response_model=TokenResponse)
+async def register(user: UserRegister):
+    """Register new user"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Check if user already exists
+        cursor.execute("SELECT id FROM users WHERE email = ?", (user.email,))
+        if cursor.fetchone():
+            raise HTTPException(status_code=400, detail="Email already registered")
+        
+        # Hash password and create user
+        password_hash = hash_password(user.password)
+        cursor.execute(
+            "INSERT INTO users (email, password_hash, full_name) VALUES (?, ?, ?)",
+            (user.email, password_hash, user.full_name)
+        )
+        conn.commit()
+        
+        # Get created user
+        cursor.execute("SELECT id, email, full_name FROM users WHERE email = ?", (user.email,))
+        new_user = cursor.fetchone()
+        conn.close()
+        
+        # Create access token
+        access_token = create_access_token(data={"sub": user.email})
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": {
+                "id": new_user[0],
+                "email": new_user[1],
+                "full_name": new_user[2]
+            }
+        }
+    except Exception as e:
+        logger.error(f"Registration error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
+
+@app.post("/api/auth/login", response_model=TokenResponse)
+async def login(credentials: UserLogin):
+    """Login user"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Get user
+        cursor.execute("SELECT id, email, password_hash, full_name FROM users WHERE email = ?", (credentials.email,))
+        user = cursor.fetchone()
+        
+        if not user or not verify_password(credentials.password, user[2]):
+            raise HTTPException(status_code=401, detail="Incorrect email or password")
+        
+        # Update last login
+        cursor.execute("UPDATE users SET last_login = ? WHERE id = ?", (datetime.utcnow(), user[0]))
+        conn.commit()
+        conn.close()
+        
+        # Create access token
+        access_token = create_access_token(data={"sub": credentials.email})
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": {
+                "id": user[0],
+                "email": user[1],
+                "full_name": user[3]
+            }
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Login error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Login failed: {str(e)}")
+
+@app.get("/api/auth/me")
+async def get_current_user_info(current_user: Dict = Depends(get_current_user)):
+    """Get current user information"""
+    return current_user
+
+# ============================================
+# Case Management Endpoints (Encrypted)
+# ============================================
+
+@app.post("/api/cases")
+async def create_case(case: CaseCreate, current_user: Dict = Depends(get_current_user)):
+    """Create new case (encrypted)"""
+    try:
+        # Generate unique case number
+        case_number = f"CASE-{datetime.utcnow().strftime('%Y%m%d')}-{secrets.token_hex(4).upper()}"
+        
+        # Encrypt case data
+        case_data = {
+            "title": case.title,
+            "description": case.description,
+            "case_type": case.case_type,
+            "facts": case.facts,
+            "evidence": case.evidence or []
+        }
+        encrypted_data = encrypt_data(case_data)
+        
+        # Save to database
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO cases (user_id, case_number, title, encrypted_data) VALUES (?, ?, ?, ?)",
+            (current_user["id"], case_number, case.title, encrypted_data)
+        )
+        conn.commit()
+        case_id = cursor.lastrowid
+        conn.close()
+        
+        return {
+            "success": True,
+            "case_id": case_id,
+            "case_number": case_number,
+            "message": "Case created and encrypted successfully"
+        }
+    except Exception as e:
+        logger.error(f"Case creation error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Case creation failed: {str(e)}")
+
+@app.get("/api/cases")
+async def get_user_cases(current_user: Dict = Depends(get_current_user)):
+    """Get all cases for current user"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, case_number, title, created_at, updated_at FROM cases WHERE user_id = ? ORDER BY updated_at DESC",
+            (current_user["id"],)
+        )
+        cases = cursor.fetchall()
+        conn.close()
+        
+        return {
+            "success": True,
+            "cases": [
+                {
+                    "id": case[0],
+                    "case_number": case[1],
+                    "title": case[2],
+                    "created_at": case[3],
+                    "updated_at": case[4]
+                }
+                for case in cases
+            ]
+        }
+    except Exception as e:
+        logger.error(f"Get cases error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve cases: {str(e)}")
+
+@app.get("/api/cases/{case_id}")
+async def get_case(case_id: int, current_user: Dict = Depends(get_current_user)):
+    """Get specific case (decrypted)"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT case_number, title, encrypted_data, created_at, updated_at FROM cases WHERE id = ? AND user_id = ?",
+            (case_id, current_user["id"])
+        )
+        case = cursor.fetchone()
+        conn.close()
+        
+        if not case:
+            raise HTTPException(status_code=404, detail="Case not found")
+        
+        # Decrypt case data
+        decrypted_data = decrypt_data(case[2])
+        
+        return {
+            "success": True,
+            "case": {
+                "id": case_id,
+                "case_number": case[0],
+                "title": case[1],
+                "created_at": case[3],
+                "updated_at": case[4],
+                **decrypted_data
+            }
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get case error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve case: {str(e)}")
+
+@app.put("/api/cases/{case_id}")
+async def update_case(case_id: int, case_update: CaseUpdate, current_user: Dict = Depends(get_current_user)):
+    """Update case (re-encrypted)"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Get existing case
+        cursor.execute(
+            "SELECT encrypted_data FROM cases WHERE id = ? AND user_id = ?",
+            (case_id, current_user["id"])
+        )
+        existing = cursor.fetchone()
+        
+        if not existing:
+            raise HTTPException(status_code=404, detail="Case not found")
+        
+        # Decrypt, update, re-encrypt
+        case_data = decrypt_data(existing[0])
+        
+        if case_update.title:
+            case_data["title"] = case_update.title
+        if case_update.description:
+            case_data["description"] = case_update.description
+        if case_update.facts:
+            case_data["facts"] = case_update.facts
+        if case_update.evidence:
+            case_data["evidence"] = case_update.evidence
+        
+        encrypted_data = encrypt_data(case_data)
+        
+        # Update database
+        cursor.execute(
+            "UPDATE cases SET encrypted_data = ?, title = ?, updated_at = ? WHERE id = ?",
+            (encrypted_data, case_update.title or case_data["title"], datetime.utcnow(), case_id)
+        )
+        conn.commit()
+        conn.close()
+        
+        return {
+            "success": True,
+            "message": "Case updated successfully"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Update case error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Case update failed: {str(e)}")
+
+@app.delete("/api/cases/{case_id}")
+async def delete_case(case_id: int, current_user: Dict = Depends(get_current_user)):
+    """Delete case (permanent)"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Delete associated documents first
+        cursor.execute("DELETE FROM documents WHERE case_id = ?", (case_id,))
+        
+        # Delete case
+        cursor.execute(
+            "DELETE FROM cases WHERE id = ? AND user_id = ?",
+            (case_id, current_user["id"])
+        )
+        
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Case not found")
+        
+        conn.commit()
+        conn.close()
+        
+        return {
+            "success": True,
+            "message": "Case deleted permanently"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Delete case error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Case deletion failed: {str(e)}")
+
 @app.get("/api/health")
 async def health_check():
     """Detailed health check"""
@@ -572,7 +1017,7 @@ async def health_check():
         "services": {
             "openai": bool(os.getenv("OPENAI_API_KEY")),
             "api": True,
-            "database": False,  # TODO: Add database check
+            "database": DB_PATH.exists(),
             "redis": False  # TODO: Add Redis check
         },
         "version": "1.0.0"

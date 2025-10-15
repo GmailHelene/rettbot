@@ -5,11 +5,13 @@ FastAPI REST API for zero-knowledge AI legal assistant
 
 from fastapi import FastAPI, HTTPException, Depends, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 import uvicorn
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 import logging
 from datetime import datetime
@@ -46,6 +48,13 @@ app.add_middleware(
 
 # Initialize OpenAI Engine
 ai_engine = OpenAIEngine()
+
+# Mount static files (frontend)
+# Check if frontend/dist exists (production) or serve placeholder
+frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
+if frontend_dist.exists():
+    app.mount("/assets", StaticFiles(directory=str(frontend_dist / "assets")), name="assets")
+    logger.info(f"Mounted frontend static files from {frontend_dist}")
 
 # ============================================
 # Request/Response Models
@@ -521,14 +530,38 @@ PENALTIES_DB = [
 # API Endpoints
 # ============================================
 
-@app.get("/", response_model=HealthCheckResponse)
+@app.get("/", response_class=HTMLResponse)
 async def root():
-    """Root endpoint - health check"""
-    return HealthCheckResponse(
-        status="online",
-        timestamp=datetime.utcnow().isoformat(),
-        openai_configured=bool(os.getenv("OPENAI_API_KEY"))
-    )
+    """Serve frontend index.html"""
+    frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
+    index_file = frontend_dist / "index.html"
+    
+    if index_file.exists():
+        return FileResponse(index_file)
+    else:
+        # Fallback: Return simple HTML with API info
+        return HTMLResponse(content="""
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RettBot+ - AI Juridisk Assistent</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; }
+        h1 { font-size: 3em; margin-bottom: 10px; }
+        p { font-size: 1.2em; margin-bottom: 30px; }
+        .api-link { background: white; color: #1e3a8a; padding: 15px 30px; text-decoration: none; border-radius: 10px; display: inline-block; font-weight: bold; }
+        .api-link:hover { background: #fbbf24; }
+    </style>
+</head>
+<body>
+    <h1>⚖️ RettBot+</h1>
+    <p>AI-drevet juridisk assistent for norske borgere</p>
+    <a href="/api/health" class="api-link">API Health Check →</a>
+</body>
+</html>
+        """)
 
 @app.get("/api/health")
 async def health_check():

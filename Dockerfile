@@ -41,15 +41,12 @@ RUN npm run build
 # Set working directory back to app root
 WORKDIR /app
 
-# Create Python startup script
-RUN echo "import os\nimport uvicorn\nif __name__ == '__main__':\n    port = int(os.getenv('PORT', 8000))\n    uvicorn.run('backend.main:app', host='0.0.0.0', port=port)" > /app/start.py
-
 # Expose port
 EXPOSE 8000
 
-# Health check - use simple curl without variable
+# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8000/api/health || exit 1
 
-# Run application
-CMD ["python", "/app/start.py"]
+# Run application using start.py (which reads PORT from environment)
+CMD ["python", "start.py"]

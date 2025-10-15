@@ -20,7 +20,7 @@ import uuid
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from security_enhancements import (
+from backend.security_enhancements import (
     check_rate_limit, 
     validate_password_strength, 
     SecurityHeaders, 
@@ -35,7 +35,7 @@ import json
 import sqlite3
 
 # Import AI engine
-from ai_engine.openai_integration import OpenAIEngine
+from backend.ai_engine.openai_integration import OpenAIEngine
 
 # Load environment variables
 load_dotenv()
@@ -64,8 +64,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize OpenAI Engine
-ai_engine = OpenAIEngine()
+# Initialize OpenAI Engine (robust to missing key)
+try:
+    ai_engine = OpenAIEngine()
+    logger.info("OpenAI engine initialized")
+except Exception as e:
+    ai_engine = None
+    logger.warning(f"OpenAI engine not initialized: {e}")
 
 # ============================================
 # Authentication & Security Setup
@@ -1441,6 +1446,8 @@ async def analyze_evidence(request: EvidenceAnalysisRequest):
     Server only sees encrypted data (zero-knowledge architecture).
     """
     try:
+        if not ai_engine:
+            raise HTTPException(status_code=503, detail="AI engine unavailable. Set OPENAI_API_KEY.")
         logger.info(f"Analyzing evidence: {request.file_name} ({request.file_type})")
         
         # In zero-knowledge mode, we work with encrypted data
@@ -1494,6 +1501,8 @@ async def legal_research(request: LegalResearchRequest):
     Searches Norwegian law, ECHR cases, precedents
     """
     try:
+        if not ai_engine:
+            raise HTTPException(status_code=503, detail="AI engine unavailable. Set OPENAI_API_KEY.")
         logger.info(f"Legal research query: {request.query[:100]}...")
         
         research = await ai_engine.legal_research(

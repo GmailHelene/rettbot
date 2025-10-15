@@ -1447,11 +1447,21 @@ async def analyze_evidence(request: EvidenceAnalysisRequest):
         # For demo, we'll analyze based on metadata
         # In production, client would decrypt locally, send to AI, re-encrypt results
         
+        # Build additional context from optional fields
+        additional_context_parts = []
+        if request.description:
+            additional_context_parts.append(f"Beskrivelse: {request.description}")
+        if request.case_context:
+            additional_context_parts.append(f"Sakskontekst: {request.case_context}")
+        additional_context = "\n".join(additional_context_parts)
+
+        # Call AI engine with correct signature
         assessment = await ai_engine.analyze_evidence(
             file_name=request.file_name,
             file_type=request.file_type,
-            description=request.description or "",
-            case_context=request.case_context or ""
+            file_size=request.file_size,
+            case_type="criminal",
+            additional_context=additional_context
         )
         
         return {

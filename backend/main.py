@@ -97,6 +97,265 @@ class HealthCheckResponse(BaseModel):
 
 
 # ============================================
+# Rights Protection Module
+# ============================================
+
+class RightsViolationQuery(BaseModel):
+    """Request to check rights violations and remedies"""
+    situation: str = Field(..., description="Description of rights violation or rejected application")
+    authority: Optional[str] = Field(None, description="Authority that violated rights (police, court, etc.)")
+    context: Optional[str] = Field(None, description="Additional context")
+
+class AppealRequest(BaseModel):
+    """Request for appeal/complaint guidance"""
+    rejection_type: str = Field(..., description="Type of rejection (besøksforbud, begjæring, etc.)")
+    authority: str = Field(..., description="Authority that rejected (politi, tingrett, etc.)")
+    facts: str = Field(..., description="Facts of the case")
+    rejection_reason: Optional[str] = Field(None, description="Stated reason for rejection")
+
+# Rights Protection Database - handles rejections, violations, and appeals
+RIGHTS_PROTECTION_DB = [
+    {
+        "keywords": ["besøksforbud", "kontaktforbud", "restraining order", "avvist besøksforbud"],
+        "situation": "Avvist søknad om besøksforbud",
+        "legal_basis": "Straffeprosessloven § 222a (besøksforbud) / Straffeloven § 266 (trusler)",
+        "criteria_for_approval": [
+            "Det må foreligge en konkret og reell fare for ny straffbar handling",
+            "Faren må gjelde fornærmede eller dennes nærmeste",
+            "Besøksforbud må være et forholdsmessig tiltak",
+            "Det må være sannsynlighetsovervekt for at vilkårene er oppfylt"
+        ],
+        "common_rejection_reasons": [
+            "Ikke konkret nok fare",
+            "Mangelfull dokumentasjon av tidligere hendelser",
+            "For gammel hendelse (ikke aktuell fare)",
+            "Uklart om trusler er reelle eller tomme"
+        ],
+        "what_strengthens_case": [
+            "Politianmeldelse med saksnummer",
+            "Dokumenterte trusler (SMS, e-post, opptak)",
+            "Vitneerklæringer",
+            "Legejournaler ved fysisk vold",
+            "Tidligere domfellelser av gjerningsperson",
+            "Mønster av trakassering over tid"
+        ],
+        "appeal_process": {
+            "first_step": "Klage til samme myndighet som avslo (politi/påtalemyndighet)",
+            "deadline": "3 uker fra vedtak mottatt",
+            "next_level": "Statsadvokatembetet (hvis politiet opprettholder avslag)",
+            "final_level": "Tingrett (begjæring om domstolsprøving etter § 222a(4))"
+        },
+        "complaint_template": """
+TIL: [Politidistrikt/Statsadvokatembetet]
+KLAGE PÅ AVSLAG OM BESØKSFORBUD
+
+Dato: [DATO]
+Saksnummer: [SAKSNUMMER]
+
+Jeg viser til vedtak datert [DATO] hvor min søknad om besøksforbud mot [NAVN] ble avslått.
+
+KLAGEGRUNNLAG:
+1. Vilkårene i straffeprosessloven § 222a er oppfylt
+2. Det foreligger konkret og reell fare for ny straffbar handling
+3. Følgende bevis/dokumentasjon er vedlagt:
+   - [Liste opp bevis: politianmeldelser, SMS, vitneerklæringer, etc.]
+
+FAKTUM:
+[Beskriv hendelsesforløp kronologisk]
+
+RETTSLIGE ANFØRSLER:
+- Straffeprosessloven § 222a krever sannsynlighetsovervekt, ikke bevis ut over enhver rimelig tvil
+- Faren må vurderes fremadrettet, ikke bare historisk
+- [Eventuelle prejudikater fra lignende saker]
+
+BEVIS:
+1. Politianmeldelse - [Saksnr/dato]
+2. SMS/e-post med trusler - [Dato]
+3. Vitneerklæring fra [Navn]
+4. [Flere bevis]
+
+PÅSTAND:
+Vedtaket oppheves og besøksforbud iverksettes i henhold til § 222a.
+
+[Ditt navn]
+[Adresse]
+[Kontaktinfo]
+        """,
+        "additional_remedies": [
+            "Søke voldsoffererstatning (Kontoret for voldsoffererstatning)",
+            "Be om politibeskyttelse/økt patruljering",
+            "Søke midlertidig botilbud (krisesenter)",
+            "Anmelde nye hendelser umiddelbart"
+        ]
+    },
+    {
+        "keywords": ["politimishandling", "politivold", "urettmessig pågripelse", "politiovergrep"],
+        "situation": "Politimishandling eller urettmessig maktbruk",
+        "legal_basis": "Politiloven § 6 (maktbruk) / Straffeprosessloven § 171 (pågripelse) / EMK art. 3 (tortur/umenneskelig behandling)",
+        "criteria_for_violation": [
+            "Maktbruk ut over det som er nødvendig og forsvarlig",
+            "Pågripelse uten lovlig grunnlag (§ 171)",
+            "Umenneskelig eller nedverdigende behandling (EMK art. 3)",
+            "Rasistiske eller diskriminerende motiver"
+        ],
+        "what_strengthens_complaint": [
+            "Legedokumentasjon av skader innen 24 timer",
+            "Videoopptak fra mobil/kroppskamera",
+            "Vitner til hendelsen",
+            "Politirapport som motsier seg selv",
+            "Tidligere klager mot samme polititjenesteperson",
+            "Overvåkningskamera fra området"
+        ],
+        "complaint_process": {
+            "first_step": "Anmeldelse til Spesialenheten for politisaker (innen rimelig tid)",
+            "contact": "tips@spesialenheten.no / 23 29 22 00",
+            "what_they_investigate": "Straffbare forhold begått av politi/påtalemyndighet",
+            "timeline": "Spesialenheten skal beslutte påtale innen rimelig tid",
+            "parallel_track": "Sivilrettslig erstatningskrav (Staten v/Justisdepartementet)"
+        },
+        "complaint_template": """
+TIL: Spesialenheten for politisaker
+E-post: tips@spesialenheten.no
+
+ANMELDELSE AV POLITIMISHANDLING
+
+Dato: [DATO]
+Anmelder: [DITT NAVN]
+Fødselsnr: [FØDSELSNR]
+
+ANMELDTE FORHOLD:
+Jeg anmelder [politidistrikt/navn på tjenesteperson hvis kjent] for:
+- Ulovlig maktbruk i strid med politiloven § 6
+- [Eventuelt: Legemskrenkelse etter straffeloven § 271]
+- [Eventuelt: Brudd på EMK art. 3]
+
+HENDELSESFORLØP:
+Dato/tid: [NØYAKTIG TIDSPUNKT]
+Sted: [NØYAKTIG ADRESSE]
+[Detaljert kronologisk beskrivelse]
+
+BEVIS:
+1. Legejournal fra [sykehus] - vedlagt
+2. Videoopptak - vedlagt/tilgjengelig på forespørsel
+3. Vitne: [Navn, kontaktinfo]
+4. [Flere bevis]
+
+Jeg ber om at forholdet etterforskes og at det tas ut tiltale hvis vilkårene er oppfylt.
+
+[Ditt navn]
+[Kontaktinfo]
+        """,
+        "additional_remedies": [
+            "Be om innsyn i politiets rapporter (§ 242)",
+            "Kontakte Sivilombudet (hvis systemisk problem)",
+            "Dokumentere alt skriftlig til advokat",
+            "Erstatningssøksmål mot Staten"
+        ]
+    },
+    {
+        "keywords": ["dommeravvisning", "korrupt dommer", "inhabil dommer", "feil dom"],
+        "situation": "Inhabil eller korrupt dommer / feil rettsanvendelse",
+        "legal_basis": "Domstolloven § 106-108 (inhabilitet) / Straffeprosessloven kap. 29 (anke)",
+        "grounds_for_disqualification": [
+            "Personlig interesse i sakens utfall (§ 106)",
+            "Nær relasjon til part eller advokat (§ 107)",
+            "Tidligere uttalt seg om saken utenfor rettsalen",
+            "Partiskhet eller mistanke om det (§ 108)"
+        ],
+        "what_strengthens_complaint": [
+            "Dokumentasjon av dommerens forbindelser til motpart",
+            "Sosiale medier-poster som viser bias",
+            "Tidligere saker hvor samme dommer viste samme bias",
+            "Uttalelser fra dommer som viser forutinntatthet",
+            "Eierinteresser eller økonomiske forbindelser"
+        ],
+        "remedies": {
+            "during_trial": "Fremsette inhabilitetsinnsigelse umiddelbart (§ 109) - dommer avgjør selv først, kan ankes",
+            "after_judgment": "Anke dommen (straffesaker: kap. 29, sivile: tvisteloven kap. 29)",
+            "corrupt_judge": "Anmelde til Spesialenheten (hvis straffbart) + tilsynsutvalget for dommere",
+            "appeal_deadline": "Anke: 2 uker fra dom (strafferett) / 4 uker (sivilrett)"
+        },
+        "appeal_template": """
+TIL: [Lagmannsrett/Høyesterett]
+ANKE OVER DOM
+
+Ankende part: [DITT NAVN]
+Tingrettens dom: [SAKSNUMMER, DATO]
+
+ANKEGRUNNLAG:
+1. Feil rettsanvendelse - [spesifiser paragraf]
+2. Saksbehandlingsfeil - [spesifiser]
+3. [Eventuelt: Inhabilitet hos dommer]
+
+ANFØRSLER:
+[Detaljert gjennomgang av hva tingretten gjorde feil]
+
+BEVISTILBUD:
+[Liste over bevis som skal fremlegges]
+
+PÅSTAND:
+Tingrettens dom oppheves. [Ny påstand].
+
+[Navn]
+[Advokatfullmakt hvis relevant]
+        """,
+        "additional_info": [
+            "Inhabilitet kan også føre til opphevelse av dom",
+            "Domstolsadministrasjonen har tilsynsansvar",
+            "Kontakt advokatorganisasjon for hjelp til anke"
+        ]
+    },
+    {
+        "keywords": ["aktinnsyn nektet", "innsyn avslått", "offentlighetsloven", "nektet dokumenter"],
+        "situation": "Nektet aktinnsyn eller dokumenter fra det offentlige",
+        "legal_basis": "Offentlighetsloven § 3 (innsynsrett) / Straffeprosessloven § 242 (innsyn i straffesaker)",
+        "your_rights": [
+            "Hovedregel: Alle dokumenter er offentlige (offentlighetsloven § 3)",
+            "I straffesaker: Mistenkte/siktet har rett til innsyn i sakens dokumenter (§ 242)",
+            "Unntak må begrunnes konkret (ikke bare henvisning til paragraf)"
+        ],
+        "common_illegal_rejections": [
+            "Generell henvisning til 'hensyn til etterforskningen' uten konkret begrunnelse",
+            "Nekting av innsyn i egne forklaringer",
+            "Påstand om 'unntatt etter fvl § 13' uten reell vurdering",
+            "Forsinkelse av innsyn uten saklig grunn"
+        ],
+        "how_to_appeal": {
+            "step_1": "Klage til organet som avslo (innen 3 uker)",
+            "step_2": "Hvis opprettholdt: Klage sendes videre til overordnet organ",
+            "step_3": "Sivilombudet kan klages til hvis langvarig behandling",
+            "final_remedy": "Domstolsprøving (søksmål mot Staten)"
+        },
+        "complaint_template": """
+TIL: [Politidistrikt/Departement]
+KLAGE PÅ AVSLAG OM AKTINNSYN
+
+Dato: [DATO]
+Saksnummer: [SAKSNR]
+
+Jeg viser til vedtak av [DATO] hvor min begjæring om innsyn i [spesifiser dokumenter] ble avslått.
+
+KLAGEGRUNNLAG:
+1. Avslaget er i strid med offentlighetsloven § 3 / straffeprosessloven § 242
+2. Unntaksadgangen er ikke konkret begrunnet
+3. Mitt behov for innsyn veier tyngre enn eventuelle hensyn
+
+ANFØRSLER:
+- Hovedregelen er offentlighet, unntak må begrunnes konkret
+- [Spesifiser hvorfor begrunnelsen er mangelfull]
+- Jeg har saklig behov for dokumentene til [formål]
+
+PÅSTAND:
+Innsynsbegjæringen tas til følge. Dokumentene utleveres innen [frist].
+
+[Navn]
+[Kontaktinfo]
+        """
+    }
+]
+
+
+# ============================================
 # Penalties DB (minimal, deterministic dataset)
 # ============================================
 class PenaltyQuery(BaseModel):
@@ -429,6 +688,176 @@ async def legal_penalties(request: PenaltyQuery):
     except Exception as e:
         logger.error(f"Error computing penalties: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Penalty lookup failed: {str(e)}")
+
+
+@app.post("/api/rights/violations")
+async def check_rights_violations(request: RightsViolationQuery):
+    """
+    Check if user's rights have been violated and what remedies are available.
+    Covers: rejected applications (besøksforbud), police misconduct, judicial bias, denied access to documents.
+    """
+    try:
+        query = (request.situation or "").lower()
+        authority = (request.authority or "").lower()
+        context = (request.context or "")
+
+        # Find matches by keyword
+        matches = []
+        for entry in RIGHTS_PROTECTION_DB:
+            for kw in entry["keywords"]:
+                if kw in query:
+                    matches.append(entry)
+                    break
+
+        # Build response
+        results = []
+        for m in matches:
+            item = {
+                "situation": m["situation"],
+                "legal_basis": m["legal_basis"],
+                "what_strengthens_case": m.get("what_strengthens_case", m.get("what_strengthens_complaint", [])),
+                "appeal_process": m.get("appeal_process", m.get("complaint_process", m.get("remedies", {}))),
+                "additional_info": m.get("additional_remedies", m.get("additional_info", []))
+            }
+
+            # Add specific criteria if available
+            if "criteria_for_approval" in m:
+                item["criteria_for_approval"] = m["criteria_for_approval"]
+            if "common_rejection_reasons" in m:
+                item["common_rejection_reasons"] = m["common_rejection_reasons"]
+            if "criteria_for_violation" in m:
+                item["criteria_for_violation"] = m["criteria_for_violation"]
+            if "grounds_for_disqualification" in m:
+                item["grounds_for_disqualification"] = m["grounds_for_disqualification"]
+            if "your_rights" in m:
+                item["your_rights"] = m["your_rights"]
+            if "common_illegal_rejections" in m:
+                item["common_illegal_rejections"] = m["common_illegal_rejections"]
+            if "how_to_appeal" in m:
+                item["how_to_appeal"] = m["how_to_appeal"]
+
+            results.append(item)
+
+        if not results:
+            # Fallback: generic rights guidance
+            return {
+                "success": True,
+                "results": [],
+                "generic_guidance": {
+                    "message": "Ingen spesifikk treff i database. Generelle rettigheter:",
+                    "general_rights": [
+                        "Rett til klage på alle forvaltningsvedtak (forvaltningsloven)",
+                        "Rett til aktinnsyn (offentlighetsloven § 3)",
+                        "Rett til begrunnelse for avslag (forvaltningsloven § 25)",
+                        "Anmelde politi/dommere til Spesialenheten/tilsynsutvalg",
+                        "Sivilombudet kan behandle klager på offentlig forvaltning"
+                    ]
+                },
+                "timestamp": datetime.utcnow().isoformat()
+            }
+
+        # Optional AI enrichment
+        ai_guidance = None
+        try:
+            if ai_engine and os.getenv("OPENAI_API_KEY"):
+                prompt = f"User describes: '{request.situation}' involving {request.authority}. Context: {context}. Provide brief guidance on Norwegian legal rights and remedies."
+                ai_guidance = await ai_engine.simple_summary(prompt)
+        except Exception:
+            ai_guidance = None
+
+        return {
+            "success": True,
+            "results": results,
+            "ai_guidance": ai_guidance,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+    except Exception as e:
+        logger.error(f"Error checking rights violations: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Rights check failed: {str(e)}")
+
+
+@app.post("/api/rights/appeal")
+async def get_appeal_template(request: AppealRequest):
+    """
+    Get appeal/complaint template and step-by-step guidance for rejected applications or rights violations.
+    """
+    try:
+        rejection_type = (request.rejection_type or "").lower()
+
+        # Find matching template
+        template_match = None
+        for entry in RIGHTS_PROTECTION_DB:
+            for kw in entry["keywords"]:
+                if kw in rejection_type:
+                    template_match = entry
+                    break
+            if template_match:
+                break
+
+        if not template_match:
+            return {
+                "success": True,
+                "template": None,
+                "message": "Ingen spesifikk klagemal funnet. Vennligst spesifiser type (besøksforbud, politimishandling, dommeravvisning, aktinnsyn)."
+            }
+
+        # Build response with template
+        result = {
+            "situation": template_match["situation"],
+            "legal_basis": template_match["legal_basis"],
+            "template": template_match.get("complaint_template", template_match.get("appeal_template", "")),
+            "process": template_match.get("appeal_process", template_match.get("complaint_process", template_match.get("how_to_appeal", {}))),
+            "strengthening_factors": template_match.get("what_strengthens_case", template_match.get("what_strengthens_complaint", [])),
+        }
+
+        # Add context-specific guidance
+        if "criteria_for_approval" in template_match:
+            result["criteria_you_must_show"] = template_match["criteria_for_approval"]
+        if "common_rejection_reasons" in template_match:
+            result["common_mistakes_to_avoid"] = template_match["common_rejection_reasons"]
+
+        # AI-generated custom template based on facts
+        ai_custom_template = None
+        try:
+            if ai_engine and os.getenv("OPENAI_API_KEY"):
+                prompt = f"""Generate a professional Norwegian legal complaint/appeal based on:
+Rejection type: {request.rejection_type}
+Authority: {request.authority}
+Facts: {request.facts}
+Rejection reason: {request.rejection_reason or 'not stated'}
+
+Use formal legal language appropriate for Norwegian courts/authorities. Include:
+1. Header with recipient
+2. Reference to rejection
+3. Legal grounds for appeal
+4. Factual basis
+5. Legal arguments
+6. Evidence list
+7. Formal conclusion/demand
+"""
+                ai_custom_template = await ai_engine.simple_summary(prompt)
+        except Exception:
+            ai_custom_template = None
+
+        return {
+            "success": True,
+            "template_info": result,
+            "ai_custom_template": ai_custom_template,
+            "instructions": {
+                "step_1": "Fyll ut malen med dine spesifikke fakta",
+                "step_2": "Legg ved all dokumentasjon (kvitteringer, politianmeldelser, etc.)",
+                "step_3": f"Send til {template_match.get('appeal_process', {}).get('first_step', 'relevant myndighet')}",
+                "step_4": f"Frist: {template_match.get('appeal_process', {}).get('deadline', 'sjekk spesifikk frist')}",
+                "step_5": "Behold kopi av alt du sender inn"
+            },
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+    except Exception as e:
+        logger.error(f"Error generating appeal template: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Appeal template generation failed: {str(e)}")
+
 
 @app.post("/api/evidence/upload")
 async def upload_evidence_file(

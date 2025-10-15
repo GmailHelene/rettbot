@@ -34,7 +34,7 @@ export default function Dashboard() {
       id: 'evidence',
       title: 'Bevisanalyse',
       description: 'AI-drevet analyse av juridiske bevis og dokumenter',
-      icon: <FileSearch className="w-6 h-6" />,
+      icon: <FileSearch className="icon-md" />,
       path: '/evidence-analysis',
       color: 'from-blue-500 to-blue-600'
     },
@@ -42,7 +42,7 @@ export default function Dashboard() {
       id: 'research',
       title: 'Juridisk Research',
       description: 'Søk i norsk lov og juridisk praksis',
-      icon: <Scale className="w-6 h-6" />,
+      icon: <Scale className="icon-md" />,
       path: '/legal-research',
       color: 'from-purple-500 to-purple-600'
     },
@@ -50,7 +50,7 @@ export default function Dashboard() {
       id: 'strategy',
       title: 'Forsvarsstrategi',
       description: 'Generer forsvarsstrategi basert på saksdetaljer',
-      icon: <Shield className="w-6 h-6" />,
+      icon: <Shield className="icon-md" />,
       path: '/defense-strategy',
       color: 'from-green-500 to-green-600'
     },
@@ -58,7 +58,7 @@ export default function Dashboard() {
       id: 'documents',
       title: 'Dokumentgenerator',
       description: 'Lag juridiske dokumenter automatisk',
-      icon: <FileText className="w-6 h-6" />,
+      icon: <FileText className="icon-md" />,
       path: '/document-generator',
       color: 'from-orange-500 to-orange-600'
     },
@@ -66,7 +66,7 @@ export default function Dashboard() {
       id: 'penalties',
       title: 'Strafferamme Lookup',
       description: 'Se strafferammer etter norsk lov',
-      icon: <Gavel className="w-6 h-6" />,
+      icon: <Gavel className="icon-md" />,
       path: '/penalties',
       color: 'from-red-500 to-red-600'
     },
@@ -74,7 +74,7 @@ export default function Dashboard() {
       id: 'rights',
       title: 'Rettighetssvern',
       description: 'Rapporter brudd på rettigheter og generer klager',
-      icon: <ShieldAlert className="w-6 h-6" />,
+      icon: <ShieldAlert className="icon-md" />,
       path: '/rights-protection',
       color: 'from-pink-500 to-pink-600'
     },
@@ -82,7 +82,7 @@ export default function Dashboard() {
       id: 'trial',
       title: 'Rettssal Simulator',
       description: 'Simuler rettsaker med ulike advokatkvaliteter',
-      icon: <Briefcase className="w-6 h-6" />,
+      icon: <Briefcase className="icon-md" />,
       path: '/trial-simulator',
       color: 'from-indigo-500 to-indigo-600'
     },
@@ -90,7 +90,7 @@ export default function Dashboard() {
       id: 'corruption',
       title: 'Korrupsjonsvurdering',
       description: 'Analyser potensielle korrupsjonssaker',
-      icon: <AlertTriangle className="w-6 h-6" />,
+      icon: <AlertTriangle className="icon-md" />,
       path: '/corruption-assessment',
       color: 'from-yellow-500 to-yellow-600'
     },
@@ -98,7 +98,7 @@ export default function Dashboard() {
       id: 'upload',
       title: 'Last opp Bevis',
       description: 'Sikker opplasting av dokumenter og filer',
-      icon: <Upload className="w-6 h-6" />,
+      icon: <Upload className="icon-md" />,
       path: '/evidence-upload',
       color: 'from-teal-500 to-teal-600'
     },
@@ -106,7 +106,7 @@ export default function Dashboard() {
       id: 'chat',
       title: 'AI Juridisk Chat',
       description: 'Chat med AI juridisk assistent',
-      icon: <MessageSquare className="w-8 h-8" />,
+      icon: <MessageSquare className="icon-lg" />,
       path: '/legal-chat',
       color: 'from-cyan-500 to-cyan-600'
     }

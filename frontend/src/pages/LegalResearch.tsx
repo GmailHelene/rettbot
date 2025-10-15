@@ -91,11 +91,11 @@ export default function LegalResearch() {
               to="/"
               className="mr-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="header-icon" />
             </Link>
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
-                <Scale className="w-6 h-6 mr-3 text-purple-600" />
+                <Scale className="header-title-icon mr-3 text-purple-600" />
                 Juridisk Research
               </h1>
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">

@@ -10,21 +10,26 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'RettBot+ - Elite AI Legal Defense',
+        name: 'RettBot+ - AI Juridisk Assistent',
         short_name: 'RettBot+',
-        description: 'World-class encrypted legal defense platform',
-        theme_color: '#1a1a1a',
-        background_color: '#ffffff',
+        description: 'Profesjonell AI-drevet juridisk assistent for norske borgere',
+        theme_color: '#1a2332',
+        background_color: '#fafbfc',
         display: 'standalone',
-        orientation: 'portrait',
+        orientation: 'portrait-primary',
+        scope: '/',
+        start_url: '/',
+        categories: ['legal', 'productivity', 'professional'],
+        lang: 'nb-NO',
         icons: [
           {
-            src: '/pwa-192x192.png',
+            src: '/icon-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any maskable'
           },
           {
-            src: '/pwa-512x512.png',
+            src: '/icon-512x512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'

@@ -91,24 +91,24 @@ export default function LegalChat() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+      <header className="header-professional">
+        <div className="max-w-5xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center">
             <Link
               to="/"
-              className="mr-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              className="mr-3 p-2 hover:bg-slate-100 rounded-md transition-colors"
             >
-              <ArrowLeft className="header-icon" />
+              <ArrowLeft className="header-nav-icon" />
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
-                <MessageCircle className="header-title-icon mr-3 text-purple-600" />
+              <h1 className="header-title flex items-center">
+                <MessageCircle className="header-title-icon mr-2 text-slate-600" />
                 Juridisk Chat
               </h1>
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                AI-drevet juridisk rådgivning • GPT-4 Turbo
+              <p className="header-subtitle">
+                AI-drevet juridisk rådgivning • Sikker og konfidensiell
               </p>
             </div>
           </div>
@@ -126,16 +126,16 @@ export default function LegalChat() {
               <div
                 className={`max-w-[80%] rounded-lg px-4 py-3 ${
                   message.role === 'user'
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-lg'
+                    ? 'bg-slate-700 text-white'
+                    : 'bg-white text-slate-900 shadow-sm border border-slate-200'
                 }`}
               >
                 <div className="whitespace-pre-line">{message.content}</div>
                 <div
                   className={`text-xs mt-2 ${
                     message.role === 'user'
-                      ? 'text-purple-200'
-                      : 'text-gray-500 dark:text-gray-400'
+                      ? 'text-slate-300'
+                      : 'text-slate-500'
                   }`}
                 >
                   {new Date(message.timestamp).toLocaleTimeString('nb-NO', {
@@ -149,9 +149,9 @@ export default function LegalChat() {
 
           {loading && (
             <div className="flex justify-start">
-              <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-lg rounded-lg px-4 py-3">
+              <div className="bg-white text-slate-900 shadow-sm border border-slate-200 rounded-lg px-4 py-3">
                 <div className="flex items-center">
-                  <Loader className="w-5 h-5 animate-spin mr-2" />
+                  <Loader className="icon-sm animate-spin mr-2" />
                   <span>Tenker...</span>
                 </div>
               </div>
@@ -163,12 +163,12 @@ export default function LegalChat() {
       </main>
 
       {/* Input Area */}
-      <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+      <div className="border-t border-slate-200 bg-white">
         <div className="max-w-5xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
           {error && (
-            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start">
-              <AlertCircle className="w-5 h-5 text-red-600 mr-2 flex-shrink-0 mt-0.5" />
-              <span className="text-red-700 dark:text-red-400 text-sm">{error}</span>
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start">
+              <AlertCircle className="icon-sm text-red-600 mr-2 flex-shrink-0 mt-0.5" />
+              <span className="text-red-700 text-sm">{error}</span>
             </div>
           )}
 
@@ -179,18 +179,18 @@ export default function LegalChat() {
               onKeyPress={handleKeyPress}
               placeholder="Skriv ditt juridiske spørsmål her... (Trykk Enter for å sende)"
               rows={3}
-              className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+              className="input-legal resize-none"
             />
             <button
               onClick={handleSend}
               disabled={loading || !input.trim()}
-              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white rounded-lg transition-colors flex items-center justify-center"
+              className="px-6 py-3 bg-slate-700 hover:bg-slate-800 disabled:bg-slate-400 text-white rounded-lg transition-colors flex items-center justify-center"
             >
-              <Send className="w-4 h-4" />
+              <Send className="icon-sm" />
             </button>
           </div>
 
-          <div className="mt-3 text-xs text-gray-500 dark:text-gray-400 text-center">
+          <div className="mt-3 text-xs text-slate-500 text-center">
             💡 Tips: Vær så spesifikk som mulig i spørsmålet ditt for best svar
           </div>
         </div>

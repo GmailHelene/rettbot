@@ -5,7 +5,7 @@ FastAPI REST API for zero-knowledge AI legal assistant
 
 from fastapi import FastAPI, HTTPException, Depends, File, UploadFile, status, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
+from fastapi.responses import JSONResponse, HTMLResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field, EmailStr
@@ -63,6 +63,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Enforce HTTPS in production behind a proxy (Railway) using X-Forwarded-Proto
+@app.middleware("http")
+async def enforce_https_redirect(request: Request, call_next):
+    try:
+        force_https = os.getenv("FORCE_HTTPS", "true").lower() == "true"
+        # Respect proxy headers (Railway sets X-Forwarded-Proto)
+        xf_proto = request.headers.get("x-forwarded-proto") or request.url.scheme
+        if force_https and xf_proto == "http":
+            https_url = request.url.replace(scheme="https")
+            return RedirectResponse(str(https_url), status_code=307)
+    except Exception:
+        # If anything goes wrong, do not block the request
+        pass
+    return await call_next(request)
 
 # Initialize OpenAI Engine (robust to missing key)
 try:

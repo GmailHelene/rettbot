@@ -58,13 +58,26 @@ class SecurityHeaders:
     """Security headers for enhanced protection"""
     
     @staticmethod
-    def get_headers() -> Dict[str, str]:
-        """Get security headers"""
+    def get_headers(hsts_max_age: int = 31536000, include_hsts_preload: bool = True) -> Dict[str, str]:
+        """
+        Get security headers with configurable HSTS settings.
+        
+        Args:
+            hsts_max_age: Maximum age in seconds for HSTS (default: 31536000 = 1 year)
+            include_hsts_preload: Whether to include preload directive (default: True)
+        
+        Returns:
+            Dictionary of security headers
+        """
+        hsts_value = f"max-age={hsts_max_age}; includeSubDomains"
+        if include_hsts_preload:
+            hsts_value += "; preload"
+        
         return {
             "X-Content-Type-Options": "nosniff",
             "X-Frame-Options": "DENY",
             "X-XSS-Protection": "1; mode=block",
-            "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+            "Strict-Transport-Security": hsts_value,
             "Content-Security-Policy": "default-src 'self' https:; upgrade-insecure-requests; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.openai.com;",
             "Referrer-Policy": "strict-origin-when-cross-origin",
             "Permissions-Policy": "camera=(), microphone=(), geolocation=()"
@@ -213,3 +226,15 @@ def validate_password_strength(password: str) -> None:
             status_code=400,
             detail=f"Password requirements not met: {'; '.join(issues)}"
         )
+
+def get_hsts_config() -> tuple[int, bool]:
+    """
+    Get HSTS configuration from environment variables.
+    
+    Returns:
+        Tuple of (max_age, include_preload)
+    """
+    import os
+    max_age = int(os.getenv("HSTS_MAX_AGE", "31536000"))  # Default: 1 year
+    include_preload = os.getenv("HSTS_PRELOAD", "true").lower() == "true"
+    return max_age, include_preload

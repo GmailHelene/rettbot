@@ -25,7 +25,8 @@ from backend.security_enhancements import (
     validate_password_strength, 
     SecurityHeaders, 
     get_client_ip,
-    session_security
+    session_security,
+    get_hsts_config
 )
 import jwt
 import bcrypt
@@ -1027,8 +1028,11 @@ async def add_security_headers(request: Request, call_next):
     """Add security headers to all responses"""
     response = await call_next(request)
     
-    # Add security headers
-    headers = SecurityHeaders.get_headers()
+    # Get HSTS configuration from environment
+    hsts_max_age, hsts_preload = get_hsts_config()
+    
+    # Add security headers with configurable HSTS
+    headers = SecurityHeaders.get_headers(hsts_max_age, hsts_preload)
     for key, value in headers.items():
         response.headers[key] = value
     

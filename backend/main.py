@@ -34,6 +34,7 @@ from backend.routers.misc import router as misc_router
 from backend.routers.auth import router as auth_router
 from backend.routers.user import router as user_router
 from backend.routers.cases import router as cases_router
+from backend.routers.spa import router as spa_router
 from backend.deps import (
     IS_PRODUCTION,
     SECRET_KEY,
@@ -260,36 +261,6 @@ frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
 if frontend_dist.exists():
     app.mount("/assets", StaticFiles(directory=str(frontend_dist / "assets")), name="assets")
     logger.info(f"Mounted frontend static files from {frontend_dist}")
-    # Serve PWA files if present
-    manifest_candidates = [frontend_dist / "manifest.webmanifest", frontend_dist / "manifest.json"]
-
-    @app.get("/manifest.webmanifest")
-    async def serve_manifest():
-        for mf in manifest_candidates:
-            if mf.exists():
-                return FileResponse(mf)
-        raise HTTPException(status_code=404, detail="Manifest not found")
-
-    @app.get("/registerSW.js")
-    async def serve_register_sw():
-        f = frontend_dist / "registerSW.js"
-        if f.exists():
-            return FileResponse(f)
-        raise HTTPException(status_code=404, detail="registerSW.js not found")
-
-    @app.get("/sw.js")
-    async def serve_sw():
-        f = frontend_dist / "sw.js"
-        if f.exists():
-            return FileResponse(f)
-        raise HTTPException(status_code=404, detail="Service worker not found")
-
-    @app.get("/workbox-{filename}")
-    async def serve_workbox(filename: str):
-        f = frontend_dist / f"workbox-{filename}"
-        if f.exists():
-            return FileResponse(f)
-        raise HTTPException(status_code=404, detail="Workbox file not found")
 
 # ============================================
 # Request/Response Models
@@ -841,38 +812,6 @@ PENALTIES_DB = [
 # API Endpoints
 # ============================================
 
-@app.get("/", response_class=HTMLResponse)
-async def root():
-    """Serve frontend index.html"""
-    frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
-    index_file = frontend_dist / "index.html"
-
-    if index_file.exists():
-        return HTMLResponse(content=render_for_path(str(index_file), "/"))
-    else:
-        # Fallback: Return simple HTML with API info
-        return HTMLResponse(content="""
-<!DOCTYPE html>
-<html lang="no">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RettBot+ - AI Juridisk Assistent</title>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; }
-        h1 { font-size: 3em; margin-bottom: 10px; }
-        p { font-size: 1.2em; margin-bottom: 30px; }
-        .api-link { background: white; color: #1e3a8a; padding: 15px 30px; text-decoration: none; border-radius: 10px; display: inline-block; font-weight: bold; }
-        .api-link:hover { background: #fbbf24; }
-    </style>
-</head>
-<body>
-    <h1>⚖️ RettBot+</h1>
-    <p>AI-drevet juridisk assistent for norske borgere</p>
-    <a href="/api/health" class="api-link">API Health Check →</a>
-</body>
-</html>
-        """)
 
 
 
@@ -1562,49 +1501,6 @@ async def general_exception_handler(request, exc):
 # SPA Catch-All Route (MUST BE LAST!)
 # ============================================
 
-@app.get("/{path:path}", response_class=HTMLResponse, include_in_schema=False)
-async def catch_all(path: str):
-    """
-    Catch-all route for SPA (Single Page Application) routing.
-    This serves index.html for all frontend routes (e.g., /penalties, /legal-research, etc.)
-    MUST be the last route defined to avoid overriding API endpoints.
-    """
-    # Skip API routes - they should not fall through to frontend
-    if path.startswith("api/"):
-        raise HTTPException(status_code=404, detail="API endpoint not found")
-
-    frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
-    index_file = frontend_dist / "index.html"
-
-    # Serve ekte statiske filer i dist-roten (robots.txt, sitemap.xml, favicon, ikoner, m.m.)
-    # før vi faller tilbake til SPA index.html. Trygg mot path-traversal.
-    if path and not path.endswith("/"):
-        candidate = (frontend_dist / path).resolve()
-        try:
-            candidate.relative_to(frontend_dist.resolve())
-            if candidate.is_file():
-                return FileResponse(candidate)
-        except (ValueError, OSError):
-            pass
-
-    if index_file.exists():
-        return HTMLResponse(content=render_for_path(str(index_file), "/" + path))
-    else:
-        # Fallback for development
-        return HTMLResponse(content=f"""
-<!DOCTYPE html>
-<html>
-<head>
-    <title>RettBot+ - Frontend ikke bygget</title>
-</head>
-<body>
-    <h1>⚖️ RettBot+ API</h1>
-    <p>Frontend er ikke bygget ennå.</p> 
-    <p>Forsøkt rute: <code>/{path}</code></p>
-    <p><a href="/api/health">API Health Check</a></p>
-</body>
-</html>
-        """)
 
 # ============================================
 # Startup/Shutdown Events
@@ -1623,6 +1519,12 @@ async def startup_event():
 async def shutdown_event():
     """Run on application shutdown"""
     logger.info("👋 RettBot+ API shutting down...")
+
+
+# SPA-router inkluderes SIST: catch-all-ruten (/{path:path}) må registreres
+# etter alle API-ruter, ellers fanger den opp API-kallene.
+app.include_router(spa_router)
+
 
 # ============================================
 # Main Entry Point

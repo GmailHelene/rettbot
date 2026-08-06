@@ -1,0 +1,1084 @@
+"""AI-verktoey: bevisanalyse, research, chat, forsvar, dokument, korrupsjon,
+strafferammer og rettighetsvern. Endepunktene kaller Anthropic via ai_engine."""
+
+import json
+import logging
+import os
+from datetime import datetime
+from typing import Dict, Any, Optional, List
+
+from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel, Field
+
+from backend.deps import get_current_user, ai_engine, ai_rate_limit, user_rate_limit
+
+logger = logging.getLogger(__name__)
+router = APIRouter()
+
+class EvidenceAnalysisRequest(BaseModel):
+    """Request for evidence analysis"""
+    file_name: str = Field(..., description="Name of the evidence file")
+    file_type: str = Field(..., description="MIME type of file")
+    file_size: int = Field(..., description="Size in bytes")
+    description: Optional[str] = Field(None, description="User description of evidence")
+    case_context: Optional[str] = Field(None, description="Context of the case")
+    encrypted_content: str = Field(..., description="Base64 encrypted file content")
+
+class LegalResearchRequest(BaseModel):
+    """Request for legal research"""
+    query: str = Field(..., description="Legal question to research")
+    case_type: Optional[str] = Field(None, description="Type of case (criminal, civil, etc.)")
+    context: Optional[str] = Field(None, description="Additional context")
+    encrypted_data: Optional[str] = Field(None, description="Encrypted case data")
+
+class ChatRequest(BaseModel):
+    """Simple chat request for Legal Chat UI"""
+    message: str
+    conversation_history: Optional[List[Dict[str, str]]] = None
+
+class DefenseStrategyRequest(BaseModel):
+    """Request for defense strategy"""
+    case_facts: str = Field(..., description="Facts of the case")
+    charges: str = Field(..., description="Criminal charges or allegations")
+    evidence: Optional[List[str]] = Field(None, description="List of evidence")
+    legal_research: Optional[str] = Field(None, description="Previous research results")
+    encrypted_data: Optional[str] = Field(None, description="Encrypted case data")
+
+class LegalDocumentRequest(BaseModel):
+    """Request for legal document drafting"""
+    document_type: str = Field(..., description="Type of document (motion, complaint, appeal)")
+    case_details: Dict[str, Any] = Field(..., description="Case information")
+    strategy: Optional[str] = Field(None, description="Defense strategy to incorporate")
+    template: Optional[str] = Field(None, description="Specific template to use")
+
+class CorruptionAssessmentRequest(BaseModel):
+    """Request for corruption case assessment"""
+    allegations: str = Field(..., description="Corruption allegations")
+    evidence: List[str] = Field(..., description="Available evidence")
+    institutions: List[str] = Field(..., description="Institutions involved")
+    context: Optional[str] = Field(None, description="Additional context")
+
+class RightsViolationQuery(BaseModel):
+    """Request to check rights violations and remedies"""
+    situation: str = Field(..., description="Description of rights violation or rejected application")
+    authority: Optional[str] = Field(None, description="Authority that violated rights (police, court, etc.)")
+    context: Optional[str] = Field(None, description="Additional context")
+
+class AppealRequest(BaseModel):
+    """Request for appeal/complaint guidance"""
+    rejection_type: str = Field(..., description="Type of rejection (besøksforbud, begjæring, etc.)")
+    authority: str = Field(..., description="Authority that rejected (politi, tingrett, etc.)")
+    facts: str = Field(..., description="Facts of the case")
+    rejection_reason: Optional[str] = Field(None, description="Stated reason for rejection")
+
+class PenaltyQuery(BaseModel):
+    """Request to get penalties for a given offense"""
+    offense: str = Field(..., description="Free-text offense name or statute reference")
+    facts: Optional[str] = Field(None, description="Short facts to help contextualize severity")
+
+RIGHTS_PROTECTION_DB = [
+    {
+        "keywords": ["besøksforbud", "kontaktforbud", "restraining order", "avvist besøksforbud"],
+        "situation": "Avvist søknad om besøksforbud",
+        "legal_basis": "Straffeprosessloven § 222a (besøksforbud) / Straffeloven § 266 (trusler)",
+        "criteria_for_approval": [
+            "Det må foreligge en konkret og reell fare for ny straffbar handling",
+            "Faren må gjelde fornærmede eller dennes nærmeste",
+            "Besøksforbud må være et forholdsmessig tiltak",
+            "Det må være sannsynlighetsovervekt for at vilkårene er oppfylt"
+        ],
+        "common_rejection_reasons": [
+            "Ikke konkret nok fare",
+            "Mangelfull dokumentasjon av tidligere hendelser",
+            "For gammel hendelse (ikke aktuell fare)",
+            "Uklart om trusler er reelle eller tomme"
+        ],
+        "what_strengthens_case": [
+            "Politianmeldelse med saksnummer",
+            "Dokumenterte trusler (SMS, e-post, opptak)",
+            "Vitneerklæringer",
+            "Legejournaler ved fysisk vold",
+            "Tidligere domfellelser av gjerningsperson",
+            "Mønster av trakassering over tid"
+        ],
+        "appeal_process": {
+            "first_step": "Klage til samme myndighet som avslo (politi/påtalemyndighet)",
+            "deadline": "3 uker fra vedtak mottatt",
+            "next_level": "Statsadvokatembetet (hvis politiet opprettholder avslag)",
+            "final_level": "Tingrett (begjæring om domstolsprøving etter § 222a(4))"
+        },
+        "complaint_template": """
+TIL: [Politidistrikt/Statsadvokatembetet]
+KLAGE PÅ AVSLAG OM BESØKSFORBUD
+
+Dato: [DATO]
+Saksnummer: [SAKSNUMMER]
+
+Jeg viser til vedtak datert [DATO] hvor min søknad om besøksforbud mot [NAVN] ble avslått.
+
+KLAGEGRUNNLAG:
+1. Vilkårene i straffeprosessloven § 222a er oppfylt
+2. Det foreligger konkret og reell fare for ny straffbar handling
+3. Følgende bevis/dokumentasjon er vedlagt:
+   - [Liste opp bevis: politianmeldelser, SMS, vitneerklæringer, etc.]
+
+FAKTUM:
+[Beskriv hendelsesforløp kronologisk]
+
+RETTSLIGE ANFØRSLER:
+- Straffeprosessloven § 222a krever sannsynlighetsovervekt, ikke bevis ut over enhver rimelig tvil
+- Faren må vurderes fremadrettet, ikke bare historisk
+- [Eventuelle prejudikater fra lignende saker]
+
+BEVIS:
+1. Politianmeldelse - [Saksnr/dato]
+2. SMS/e-post med trusler - [Dato]
+3. Vitneerklæring fra [Navn]
+4. [Flere bevis]
+
+PÅSTAND:
+Vedtaket oppheves og besøksforbud iverksettes i henhold til § 222a.
+
+[Ditt navn]
+[Adresse]
+[Kontaktinfo]
+        """,
+        "additional_remedies": [
+            "Søke voldsoffererstatning (Kontoret for voldsoffererstatning)",
+            "Be om politibeskyttelse/økt patruljering",
+            "Søke midlertidig botilbud (krisesenter)",
+            "Anmelde nye hendelser umiddelbart"
+        ]
+    },
+    {
+        "keywords": ["politimishandling", "politivold", "urettmessig pågripelse", "politiovergrep"],
+        "situation": "Politimishandling eller urettmessig maktbruk",
+        "legal_basis": "Politiloven § 6 (maktbruk) / Straffeprosessloven § 171 (pågripelse) / EMK art. 3 (tortur/umenneskelig behandling)",
+        "criteria_for_violation": [
+            "Maktbruk ut over det som er nødvendig og forsvarlig",
+            "Pågripelse uten lovlig grunnlag (§ 171)",
+            "Umenneskelig eller nedverdigende behandling (EMK art. 3)",
+            "Rasistiske eller diskriminerende motiver"
+        ],
+        "what_strengthens_complaint": [
+            "Legedokumentasjon av skader innen 24 timer",
+            "Videoopptak fra mobil/kroppskamera",
+            "Vitner til hendelsen",
+            "Politirapport som motsier seg selv",
+            "Tidligere klager mot samme polititjenesteperson",
+            "Overvåkningskamera fra området"
+        ],
+        "complaint_process": {
+            "first_step": "Anmeldelse til Spesialenheten for politisaker (innen rimelig tid)",
+            "contact": "tips@spesialenheten.no / 23 29 22 00",
+            "what_they_investigate": "Straffbare forhold begått av politi/påtalemyndighet",
+            "timeline": "Spesialenheten skal beslutte påtale innen rimelig tid",
+            "parallel_track": "Sivilrettslig erstatningskrav (Staten v/Justisdepartementet)"
+        },
+        "complaint_template": """
+TIL: Spesialenheten for politisaker
+E-post: tips@spesialenheten.no
+
+ANMELDELSE AV POLITIMISHANDLING
+
+Dato: [DATO]
+Anmelder: [DITT NAVN]
+Fødselsnr: [FØDSELSNR]
+
+ANMELDTE FORHOLD:
+Jeg anmelder [politidistrikt/navn på tjenesteperson hvis kjent] for:
+- Ulovlig maktbruk i strid med politiloven § 6
+- [Eventuelt: Legemskrenkelse etter straffeloven § 271]
+- [Eventuelt: Brudd på EMK art. 3]
+
+HENDELSESFORLØP:
+Dato/tid: [NØYAKTIG TIDSPUNKT]
+Sted: [NØYAKTIG ADRESSE]
+[Detaljert kronologisk beskrivelse]
+
+BEVIS:
+1. Legejournal fra [sykehus] - vedlagt
+2. Videoopptak - vedlagt/tilgjengelig på forespørsel
+3. Vitne: [Navn, kontaktinfo]
+4. [Flere bevis]
+
+Jeg ber om at forholdet etterforskes og at det tas ut tiltale hvis vilkårene er oppfylt.
+
+[Ditt navn]
+[Kontaktinfo]
+        """,
+        "additional_remedies": [
+            "Be om innsyn i politiets rapporter (§ 242)",
+            "Kontakte Sivilombudet (hvis systemisk problem)",
+            "Dokumentere alt skriftlig til advokat",
+            "Erstatningssøksmål mot Staten"
+        ]
+    },
+    {
+        "keywords": ["dommeravvisning", "korrupt dommer", "inhabil dommer", "feil dom"],
+        "situation": "Inhabil eller korrupt dommer / feil rettsanvendelse",
+        "legal_basis": "Domstolloven § 106-108 (inhabilitet) / Straffeprosessloven kap. 29 (anke)",
+        "grounds_for_disqualification": [
+            "Personlig interesse i sakens utfall (§ 106)",
+            "Nær relasjon til part eller advokat (§ 107)",
+            "Tidligere uttalt seg om saken utenfor rettsalen",
+            "Partiskhet eller mistanke om det (§ 108)"
+        ],
+        "what_strengthens_complaint": [
+            "Dokumentasjon av dommerens forbindelser til motpart",
+            "Sosiale medier-poster som viser bias",
+            "Tidligere saker hvor samme dommer viste samme bias",
+            "Uttalelser fra dommer som viser forutinntatthet",
+            "Eierinteresser eller økonomiske forbindelser"
+        ],
+        "remedies": {
+            "during_trial": "Fremsette inhabilitetsinnsigelse umiddelbart (§ 109) - dommer avgjør selv først, kan ankes",
+            "after_judgment": "Anke dommen (straffesaker: kap. 29, sivile: tvisteloven kap. 29)",
+            "corrupt_judge": "Anmelde til Spesialenheten (hvis straffbart) + tilsynsutvalget for dommere",
+            "appeal_deadline": "Anke: 2 uker fra dom (strafferett) / 4 uker (sivilrett)"
+        },
+        "appeal_template": """
+TIL: [Lagmannsrett/Høyesterett]
+ANKE OVER DOM
+
+Ankende part: [DITT NAVN]
+Tingrettens dom: [SAKSNUMMER, DATO]
+
+ANKEGRUNNLAG:
+1. Feil rettsanvendelse - [spesifiser paragraf]
+2. Saksbehandlingsfeil - [spesifiser]
+3. [Eventuelt: Inhabilitet hos dommer]
+
+ANFØRSLER:
+[Detaljert gjennomgang av hva tingretten gjorde feil]
+
+BEVISTILBUD:
+[Liste over bevis som skal fremlegges]
+
+PÅSTAND:
+Tingrettens dom oppheves. [Ny påstand].
+
+[Navn]
+[Advokatfullmakt hvis relevant]
+        """,
+        "additional_info": [
+            "Inhabilitet kan også føre til opphevelse av dom",
+            "Domstolsadministrasjonen har tilsynsansvar",
+            "Kontakt advokatorganisasjon for hjelp til anke"
+        ]
+    },
+    {
+        "keywords": ["aktinnsyn nektet", "innsyn avslått", "offentlighetsloven", "nektet dokumenter"],
+        "situation": "Nektet aktinnsyn eller dokumenter fra det offentlige",
+        "legal_basis": "Offentlighetsloven § 3 (innsynsrett) / Straffeprosessloven § 242 (innsyn i straffesaker)",
+        "your_rights": [
+            "Hovedregel: Alle dokumenter er offentlige (offentlighetsloven § 3)",
+            "I straffesaker: Mistenkte/siktet har rett til innsyn i sakens dokumenter (§ 242)",
+            "Unntak må begrunnes konkret (ikke bare henvisning til paragraf)"
+        ],
+        "common_illegal_rejections": [
+            "Generell henvisning til 'hensyn til etterforskningen' uten konkret begrunnelse",
+            "Nekting av innsyn i egne forklaringer",
+            "Påstand om 'unntatt etter fvl § 13' uten reell vurdering",
+            "Forsinkelse av innsyn uten saklig grunn"
+        ],
+        "how_to_appeal": {
+            "step_1": "Klage til organet som avslo (innen 3 uker)",
+            "step_2": "Hvis opprettholdt: Klage sendes videre til overordnet organ",
+            "step_3": "Sivilombudet kan klages til hvis langvarig behandling",
+            "final_remedy": "Domstolsprøving (søksmål mot Staten)"
+        },
+        "complaint_template": """
+TIL: [Politidistrikt/Departement]
+KLAGE PÅ AVSLAG OM AKTINNSYN
+
+Dato: [DATO]
+Saksnummer: [SAKSNR]
+
+Jeg viser til vedtak av [DATO] hvor min begjæring om innsyn i [spesifiser dokumenter] ble avslått.
+
+KLAGEGRUNNLAG:
+1. Avslaget er i strid med offentlighetsloven § 3 / straffeprosessloven § 242
+2. Unntaksadgangen er ikke konkret begrunnet
+3. Mitt behov for innsyn veier tyngre enn eventuelle hensyn
+
+ANFØRSLER:
+- Hovedregelen er offentlighet, unntak må begrunnes konkret
+- [Spesifiser hvorfor begrunnelsen er mangelfull]
+- Jeg har saklig behov for dokumentene til [formål]
+
+PÅSTAND:
+Innsynsbegjæringen tas til følge. Dokumentene utleveres innen [frist].
+
+[Navn]
+[Kontaktinfo]
+        """
+    },
+    {
+        "keywords": ["korrupt politi", "korrupsjon", "politi kontakter", "misbruk av makt", "inhabil politi", "korrupt saksbehandling"],
+        "situation": "Mistanke om korrupsjon/inhabilitet hos politi eller andre offentlige tjenestemenn",
+        "legal_basis": "Straffeloven §§ 387-392 (korrupsjon) / Politiloven § 28 (habilitet) / EMK art. 6 (rettferdig rettergang)",
+        "signs_of_corruption": [
+            "Uforklarlige avslag på åpenbart begrunnede søknader (besøksforbud, anmeldelser)",
+            "Saksbehandling som avviker betydelig fra standard praksis",
+            "Manglende etterforskning av alvorlige anmeldelser",
+            "Unormalt tette forbindelser mellom tjenestemann og anmeldt person",
+            "Rask henleggelse av saker uten reell etterforskning",
+            "Nekting av innsyn i saksdokumenter uten lovlig grunn"
+        ],
+        "your_information_rights": {
+            "basic_rights": [
+                "Rett til innsyn i alle saksdokumenter (strpl § 242) - inkludert politirapporter, avhørsreferater, vurderingsnotater",
+                "Rett til kopi av dine egne forklaringer og anmeldelser",
+                "Rett til begrunnelse for alle vedtak og beslutninger",
+                "Rett til å vite hvilke tjenestemannen som har behandlet saken"
+            ],
+            "advanced_access_rights": [
+                "Rett til innsyn i saksbehandlernes kvalifikasjoner og habilitetsvurderinger",
+                "Rett til informasjon om eventuelle interessekonflikter",
+                "Rett til å se henvisning til presedenser/lignende saker",
+                "Rett til dokumentasjon av beslutningsprosessen",
+                "Rett til korrespondanse mellom avdelinger/instanser"
+            ],
+            "what_they_must_reveal": [
+                "Hvem som har deltatt i saksbehandlingen",
+                "Hvilket juridisk grunnlag beslutningen bygger på",
+                "Hvilke faktiske forhold som er lagt til grunn",
+                "Hvilke hensyn som er vektlagt",
+                "Eventuelle alternative løsninger som er vurdert"
+            ]
+        },
+        "how_to_expose_corruption": {
+            "document_everything": [
+                "Be om skriftlig begrunnelse for alle vedtak",
+                "Logg alle kontakter: dato, navn, hva som ble sagt",
+                "Be om navn og tittel på alle involverte tjenestemannen",
+                "Sammenlign behandling med lignende saker (be om eksempler)",
+                "Dokumenter avvik fra normal saksbehandlingstid"
+            ],
+            "request_specific_documents": [
+                "Saksjournal - viser hvem som har gjort hva når",
+                "Interne notater og vurderinger",
+                "E-postkorrespondanse om saken",
+                "Møtereferater hvor saken er diskutert",
+                "Habilitetserklæringer fra saksbehandlere",
+                "Prosedyrer og instrukser som skal følges"
+            ],
+            "use_freedom_of_information": [
+                "Be om innsyn i politiets generelle rutiner for denne type saker",
+                "Sammenlign din sak med anonymiserte lignende saker",
+                "Be om statistikk: hvor mange lignende saker som innvilges/avslås",
+                "Se hvilke kriterier som normalt anvendes",
+                "Få tilgang til interne retningslinjer og prosedyrer"
+            ]
+        },
+        "escalation_strategy": {
+            "level_1": "Formell klage til samme organ med krav om ny saksbehandler",
+            "level_2": "Klage til overordnet myndighet + krav om innsyn i alt",
+            "level_3": "Anmeldelse til Spesialenheten for politisaker (korrupsjon/misbruk)",
+            "level_4": "Klage til Sivilombudet (langvarig/usaklig saksbehandling)",
+            "level_5": "Kontakt media + politikere (offentlig press)",
+            "level_6": "Søksmål mot staten (erstatning + tvungen saksbehandling)"
+        },
+        "special_procedures": {
+            "when_police_is_corrupt": [
+                "Anmeld direkte til Spesialenheten (bypasser lokalt politi)",
+                "Kontakt påtalemyndigheten direkte (statsadvokat)",
+                "Be om at ny politikrets overtar saken",
+                "Kontakt Kripos for alvorlige korrupsjonssaker"
+            ],
+            "protecting_yourself": [
+                "Aldri møt alene - ta med vitne eller advokat",
+                "Alle kommunikasjon skriftlig (e-post, brev)",
+                "Ta opptak av samtaler (lovlig når du er part)",
+                "Kopier alle dokumenter umiddelbart",
+                "Lagre alt på flere steder (sky, backup, fysisk)"
+            ],
+            "building_your_case": [
+                "Samle likebehandlingseksempler (andre som fikk medhold)",
+                "Dokumenter tidslinje og sammenhenger",
+                "Finn vitner til korrupt atferd",
+                "Få advokat til å stille kritiske spørsmål",
+                "Be journalister om å stille spørsmål til politiet"
+            ]
+        },
+        "legal_template_corruption": """
+TIL: [Spesialenheten for politisaker / Politidistrikt]
+ANMELDELSE: MISBRUK AV STILLING/KORRUPSJON
+
+Dato: [DATO]
+Gjelder: [Tjenestemannens navn og stilling]
+
+SAMMENDRAG:
+Jeg anmelder [navn] for misbruk av offentlig stilling i forbindelse med behandling av min sak vedrørende [kort beskrivelse].
+
+FAKTUM:
+[Detaljert kronologisk fremstilling]
+
+KORRUPSJONSINDIKATORER:
+1. Uforklarlig avvik fra normal saksbehandling
+2. [Spesifiser hva som er unormalt]
+3. Mulige interessekonflikter: [beskriv forbindelser]
+4. Manglende saklighet i vedtak
+
+BEVIS:
+1. E-postkorrespondanse [vedlegg 1]
+2. Vedtak med mangelfull begrunnelse [vedlegg 2]
+3. Sammenligning med lignende saker [vedlegg 3]
+4. Vitner til korrupt atferd [liste]
+
+ANMODNING:
+1. Etterforskning av den anmeldte
+2. Ny saksbehandling av min opprinnelige sak
+3. Innsyn i all korrespondanse om saken
+4. Vurdering av andre saker tjenestemann har behandlet
+
+Jeg står til disposisjon for ytterligere opplysninger.
+
+[Navn]
+[Kontaktinfo]
+        """,
+        "children_protection_special": {
+            "when_children_threatened": [
+                "ØYEBLIKKELIG: Ring Barnevernet (Kommunen eller BUFetat regionkontor)",
+                "Parallelt: Anmeld til politiet i ANNET distrikt enn der truende person har kontakter",
+                "Kontakt Fylkesmannen (Statsforvalteren) - har tilsynsansvar med Barnevernet",
+                "Ring Krisesenter for umiddelbar beskyttelse",
+                "Dokumenter ALLE trusler - video, lydopptak, vitner"
+            ],
+            "emergency_contacts": [
+                "BUFetat regionkontor: [finnes på bufdir.no]",
+                "Krisesentertelefonen: 116 006",
+                "Redd Barna: 116 111",
+                "Barnevernsvakten (din kommune)",
+                "Spesialenheten: 22 40 60 00"
+            ],
+            "when_system_fails": [
+                "Kontakt PRESS umiddelbart - barn i fare er alltid mediesak",
+                "Ring stortingsrepresentanter fra ditt fylke",
+                "Kontakt barneombudet: barneombudet.no",
+                "Europeiske menneskerettighetsdomstolen (EMD) - art. 3 og 8",
+                "FN barnekomite - konvensjon om barnets rettigheter"
+            ]
+        }
+    }
+]
+
+PENALTIES_DB = [
+    {
+        "keywords": ["narkotika", "drug", "drugs", "narkotisk"],
+        "statute": "Straffeloven § 231 (narkotika) / narkotikalovgivning",
+        "description": "Besittelse, innførsel eller omsetning av narkotika.",
+        "typical_penalties": {
+            "fine": "Mulig for mindre mengder (bøter)",
+            "imprisonment": "Inntil 6 år ved alvorlig omsetning; kortere ved besittelse",
+            "notes": "Avhenger av mengde, type stoff og omhandlede omsetningsledd"
+        },
+        "severity_factors": ["mengde", "handlemåte", "tidligere dommer"],
+        "evidence_considerations": ["vekt av stoffet", "laboratoriumsrapporter", "vitneobservasjoner", "transaksjonsdata"]
+    },
+    {
+        "keywords": ["vold", "physical assault", "legemsbeskadigelse"],
+        "statute": "Straffeloven § 271 (legemsbeskadigelse) og §§ 272-273",
+        "description": "Fysisk angrep som fører til skade eller fare for skade.",
+        "typical_penalties": {
+            "fine": "Mulig ved mindre hendelser",
+            "imprisonment": "Inntil 6 år for alvorlig vold; 1-3 år typisk for grovere tilfeller",
+            "notes": "Skadens omfang og bruk av våpen øker straffutmålingen"
+        },
+        "severity_factors": ["skadens alvor", "bruk av våpen", "forsett eller uaktsomhet"],
+        "evidence_considerations": ["legejournaler", "vitneforklaringer", "videoopptak", "fornærmedes forklaring"]
+    },
+    {
+        "keywords": ["tyveri", "theft", "innbrudd", "klepto"],
+        "statute": "Straffeloven §§ 311-316 (tyveri og innbrudd)",
+        "description": "Ulovlig tilegnelse av andres eiendom.",
+        "typical_penalties": {
+            "fine": "Bøter vanlig for småverdier",
+            "imprisonment": "Inntil 6 år ved grovt tyveri eller innbrudd",
+            "notes": "Verdien av det som er stjålet og tidligere forhold påvirker straffens lengde"
+        },
+        "severity_factors": ["verdi", "bruk av makt", "tidligere forhold"],
+        "evidence_considerations": ["kvitteringer", "overvåkingsvideo", "fingeravtrykk", "vitner"]
+    },
+    {
+        "keywords": ["bedrageri", "fraud", "svindel"],
+        "statute": "Straffeloven §§ 371-372 (bedrageri)",
+        "description": "Åvilling bedrageri for økonomisk vinning.",
+        "typical_penalties": {
+            "fine": "Bøter typisk ved mindre beløp",
+            "imprisonment": "Inntil 6 år ved grovt bedrageri",
+            "notes": "Beløpets størrelse og systematisk misbruk øker straffen"
+        },
+        "severity_factors": ["økonomisk skade", "systematikk", "samarbeid med andre"],
+        "evidence_considerations": ["banktransaksjoner", "kontrakter", "e-poster", "vitneforklaringer"]
+    }
+]
+
+@router.post("/api/evidence/analyze", dependencies=[Depends(ai_rate_limit)])
+async def analyze_evidence(request: EvidenceAnalysisRequest, current_user: Dict = Depends(get_current_user)):
+    """
+    Analyser innsendt bevis med AI.
+
+    Merk: innholdet krypteres server-side ved lagring (ikke klient-side/zero-knowledge).
+    """
+    try:
+        if not ai_engine:
+            raise HTTPException(status_code=503, detail="AI engine unavailable. Set ANTHROPIC_API_KEY.")
+        logger.info(f"Analyzing evidence ({request.file_type})")
+
+        # Vi analyserer basert på beskrivelsen/metadataene brukeren har sendt inn.
+        
+        # Build additional context from optional fields
+        additional_context_parts = []
+        if request.description:
+            additional_context_parts.append(f"Beskrivelse: {request.description}")
+        if request.case_context:
+            additional_context_parts.append(f"Sakskontekst: {request.case_context}")
+        additional_context = "\n".join(additional_context_parts)
+
+        # Call AI engine with correct signature
+        assessment = await ai_engine.analyze_evidence(
+            file_name=request.file_name,
+            file_type=request.file_type,
+            file_size=request.file_size,
+            case_type="criminal",
+            additional_context=additional_context
+        )
+        
+        return {
+            "success": True,
+            "assessment": {
+                "relevance": assessment.relevance,
+                "legal_value": assessment.legal_value,
+                "evidence_type": assessment.evidence_type,
+                "suggested_category": assessment.suggested_category,
+                "chain_of_custody": assessment.chain_of_custody,
+                "potential_issues": assessment.potential_issues,
+                "recommendations": assessment.recommendations,
+                "auto_tags": assessment.auto_tags,
+                "related_laws": assessment.related_laws,
+                "summary": assessment.summary,
+                "confidence": assessment.confidence
+            },
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error analyzing evidence: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+
+@router.post("/api/legal/research", dependencies=[Depends(ai_rate_limit)])
+async def legal_research(request: LegalResearchRequest, current_user: Dict = Depends(get_current_user)):
+    """
+    Perform legal research using AI
+    
+    Searches Norwegian law, ECHR cases, precedents
+    """
+    try:
+        if not ai_engine:
+            raise HTTPException(status_code=503, detail="AI engine unavailable. Set ANTHROPIC_API_KEY.")
+        logger.info("Legal research query received")
+        
+        research = await ai_engine.legal_research(
+            question=request.query,
+            case_context=request.context or "",
+            case_type=request.case_type or "criminal"
+        )
+        
+        return {
+            "success": True,
+            "research": {
+                "answer": research.answer,
+                "norwegian_laws": research.norwegian_laws,
+                "echr_cases": research.echr_cases,
+                "precedents": research.precedents,
+                "citations": research.citations,
+                "confidence": research.confidence,
+                "recommendations": research.recommendations
+            },
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in legal research: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Research failed: {str(e)}")
+
+@router.post("/api/legal/chat", dependencies=[Depends(ai_rate_limit)])
+async def legal_chat(request: ChatRequest, current_user: Dict = Depends(get_current_user)):
+    """Simple legal chat endpoint used by the frontend chat UI
+
+    This endpoint forwards the user's message and a short conversation history to the AI engine
+    and returns a concise assistant reply. It is intentionally lightweight to match the UI expectations.
+    """
+    try:
+        logger.info(f"Legal chat message received (len={len(request.message)})")
+
+        # Compose a compact prompt for the AI. Use conversation_history if provided to give context.
+        history_text = ""
+        if request.conversation_history:
+            for h in request.conversation_history[-10:]:
+                role = h.get("role", "user")
+                content = h.get("content", "")
+                history_text += f"{role}: {content}\n"
+
+        prompt = (
+            "Du er RettBot, en hjelpsom, kortfattet og nøyaktig norsk juridisk assistent. "
+            "Svar tydelig på brukerens spørsmål, oppgi relevante lovhenvisninger når mulig, og hold svaret kort (2-6 setninger). "
+            "Vær ærlig: hvis saken virker svak, fristen kan være utløpt, eller klageveien er uttømt, si det, "
+            "og anbefal advokat eller rettshjelp framfor falsk håp. Dette er generell informasjon, ikke individuell juridisk rådgivning.\n"
+            f"Kontekst:\n{history_text}\nBruker: {request.message}\nSvar:"
+        )
+
+        # Use the ai_engine.simple_summary helper for a concise output
+        ai_response = None
+        if ai_engine and os.getenv("ANTHROPIC_API_KEY"):
+            try:
+                ai_response = await ai_engine.simple_summary(prompt)
+            except Exception as e:
+                logger.error(f"AI chat error: {str(e)}")
+                ai_response = None
+
+        if not ai_response:
+            # Fallback deterministic reply
+            ai_response = "Beklager, jeg har ikke tilgang til AI for øyeblikket. Prøv igjen senere eller still et kortere spørsmål."
+
+        return {
+            "success": True,
+            "response": ai_response,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+    except Exception as e:
+        logger.error(f"Error in legal chat: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Chat failed: {str(e)}")
+
+@router.post("/api/defense/strategy", dependencies=[Depends(ai_rate_limit)])
+async def build_defense_strategy(request: DefenseStrategyRequest, current_user: Dict = Depends(get_current_user)):
+    """
+    Build comprehensive defense strategy using AI
+    
+    Analyzes case facts, charges, evidence to create multi-layered defense
+    """
+    if not ai_engine:
+        raise HTTPException(status_code=503, detail="AI engine unavailable. Set ANTHROPIC_API_KEY.")
+    try:
+        logger.info("Building defense strategy")
+        
+        strategy = await ai_engine.build_defense_strategy(
+            case_facts=request.case_facts,
+            charges=request.charges,
+            evidence=request.evidence or [],
+            legal_research=request.legal_research
+        )
+        
+        return {
+            "success": True,
+            "strategy": {
+                "primary_theory": strategy.primary_theory,
+                "weaknesses": strategy.weaknesses,
+                "alternative_defenses": strategy.alternative_defenses,
+                "procedural_challenges": strategy.procedural_challenges,
+                "motion_strategy": strategy.motion_strategy,
+                "risk_assessment": strategy.risk_assessment,
+                "next_steps": strategy.next_steps
+            },
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error building defense strategy: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Strategy generation failed: {str(e)}")
+
+@router.post("/api/legal/document", dependencies=[Depends(ai_rate_limit)])
+async def draft_legal_document(request: LegalDocumentRequest, current_user: Dict = Depends(get_current_user)):
+    """
+    Draft professional legal documents
+    
+    Generates motions, complaints, appeals, briefs
+    """
+    if not ai_engine:
+        raise HTTPException(status_code=503, detail="AI engine unavailable. Set ANTHROPIC_API_KEY.")
+    try:
+        logger.info(f"Drafting {request.document_type} document")
+        
+        document = await ai_engine.draft_legal_document(
+            document_type=request.document_type,
+            case_details=request.case_details,
+            strategy=request.strategy,
+            template=request.template
+        )
+        
+        return {
+            "success": True,
+            "document": {
+                "type": request.document_type,
+                "content": document,
+                "metadata": {
+                    "created": datetime.utcnow().isoformat(),
+                    "case_number": request.case_details.get("case_number"),
+                    "court": request.case_details.get("court")
+                }
+            },
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error drafting document: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Document drafting failed: {str(e)}")
+
+@router.post("/api/corruption/assess", dependencies=[Depends(ai_rate_limit)])
+async def assess_corruption_case(request: CorruptionAssessmentRequest, current_user: Dict = Depends(get_current_user)):
+    """
+    Assess corruption case and recommend escalation path
+    
+    Analyzes systematic corruption patterns and suggests 8-level escalation
+    """
+    if not ai_engine:
+        raise HTTPException(status_code=503, detail="AI engine unavailable. Set ANTHROPIC_API_KEY.")
+    try:
+        logger.info("Assessing corruption case")
+        
+        assessment = await ai_engine.assess_corruption_case(
+            allegations=request.allegations,
+            evidence=request.evidence,
+            institutions=request.institutions,
+            context=request.context or ""
+        )
+        
+        return {
+            "success": True,
+            "assessment": assessment,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error assessing corruption case: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Corruption assessment failed: {str(e)}")
+
+@router.post("/api/legal/penalties", dependencies=[Depends(user_rate_limit)])
+async def legal_penalties(request: PenaltyQuery, current_user: Dict = Depends(get_current_user)):
+    """
+    Return likely statutes and penalty ranges for a given offense (heuristic).
+    This is a deterministic helper to give users an overview of possible fines/prison ranges
+    and what evidence increases/decreases the likely severity.
+    """
+    try:
+        query = (request.offense or "").lower()
+        facts = (request.facts or "")
+
+        # Find matches by keyword
+        matches = []
+        for entry in PENALTIES_DB:
+            for kw in entry["keywords"]:
+                if kw in query:
+                    matches.append(entry)
+                    break
+
+        # If no matches, try fuzzy contain of main words
+        if not matches:
+            for entry in PENALTIES_DB:
+                for kw in entry["keywords"]:
+                    if kw.split()[0] in query:
+                        matches.append(entry)
+                        break
+
+        # Build response
+        results = []
+        for m in matches:
+            # Convert typical_penalties object to string format that frontend expects
+            penalties_obj = m["typical_penalties"]
+            if isinstance(penalties_obj, dict):
+                # Create a formatted string from the penalties object
+                fine_part = penalties_obj.get("fine", "")
+                imprisonment_part = penalties_obj.get("imprisonment", "")
+                
+                # Create range format: "fine - imprisonment" or just imprisonment if no fine
+                if fine_part and imprisonment_part:
+                    penalties_string = f"{fine_part} - {imprisonment_part}"
+                else:
+                    penalties_string = imprisonment_part or fine_part or "Ikke spesifisert"
+            else:
+                penalties_string = str(penalties_obj)
+            
+            item = {
+                "statute": m["statute"],
+                "description": m["description"],
+                "typical_penalties": penalties_string,  # Now a string instead of object
+                "severity_factors": m["severity_factors"],
+                "evidence_considerations": m["evidence_considerations"]
+            }
+
+            # Basic heuristic: if facts mention "store mengder" or numbers, escalate
+            if "mengde" in facts or any(c.isdigit() for c in facts):
+                item["note"] = "Fakta indikerer potensielt høyere alvorlighetsgrad - mengde eller tall funnet i fakta."
+
+            results.append(item)
+
+        if not results:
+            return {"success": True, "results": [], "message": "Ingen direkte treff i lokal DB. Vennligst prøv mer spesifikk lovtekst eller beskrivelse."}
+
+        # Optional: Enrich with AI (non-blocking; fallback to deterministic)
+        ai_summary = None
+        try:
+            if ai_engine and os.getenv("ANTHROPIC_API_KEY"):
+                prompt = f"Given the following offense query: '{request.offense}' and facts: '{facts}', summarize likely penalties and key evidence factors under Norwegian law in short bullet points."
+                ai_summary = await ai_engine.simple_summary(prompt)
+        except Exception:
+            ai_summary = None
+
+        return {
+            "success": True,
+            "results": results,
+            "ai_summary": ai_summary,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+    except Exception as e:
+        logger.error(f"Error computing penalties: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Penalty lookup failed: {str(e)}")
+
+@router.get("/api/penalties/lookup", dependencies=[Depends(user_rate_limit)])
+async def penalties_lookup_get(offense: str, context: Optional[str] = None, current_user: Dict = Depends(get_current_user)):
+    """
+    GET endpoint for penalty lookup (compatibility with frontend)
+    """
+    try:
+        # Convert GET parameters to POST format
+        request_data = PenaltyQuery(offense=offense, facts=context)
+        
+        # Call the main penalties logic
+        query = offense.lower()
+        facts = context or ""
+
+        # Find matches by keyword
+        matches = []
+        for entry in PENALTIES_DB:
+            for kw in entry["keywords"]:
+                if kw in query:
+                    matches.append(entry)
+                    break
+
+        # If no matches, try fuzzy contain of main words
+        if not matches:
+            for entry in PENALTIES_DB:
+                for kw in entry["keywords"]:
+                    if kw.split()[0] in query:
+                        matches.append(entry)
+                        break
+
+        # Build response
+        results = []
+        for m in matches:
+            # Convert typical_penalties object to string format that frontend expects
+            penalties_obj = m["typical_penalties"]
+            if isinstance(penalties_obj, dict):
+                # Create a formatted string from the penalties object
+                fine_part = penalties_obj.get("fine", "")
+                imprisonment_part = penalties_obj.get("imprisonment", "")
+                
+                # Create range format: "fine - imprisonment" or just imprisonment if no fine
+                if fine_part and imprisonment_part:
+                    penalties_string = f"{fine_part} - {imprisonment_part}"
+                else:
+                    penalties_string = imprisonment_part or fine_part or "Ikke spesifisert"
+            else:
+                penalties_string = str(penalties_obj)
+                
+            item = {
+                "statute": m["statute"],
+                "description": m["description"],
+                "typical_penalties": penalties_string,  # Now a string instead of object
+                "severity_factors": m["severity_factors"],
+                "evidence_considerations": m["evidence_considerations"]
+            }
+
+            # Basic heuristic: if facts mention amounts or numbers, escalate
+            if "mengde" in facts or any(c.isdigit() for c in facts):
+                item["note"] = "Fakta indikerer potensielt høyere alvorlighetsgrad."
+
+            results.append(item)
+
+        if not results:
+            return {
+                "success": True, 
+                "results": [], 
+                "message": "Ingen direkte treff funnet. Prøv mer spesifikk beskrivelse."
+            }
+
+        return {
+            "success": True,
+            "results": results,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in penalties lookup: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Kunne ikke hente straffedata: {str(e)}")
+
+@router.post("/api/rights/violations", dependencies=[Depends(ai_rate_limit)])
+async def check_rights_violations(request: RightsViolationQuery, current_user: Dict = Depends(get_current_user)):
+    """
+    Check if user's rights have been violated and what remedies are available.
+    Covers: rejected applications (besøksforbud), police misconduct, judicial bias, denied access to documents.
+    """
+    try:
+        query = (request.situation or "").lower()
+        authority = (request.authority or "").lower()
+        context = (request.context or "")
+
+        # Find matches by keyword
+        matches = []
+        for entry in RIGHTS_PROTECTION_DB:
+            for kw in entry["keywords"]:
+                if kw in query:
+                    matches.append(entry)
+                    break
+
+        # Build response
+        results = []
+        for m in matches:
+            item = {
+                "situation": m["situation"],
+                "legal_basis": m["legal_basis"],
+                "what_strengthens_case": m.get("what_strengthens_case", m.get("what_strengthens_complaint", [])),
+                "appeal_process": m.get("appeal_process", m.get("complaint_process", m.get("remedies", {}))),
+                "additional_info": m.get("additional_remedies", m.get("additional_info", []))
+            }
+
+            # Add specific criteria if available
+            if "criteria_for_approval" in m:
+                item["criteria_for_approval"] = m["criteria_for_approval"]
+            if "common_rejection_reasons" in m:
+                item["common_rejection_reasons"] = m["common_rejection_reasons"]
+            if "criteria_for_violation" in m:
+                item["criteria_for_violation"] = m["criteria_for_violation"]
+            if "grounds_for_disqualification" in m:
+                item["grounds_for_disqualification"] = m["grounds_for_disqualification"]
+            if "your_rights" in m:
+                item["your_rights"] = m["your_rights"]
+            if "common_illegal_rejections" in m:
+                item["common_illegal_rejections"] = m["common_illegal_rejections"]
+            if "how_to_appeal" in m:
+                item["how_to_appeal"] = m["how_to_appeal"]
+
+            results.append(item)
+
+        if not results:
+            # Fallback: generic rights guidance
+            return {
+                "success": True,
+                "results": [],
+                "generic_guidance": {
+                    "message": "Ingen spesifikk treff i database. Generelle rettigheter:",
+                    "general_rights": [
+                        "Rett til klage på alle forvaltningsvedtak (forvaltningsloven)",
+                        "Rett til aktinnsyn (offentlighetsloven § 3)",
+                        "Rett til begrunnelse for avslag (forvaltningsloven § 25)",
+                        "Anmelde politi/dommere til Spesialenheten/tilsynsutvalg",
+                        "Sivilombudet kan behandle klager på offentlig forvaltning"
+                    ]
+                },
+                "timestamp": datetime.utcnow().isoformat()
+            }
+
+        # Optional AI enrichment
+        ai_guidance = None
+        try:
+            if ai_engine and os.getenv("ANTHROPIC_API_KEY"):
+                prompt = f"User describes: '{request.situation}' involving {request.authority}. Context: {context}. Provide brief guidance on Norwegian legal rights and remedies."
+                ai_guidance = await ai_engine.simple_summary(prompt)
+        except Exception:
+            ai_guidance = None
+
+        return {
+            "success": True,
+            "results": results,
+            "ai_guidance": ai_guidance,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+    except Exception as e:
+        logger.error(f"Error checking rights violations: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Rights check failed: {str(e)}")
+
+@router.post("/api/rights/appeal", dependencies=[Depends(ai_rate_limit)])
+async def get_appeal_template(request: AppealRequest, current_user: Dict = Depends(get_current_user)):
+    """
+    Get appeal/complaint template and step-by-step guidance for rejected applications or rights violations.
+    """
+    try:
+        rejection_type = (request.rejection_type or "").lower()
+
+        # Find matching template
+        template_match = None
+        for entry in RIGHTS_PROTECTION_DB:
+            for kw in entry["keywords"]:
+                if kw in rejection_type:
+                    template_match = entry
+                    break
+            if template_match:
+                break
+
+        if not template_match:
+            return {
+                "success": True,
+                "template": None,
+                "message": "Ingen spesifikk klagemal funnet. Vennligst spesifiser type (besøksforbud, politimishandling, dommeravvisning, aktinnsyn)."
+            }
+
+        # Build response with template
+        result = {
+            "situation": template_match["situation"],
+            "legal_basis": template_match["legal_basis"],
+            "template": template_match.get("complaint_template", template_match.get("appeal_template", "")),
+            "process": template_match.get("appeal_process", template_match.get("complaint_process", template_match.get("how_to_appeal", {}))),
+            "strengthening_factors": template_match.get("what_strengthens_case", template_match.get("what_strengthens_complaint", [])),
+        }
+
+        # Add context-specific guidance
+        if "criteria_for_approval" in template_match:
+            result["criteria_you_must_show"] = template_match["criteria_for_approval"]
+        if "common_rejection_reasons" in template_match:
+            result["common_mistakes_to_avoid"] = template_match["common_rejection_reasons"]
+
+        # AI-generated custom template based on facts
+        ai_custom_template = None
+        try:
+            if ai_engine and os.getenv("ANTHROPIC_API_KEY"):
+                prompt = f"""Generate a professional Norwegian legal complaint/appeal based on:
+Rejection type: {request.rejection_type}
+Authority: {request.authority}
+Facts: {request.facts}
+Rejection reason: {request.rejection_reason or 'not stated'}
+
+Use formal legal language appropriate for Norwegian courts/authorities. Include:
+1. Header with recipient
+2. Reference to rejection
+3. Legal grounds for appeal
+4. Factual basis
+5. Legal arguments
+6. Evidence list
+7. Formal conclusion/demand
+"""
+                ai_custom_template = await ai_engine.simple_summary(prompt)
+        except Exception:
+            ai_custom_template = None
+
+        return {
+            "success": True,
+            "template_info": result,
+            "ai_custom_template": ai_custom_template,
+            "instructions": {
+                "step_1": "Fyll ut malen med dine spesifikke fakta",
+                "step_2": "Legg ved all dokumentasjon (kvitteringer, politianmeldelser, etc.)",
+                "step_3": f"Send til {template_match.get('appeal_process', {}).get('first_step', 'relevant myndighet')}",
+                "step_4": f"Frist: {template_match.get('appeal_process', {}).get('deadline', 'sjekk spesifikk frist')}",
+                "step_5": "Behold kopi av alt du sender inn"
+            },
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+    except Exception as e:
+        logger.error(f"Error generating appeal template: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Appeal template generation failed: {str(e)}")

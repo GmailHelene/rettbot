@@ -30,6 +30,27 @@ from backend.security_enhancements import (
     rate_limiter
 )
 from backend.seo import render_for_path
+from backend.deps import (
+    IS_PRODUCTION,
+    SECRET_KEY,
+    ALGORITHM,
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    ENCRYPTION_KEY,
+    fernet,
+    security,
+    ai_engine,
+    hash_password,
+    verify_password,
+    create_access_token,
+    get_current_user,
+    encrypt_data,
+    decrypt_data,
+    AI_RATE_LIMIT_MAX,
+    AI_RATE_LIMIT_WINDOW_MIN,
+    _has_ai_consent,
+    ai_rate_limit,
+    user_rate_limit,
+)
 import jwt
 import bcrypt
 import secrets
@@ -91,67 +112,7 @@ async def enforce_https_redirect(request: Request, call_next):
         pass
     return await call_next(request)
 
-# Initialize Claude (Anthropic) engine (robust to missing key)
-try:
-    ai_engine = ClaudeEngine()
-    logger.info("Claude engine initialized")
-except Exception as e:
-    ai_engine = None
-    logger.warning(f"Claude engine not initialized: {e}")
 
-# ============================================
-# Authentication & Security Setup
-# ============================================
-
-# Environment flag - styrer om manglende hemmeligheter skal feile hardt.
-IS_PRODUCTION = os.getenv("ENVIRONMENT", "development").lower() == "production"
-
-# JWT Configuration.
-# I produksjon MÅ JWT_SECRET være satt og persistent. Genereres den tilfeldig
-# ved hver oppstart, blir alle utstedte tokens ugyldige ved omstart/redeploy,
-# og med flere workere validerer ikke tokens på tvers av prosesser.
-SECRET_KEY = os.getenv("JWT_SECRET")
-if not SECRET_KEY:
-    if IS_PRODUCTION:
-        raise RuntimeError(
-            "JWT_SECRET er ikke satt. Sett en fast, hemmelig verdi i Railway → Variables. "
-            "Generer med: python -c \"import secrets; print(secrets.token_urlsafe(48))\""
-        )
-    SECRET_KEY = secrets.token_urlsafe(32)
-    logger.warning(
-        "JWT_SECRET ikke satt - bruker midlertidig nøkkel (kun dev). "
-        "Innlogginger blir ugyldige ved hver omstart."
-    )
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
-
-# Encryption key for user data.
-# KRITISK: I produksjon MÅ ENCRYPTION_KEY være satt og persistent. Genereres den
-# tilfeldig ved oppstart, blir ALL allerede kryptert saksdata permanent uleselig
-# etter neste omstart/redeploy (Railway restarter containere rutinemessig).
-ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
-if not ENCRYPTION_KEY:
-    if IS_PRODUCTION:
-        raise RuntimeError(
-            "ENCRYPTION_KEY er ikke satt. Uten en fast nøkkel blir krypterte saksdata "
-            "uleselige ved omstart. Sett den i Railway → Variables. Generer med: "
-            "python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\""
-        )
-    ENCRYPTION_KEY = Fernet.generate_key().decode()
-    logger.warning(
-        "ENCRYPTION_KEY ikke satt - genererer midlertidig nøkkel (kun dev). "
-        "Krypterte data overlever IKKE en omstart."
-    )
-try:
-    fernet = Fernet(ENCRYPTION_KEY.encode())
-except Exception as exc:
-    raise RuntimeError(
-        "ENCRYPTION_KEY er ugyldig. Den må være en Fernet-nøkkel generert med "
-        "Fernet.generate_key(). Feil: " + str(exc)
-    )
-
-# HTTP Bearer for JWT tokens
-security = HTTPBearer()
 
 # Database - SQLite lokalt, PostgreSQL i produksjon (via DATABASE_URL). Se backend/db.py.
 from backend.db import get_connection, ID_COLUMN, SQLITE_PATH, database_ok
@@ -1028,103 +989,8 @@ async def root():
 </html>
         """)
 
-# ============================================
-# Authentication Helper Functions
-# ============================================
-
-def hash_password(password: str) -> str:
-    """Hash password using bcrypt"""
-    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-
-def verify_password(password: str, hashed: str) -> bool:
-    """Verify password against hash"""
-    return bcrypt.checkpw(password.encode(), hashed.encode())
-
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-    """Create JWT access token"""
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict[str, Any]:
-    """Get current user from JWT token"""
-    try:
-        token = credentials.credentials
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
-            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
-        
-        # Get user from database
-        conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT id, email, full_name FROM users WHERE email = ?", (email,))
-        user = cursor.fetchone()
-        conn.close()
-        
-        if user is None:
-            raise HTTPException(status_code=401, detail="User not found")
-        
-        return {
-            "id": user[0],
-            "email": user[1],
-            "full_name": user[2]
-        }
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token has expired")
-    except jwt.PyJWTError:
-        raise HTTPException(status_code=401, detail="Could not validate credentials")
 
 
-# Per-bruker rate limit på AI-endepunktene. Disse kaller Anthropic-API-et og
-# koster penger; grensen hindrer at én konto kjører opp regningen (i tillegg til
-# at endepunktene allerede krever innlogging).
-AI_RATE_LIMIT_MAX = int(os.getenv("AI_RATE_LIMIT_MAX", "30"))
-AI_RATE_LIMIT_WINDOW_MIN = int(os.getenv("AI_RATE_LIMIT_WINDOW_MIN", "5"))
-
-
-def _has_ai_consent(user_id: int) -> bool:
-    """Har brukeren gitt eksplisitt samtykke til AI-behandling (GDPR art. 9 nr. 2 a)?"""
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT 1 FROM consents WHERE user_id = ? AND kind = ? LIMIT 1", (user_id, "ai"))
-    row = cursor.fetchone()
-    conn.close()
-    return bool(row)
-
-
-def ai_rate_limit(current_user: Dict = Depends(get_current_user)) -> Dict:
-    """Auth + eksplisitt AI-samtykke + per-bruker takst på AI-kall. Route-dependency."""
-    # Eksplisitt samtykke må foreligge før sensitiv tekst sendes til Anthropic.
-    if not _has_ai_consent(current_user["id"]):
-        raise HTTPException(
-            status_code=403,
-            detail="AI-samtykke kreves før du kan bruke AI-funksjonene.",
-        )
-    key = f"ai-user:{current_user['id']}"
-    if not rate_limiter.is_allowed(key, max_requests=AI_RATE_LIMIT_MAX, window_minutes=AI_RATE_LIMIT_WINDOW_MIN):
-        raise HTTPException(
-            status_code=429,
-            detail="For mange forespørsler på kort tid. Vent noen minutter før du prøver igjen.",
-        )
-    return current_user
-
-
-def user_rate_limit(current_user: Dict = Depends(get_current_user)) -> Dict:
-    """Auth + per-bruker takst, UTEN AI-samtykke. For deterministiske endepunkter
-    (f.eks. strafferammer-oppslag) som ikke sender tekst til Anthropic."""
-    key = f"ai-user:{current_user['id']}"
-    if not rate_limiter.is_allowed(key, max_requests=AI_RATE_LIMIT_MAX, window_minutes=AI_RATE_LIMIT_WINDOW_MIN):
-        raise HTTPException(
-            status_code=429,
-            detail="For mange forespørsler på kort tid. Vent noen minutter før du prøver igjen.",
-        )
-    return current_user
 
 
 @app.get("/api/consent/ai")
@@ -1148,16 +1014,6 @@ async def set_ai_consent(current_user: Dict = Depends(get_current_user)):
     return {"consented": True}
 
 
-def encrypt_data(data: dict) -> str:
-    """Encrypt dictionary data"""
-    json_data = json.dumps(data)
-    encrypted = fernet.encrypt(json_data.encode())
-    return encrypted.decode()
-
-def decrypt_data(encrypted_data: str) -> dict:
-    """Decrypt data back to dictionary"""
-    decrypted = fernet.decrypt(encrypted_data.encode())
-    return json.loads(decrypted.decode())
 
 # ============================================
 # Authentication Endpoints

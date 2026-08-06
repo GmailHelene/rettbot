@@ -32,7 +32,10 @@ export default function Personvern() {
             <h2 className="text-lg font-semibold text-slate-900">Behandlingsansvarlig</h2>
             <p>
               RettBot+ er behandlingsansvarlig for personopplysningene som behandles gjennom tjenesten.
-              Kontakt for personvernspørsmål: <strong>[sett inn kontakt-e-post]</strong>.
+              Kontakt for personvernspørsmål:{' '}
+              <a href="mailto:helene721@gmail.com" className="text-primary-700 underline hover:text-primary-800">
+                helene721@gmail.com
+              </a>.
             </p>
           </section>
 

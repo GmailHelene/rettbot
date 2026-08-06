@@ -37,7 +37,9 @@ ferdigbygde React-appen. Ingen separat frontend-server i prod.
 ### Auth-flyt
 JWT (PyJWT), passord hashet med bcrypt. `get_current_user` dekoder token på hvert
 kall. AI-endepunktene bruker i tillegg `ai_rate_limit` (auth + eksplisitt AI-samtykke
-+ per-bruker takst). Token lagres i dag i **localStorage** på klienten (se teknisk gjeld).
++ per-bruker takst). Auth ligger i en **HttpOnly-cookie** (`access_token`) - ikke lesbar
+fra JavaScript - med CSRF-vern (double-submit `csrf_token` + `X-CSRF-Token`-header på
+muterende kall). `apiFetch` i frontend håndterer cookie + CSRF automatisk.
 
 ### AI-flyt
 `ClaudeEngine` bygger en systemprompt med `REALISME_OG_ANSVAR`-føringer (si ifra om
@@ -91,7 +93,10 @@ injeksjon LRU-cachet · PII-scrubbing (fnr/telefon) før Anthropic · juridisk e
 - `db.py` er en egen abstraksjon; SQLAlchemy 2.0 + Alembic ville vært mer robust.
 - In-memory `RateLimiter` deles ikke mellom flere workers/instanser (Redis ved
   skalering; kjører bevisst 1 web-worker inntil videre).
-- Fernet krypterer hele felter → kan ikke søke/indeksere på saksinnhold i DB.
-- JWT i localStorage (XSS-eksponert; CSP demper) → vurder HttpOnly-cookie + CSRF.
+- `db.py` → SQLAlchemy 2.0 + Alembic ville vært mer robust (nåværende abstraksjon virker, men er hjemmesnekret).
+
+*(N+1 og selektiv Fernet-kryptering ble undersøkt og er ikke reelle problemer:
+metadata ligger allerede i klartekst-kolonner, og spørringene er single-query.
+JWT flyttet til HttpOnly-cookie + CSRF.)*
 
 Se README/TODO for status og prioritering.

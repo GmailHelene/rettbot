@@ -161,8 +161,8 @@ export default function Login() {
 
         {/* Security Info */}
         <div className="mt-6 text-center text-blue-200 text-sm">
-          <p>🔒 All data krypteres med AES-256</p>
-          <p>100% GDPR-compliant • Norske servere</p>
+          <p>🔒 Data krypteres server-side før lagring</p>
+          <p>Overføres kryptert via HTTPS</p>
         </div>
       </div>
     </div>

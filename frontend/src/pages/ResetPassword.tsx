@@ -245,8 +245,8 @@ export default function ResetPassword() {
                     <p className="font-semibold mb-1">Sikker kryptering</p>
                     <ul className="space-y-1 text-xs">
                       <li>• Passord hashet med bcrypt</li>
-                      <li>• AES-256 datakryptering</li>
-                      <li>• Tilbakestillingstoken slettes etter bruk</li>
+                      <li>• Data krypteres server-side</li>
+                      <li>• Tilbakestillingstoken hashes og slettes etter bruk</li>
                     </ul>
                   </div>
                 </div>

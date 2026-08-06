@@ -166,12 +166,11 @@ export default function Register() {
               <div className="flex items-start">
                 <CheckCircle className="w-5 h-5 text-green-600 mr-2 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-green-700 dark:text-green-400">
-                  <p className="font-semibold mb-1">100% sikker og privat</p>
+                  <p className="font-semibold mb-1">Sikkerhet</p>
                   <ul className="space-y-1 text-xs">
-                    <li>• All data krypteres med AES-256</li>
+                    <li>• Saksdata krypteres server-side før lagring</li>
                     <li>• Passord hashet med bcrypt</li>
-                    <li>• GDPR-compliant lagring</li>
-                    <li>• Norske servere</li>
+                    <li>• Overføres kryptert via HTTPS</li>
                   </ul>
                 </div>
               </div>

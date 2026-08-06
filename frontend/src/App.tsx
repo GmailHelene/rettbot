@@ -18,6 +18,7 @@ import ResetPassword from './pages/ResetPassword';
 import MyCases from './pages/MyCases';
 import Personvern from './pages/Personvern';
 import CookieConsent from './components/CookieConsent';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
@@ -45,7 +46,14 @@ function App() {
           <Route path="/legal-chat" element={<LegalChat />} />
           
           {/* Auth-required routes */}
-          <Route path="/my-cases" element={<MyCases />} />
+          <Route
+            path="/my-cases"
+            element={
+              <ProtectedRoute>
+                <MyCases />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Personvern */}
           <Route path="/personvern" element={<Personvern />} />

@@ -71,11 +71,22 @@ from backend.ai_engine.claude_integration import ClaudeEngine
 # Load environment variables
 load_dotenv()
 
-# Configure logging
-logging.basicConfig(
-    level=os.getenv("LOG_LEVEL", "INFO"),
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+# Configure logging. JSON i produksjon (enklere å søke i Railway-loggene),
+# lesbar tekst lokalt. Styres av LOG_JSON (standard: på i prod, av i dev).
+_log_json = os.getenv(
+    "LOG_JSON",
+    "true" if os.getenv("ENVIRONMENT", "development").lower() == "production" else "false",
+).strip().lower() == "true"
+_log_handler = logging.StreamHandler()
+if _log_json:
+    try:
+        from pythonjsonlogger import jsonlogger
+        _log_handler.setFormatter(jsonlogger.JsonFormatter("%(asctime)s %(name)s %(levelname)s %(message)s"))
+    except Exception:
+        _log_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+else:
+    _log_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), handlers=[_log_handler], force=True)
 logger = logging.getLogger(__name__)
 
 # Initialize FastAPI app.

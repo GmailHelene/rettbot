@@ -21,8 +21,12 @@ ferdigbygde React-appen. Ingen separat frontend-server i prod.
 
 | Fil | Ansvar |
 |---|---|
-| `main.py` | App-init, alle API-endepunkter, auth, DB-init, SPA-servering. (Stor fil – se «teknisk gjeld».) |
-| `seo.py` | Injiserer per-rute `<title>`/meta/OG/canonical + crawlbart innhold i index.html |
+| `main.py` | App-init, CORS/middleware, DB-init, router-inkludering, startup/shutdown (~495 linjer) |
+| `deps.py` | Delte byggeklosser: konfig, JWT/kryptering (`fernet`, `encrypt/decrypt`), `get_current_user`, AI-porten (`ai_rate_limit`/`user_rate_limit`) |
+| `routers/` | Endepunkter delt i moduler: `auth`, `user`, `cases`, `ai`, `misc`, `spa` (hver med egen `APIRouter`, importerer fra `deps`) |
+| `lovdata_sync.py` | Laster ned Lovdatas gratis lov-API og cacher lovtekst i `data/laws/` |
+| `evals/` | Juridisk eval-suite: fasit + runner som sjekker AI-svar mot frister/paragrafer |
+| `seo.py` | Injiserer per-rute `<title>`/meta/OG/canonical + crawlbart innhold (LRU-cachet) |
 | `db.py` | Abstraksjon SQLite (dev) / PostgreSQL (prod): oversetter `?`→`%s`, `RETURNING`, autoincrement |
 | `security_enhancements.py` | `RateLimiter` (in-memory), passordstyrke, CSP/security headers, klient-IP |
 | `ai_engine/claude_integration.py` | `ClaudeEngine`: bevisanalyse, research, forsvarsstrategi, dokument, korrupsjon, chat + «realisme/ærlighet»-føringer |
@@ -32,8 +36,8 @@ ferdigbygde React-appen. Ingen separat frontend-server i prod.
 
 ### Auth-flyt
 JWT (PyJWT), passord hashet med bcrypt. `get_current_user` dekoder token på hvert
-kall. AI-endepunktene bruker i tillegg `ai_rate_limit` (auth + per-bruker takst).
-Token lagres i dag i **localStorage** på klienten (se teknisk gjeld / sikkerhet).
+kall. AI-endepunktene bruker i tillegg `ai_rate_limit` (auth + eksplisitt AI-samtykke
++ per-bruker takst). Token lagres i dag i **localStorage** på klienten (se teknisk gjeld).
 
 ### AI-flyt
 `ClaudeEngine` bygger en systemprompt med `REALISME_OG_ANSVAR`-føringer (si ifra om
@@ -78,13 +82,16 @@ som React overskriver når JS kjører. Offentlige sider er `index`, gated/auth-s
 `noindex`. Sitemap i `frontend/public/sitemap.xml`.
 
 ## Kjent teknisk gjeld (ærlig)
-Fanget opp i ekstern gjennomgang, dokumentert her så det ikke glemmes:
-- `main.py` er stor og bør splittes i `APIRouter`-moduler.
+
+**Gjort siden forrige versjon:** `main.py` splittet i `routers/` + `deps.py` · SEO-
+injeksjon LRU-cachet · PII-scrubbing (fnr/telefon) før Anthropic · juridisk eval-suite
+· CI/CD (GitHub Actions) · server-side MIME-validering · Lovdata gratis lov-API.
+
+**Gjenstår (bevisste, større valg):**
 - `db.py` er en egen abstraksjon; SQLAlchemy 2.0 + Alembic ville vært mer robust.
-- In-memory `RateLimiter` deles ikke mellom flere workers/instanser (bør til Redis,
-  eller kjør én web-worker inntil videre).
+- In-memory `RateLimiter` deles ikke mellom flere workers/instanser (Redis ved
+  skalering; kjører bevisst 1 web-worker inntil videre).
 - Fernet krypterer hele felter → kan ikke søke/indeksere på saksinnhold i DB.
-- Mangler automatiserte «evals» for juridisk presisjon (frister, paragrafer).
-- Ingen PII-anonymisering før tekst sendes til Anthropic.
-- SEO-injeksjonen leser og bygger HTML per request (bør caches).
+- JWT i localStorage (XSS-eksponert; CSP demper) → vurder HttpOnly-cookie + CSRF.
+
 Se README/TODO for status og prioritering.

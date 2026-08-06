@@ -7,11 +7,15 @@ to protect the authentication system from brute force attacks and other
 security threats.
 """
 
+import os
 import time
 import hashlib
+import logging
 from typing import Dict, List, Optional
 from fastapi import HTTPException, Request
 from datetime import datetime, timedelta
+
+logger = logging.getLogger(__name__)
 
 class RateLimiter:
     """Rate limiter for API endpoints"""
@@ -189,8 +193,47 @@ class SessionSecurity:
         for sid in sessions_to_remove:
             del self.active_sessions[sid]
 
+class RedisRateLimiter:
+    """Delt rate limiting via Redis, så grensen virker på tvers av workers/replicas.
+
+    Bruker et fast tidsvindu (INCR + EXPIRE). Ved Redis-feil faller den tilbake til
+    en in-memory limiter, slik at en Redis-utfall ikke stopper appen."""
+
+    def __init__(self, redis_url: str):
+        import redis  # importeres kun når REDIS_URL er satt
+        self._redis = redis.from_url(redis_url, socket_connect_timeout=2, socket_timeout=2)
+        self._redis.ping()  # feiler tidlig hvis Redis ikke er tilgjengelig
+        self._fallback = RateLimiter()
+
+    def is_allowed(self, client_ip: str, max_requests: int = 5, window_minutes: int = 15) -> bool:
+        try:
+            window = window_minutes * 60
+            bucket = int(time.time()) // window
+            key = f"rl:{client_ip}:{window_minutes}:{bucket}"
+            count = self._redis.incr(key)
+            if count == 1:
+                self._redis.expire(key, window)
+            return count <= max_requests
+        except Exception:
+            logger.warning("Redis utilgjengelig - faller tilbake til in-memory rate limiting")
+            return self._fallback.is_allowed(client_ip, max_requests, window_minutes)
+
+
+def _build_rate_limiter():
+    """Redis hvis REDIS_URL er satt (delt på tvers av workers), ellers in-memory."""
+    redis_url = os.getenv("REDIS_URL")
+    if redis_url:
+        try:
+            limiter = RedisRateLimiter(redis_url)
+            logger.info("Rate limiting: bruker Redis (delt)")
+            return limiter
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"Kunne ikke koble til Redis ({e}) - bruker in-memory rate limiting")
+    return RateLimiter()
+
+
 # Global instances
-rate_limiter = RateLimiter()
+rate_limiter = _build_rate_limiter()
 password_validator = PasswordStrengthValidator()
 session_security = SessionSecurity()
 

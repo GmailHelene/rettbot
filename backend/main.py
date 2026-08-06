@@ -29,6 +29,7 @@ from backend.security_enhancements import (
     session_security,
     rate_limiter
 )
+from backend.seo import render_index_html
 import jwt
 import bcrypt
 import secrets
@@ -983,9 +984,9 @@ async def root():
     """Serve frontend index.html"""
     frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
     index_file = frontend_dist / "index.html"
-    
+
     if index_file.exists():
-        return FileResponse(index_file)
+        return HTMLResponse(content=render_index_html(index_file.read_text(encoding="utf-8"), "/"))
     else:
         # Fallback: Return simple HTML with API info
         return HTMLResponse(content="""
@@ -2742,7 +2743,7 @@ async def catch_all(path: str):
             pass
 
     if index_file.exists():
-        return FileResponse(index_file)
+        return HTMLResponse(content=render_index_html(index_file.read_text(encoding="utf-8"), "/" + path))
     else:
         # Fallback for development
         return HTMLResponse(content=f"""

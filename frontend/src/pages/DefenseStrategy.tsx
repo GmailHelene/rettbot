@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Shield, AlertCircle, FileText, Target, AlertTriangle } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 interface StrategyResult {
   success: boolean;
@@ -24,6 +25,7 @@ interface StrategyResult {
 }
 
 export default function DefenseStrategy() {
+  const { token } = useAuth();
   const [caseFacts, setCaseFacts] = useState('');
   const [charges, setCharges] = useState('');
   const [evidence, setEvidence] = useState('');
@@ -49,6 +51,7 @@ export default function DefenseStrategy() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           case_facts: caseFacts,

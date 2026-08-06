@@ -42,6 +42,29 @@ logger = logging.getLogger(__name__)
 
 
 # ============================================================
+# Realisme og ansvar – motvekt mot falsk håp
+# ============================================================
+# Legges til i systemprompten for de rådgivende verktøyene. Poenget er at
+# verktøyet skal si ifra når saken er svak, når fristen er ute, og når
+# klageveien reelt er uttømt – i stedet for å love seier og sende brukeren
+# ut i enda en nytteløs runde.
+REALISME_OG_ANSVAR = (
+    "REALISME OG ANSVAR (svært viktig, dette veier tyngre enn å være «på brukerens lag»):\n"
+    "- Vær ærlig når saken er svak. Hvis brukeren sannsynligvis ikke har en sak, eller "
+    "forvaltningen/motparten sannsynligvis har rett etter loven, så si det tydelig og forklar hvorfor. "
+    "Falsk håp koster folk tid, penger og helse.\n"
+    "- Skill mellom det som oppleves urettferdig og det som faktisk er ulovlig. Ikke alt som er urimelig "
+    "gir et rettskrav.\n"
+    "- Vær oppmerksom på frister. Hvis en klage- eller ankefrist framstår som utløpt ut fra opplysningene, "
+    "si det, og forklar de begrensede mulighetene (f.eks. oppreisning for oversittet frist, jf. fvl. § 31).\n"
+    "- Ikke anbefal enda en klage når klageveien i praksis er uttømt. Da er ærlig råd som regel å kontakte "
+    "advokat eller rettshjelpsordning, vurdere søksmål, eller erkjenne at saken bør legges bort.\n"
+    "- Anslå styrken på saken nøkternt. Overdriv aldri vinnersjansene for å virke støttende.\n"
+    "- Dette er generell informasjon, ikke individuell juridisk rådgivning, og erstatter ikke advokat."
+)
+
+
+# ============================================================
 # Datastrukturer (uendret kontrakt mot resten av backend)
 # ============================================================
 
@@ -220,7 +243,8 @@ Svar i JSON format:
 """
 
         result = await self._message_json(
-            "Du er en elite norsk advokat med ekspertise i bevisføring og rettsprosess.",
+            "Du er en erfaren norsk advokat med ekspertise i bevisføring og rettsprosess.\n\n"
+            + REALISME_OG_ANSVAR,
             prompt,
         )
 
@@ -305,7 +329,8 @@ Svar i JSON format:
 """
 
         result = await self._message_json(
-            "Du er en elite norsk advokat med dyp kunnskap om norsk lov, EMK, og rettspraksis.",
+            "Du er en erfaren norsk jurist med dyp kunnskap om norsk lov, EMK, og rettspraksis.\n\n"
+            + REALISME_OG_ANSVAR,
             prompt,
         )
 
@@ -346,7 +371,7 @@ RETTSPRAKSIS:
 {chr(10).join(legal_research.precedents)}
 """
 
-        prompt = f"""Du er en elite norsk forsvarsadvokat kjent for å oppnå frifinnelser i vanskelige saker.
+        prompt = f"""Du er en erfaren norsk forsvarsadvokat som bygger en realistisk forsvarsstrategi.
 
 NORSK LOVGRUNNLAG:
 {law_context}
@@ -367,7 +392,9 @@ OPPGAVE: Bygg en omfattende forsvarsstrategi som en toppadvokat ville brukt.
 Inkluder primær forsvarsteori, svakhetsanalyse av aktoratets sak, alternative
 forsvarslinjer, prosedyreutfordringer, begjæringsstrategi, risikovurdering og neste steg.
 
-Vær KREATIV, AGGRESSIV og STRATEGISK som toppadvokater.
+Vær grundig og strategisk, men framfor alt ærlig: hvis bevisene er sterke og domfellelse er
+sannsynlig, si det klart i risikovurderingen og gi et realistisk råd (f.eks. tilståelsesrabatt
+etter strl. § 78 f, eller forhandling) i stedet for å love frifinnelse.
 
 Svar i JSON format:
 {{
@@ -388,7 +415,8 @@ Svar i JSON format:
 """
 
         result = await self._message_json(
-            "Du er en elite norsk forsvarsadvokat med erfaring fra Høyesterett og komplekse straffesaker.",
+            "Du er en erfaren norsk forsvarsadvokat med erfaring fra Høyesterett og komplekse straffesaker.\n\n"
+            + REALISME_OG_ANSVAR,
             prompt,
         )
 
@@ -510,7 +538,9 @@ Svar i JSON format:
 """
 
         return await self._message_json(
-            "Du er en ekspert på korrupsjonssaker i Norge med erfaring fra SEFO, EMD og internasjonale anti-korrupsjonsorganisasjoner.",
+            "Du er en ekspert på korrupsjonssaker i Norge med erfaring fra Spesialenheten, EMD og "
+            "internasjonale anti-korrupsjonsorganisasjoner.\n\n"
+            + REALISME_OG_ANSVAR,
             prompt,
         )
 

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Shield, FileText, Send, AlertTriangle } from 'lucide-react';
 import NesteSteg from '../components/NesteSteg';
+import { useAuth } from '../contexts/AuthContext';
 
 interface ViolationResponse {
   violation_type: string;
@@ -18,6 +19,7 @@ interface ViolationResponse {
 
 export default function RightsProtection() {
   const navigate = useNavigate();
+  const { token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [selectedViolation, setSelectedViolation] = useState('');
   const [description, setDescription] = useState('');
@@ -43,7 +45,7 @@ export default function RightsProtection() {
     try {
       const response = await fetch('/api/rights/violations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           violation_type: selectedViolation,
           description: description,
@@ -70,7 +72,7 @@ export default function RightsProtection() {
     try {
       const response = await fetch('/api/rights/appeal', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           violation_type: selectedViolation,
           description: description,

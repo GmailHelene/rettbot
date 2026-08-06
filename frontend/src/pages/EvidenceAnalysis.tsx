@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload, FileText, Brain, CheckCircle, AlertCircle, Scale } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 interface AnalysisResult {
   success: boolean;
@@ -21,6 +22,7 @@ interface AnalysisResult {
 
 export default function EvidenceAnalysis() {
   const navigate = useNavigate();
+  const { token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [evidenceText, setEvidenceText] = useState('');
   const [caseContext, setCaseContext] = useState('');
@@ -38,7 +40,7 @@ export default function EvidenceAnalysis() {
     try {
       const response = await fetch('/api/evidence/analyze', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           file_name: "evidence_text.txt",
           file_type: "text/plain",

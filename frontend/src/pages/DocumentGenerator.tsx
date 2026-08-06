@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, FileText, AlertCircle, Download, Copy, Check, Printer } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 interface DocumentResult {
   success: boolean;
@@ -16,6 +17,7 @@ interface DocumentResult {
 }
 
 export default function DocumentGenerator() {
+  const { token } = useAuth();
   const [documentType, setDocumentType] = useState('');
   const [caseNumber, setCaseNumber] = useState('');
   const [court, setCourt] = useState('');
@@ -50,6 +52,7 @@ export default function DocumentGenerator() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           document_type: documentType,

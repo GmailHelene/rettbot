@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Scale, AlertCircle, BookOpen, Info } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 interface PenaltyData {
   offense_type: string;
@@ -14,6 +15,7 @@ interface PenaltyData {
 }
 
 export default function PenaltiesLookup() {
+  const { token } = useAuth();
   const [selectedOffense, setSelectedOffense] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<PenaltyData | null>(null);
@@ -41,6 +43,7 @@ export default function PenaltiesLookup() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           offense: selectedOffense,

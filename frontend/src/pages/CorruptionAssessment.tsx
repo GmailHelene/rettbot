@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, AlertTriangle, AlertCircle, Building2, FileText, TrendingUp } from 'lucide-react';
 import NesteSteg from '../components/NesteSteg';
+import { useAuth } from '../contexts/AuthContext';
 
 interface AssessmentResult {
   success: boolean;
@@ -22,6 +23,7 @@ interface AssessmentResult {
 }
 
 export default function CorruptionAssessment() {
+  const { token } = useAuth();
   const [allegations, setAllegations] = useState('');
   const [evidence, setEvidence] = useState('');
   const [institutions, setInstitutions] = useState('');
@@ -48,6 +50,7 @@ export default function CorruptionAssessment() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           allegations: allegations,

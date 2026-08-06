@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import Dashboard from './pages/Dashboard';
 import PenaltiesLookup from './pages/PenaltiesLookup';
-import TrialSimulator from './pages/TrialSimulator';
 import RightsProtection from './pages/RightsProtection';
 import EvidenceAnalysis from './pages/EvidenceAnalysis';
 import LegalResearch from './pages/LegalResearch';
@@ -53,18 +52,19 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           
-          {/* App routes (available to all) */}
+          {/* Dashboard (åpen) */}
           <Route path="/app" element={<Dashboard />} />
-          <Route path="/evidence-analysis" element={<EvidenceAnalysis />} />
-          <Route path="/legal-research" element={<LegalResearch />} />
-          <Route path="/defense-strategy" element={<DefenseStrategy />} />
-          <Route path="/document-generator" element={<DocumentGenerator />} />
-          <Route path="/penalties" element={<PenaltiesLookup />} />
-          <Route path="/rights-protection" element={<RightsProtection />} />
-          <Route path="/trial-simulator" element={<TrialSimulator />} />
-          <Route path="/corruption-assessment" element={<CorruptionAssessment />} />
-          <Route path="/evidence-upload" element={<EvidenceUpload />} />
-          <Route path="/legal-chat" element={<LegalChat />} />
+
+          {/* AI-verktøy – krever innlogging (beskytter mot misbruk av Anthropic-API-et) */}
+          <Route path="/evidence-analysis" element={<ProtectedRoute><EvidenceAnalysis /></ProtectedRoute>} />
+          <Route path="/legal-research" element={<ProtectedRoute><LegalResearch /></ProtectedRoute>} />
+          <Route path="/defense-strategy" element={<ProtectedRoute><DefenseStrategy /></ProtectedRoute>} />
+          <Route path="/document-generator" element={<ProtectedRoute><DocumentGenerator /></ProtectedRoute>} />
+          <Route path="/penalties" element={<ProtectedRoute><PenaltiesLookup /></ProtectedRoute>} />
+          <Route path="/rights-protection" element={<ProtectedRoute><RightsProtection /></ProtectedRoute>} />
+          <Route path="/corruption-assessment" element={<ProtectedRoute><CorruptionAssessment /></ProtectedRoute>} />
+          <Route path="/evidence-upload" element={<ProtectedRoute><EvidenceUpload /></ProtectedRoute>} />
+          <Route path="/legal-chat" element={<ProtectedRoute><LegalChat /></ProtectedRoute>} />
           
           {/* Auth-required routes */}
           <Route

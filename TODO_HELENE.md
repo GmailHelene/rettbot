@@ -6,6 +6,25 @@ brukere · 🟢 senere/vekst.
 
 ---
 
+## ✅ Nylig utført i koden (etter sikkerhets-/juridisk gjennomgang)
+
+- **AI-endepunktene er lukket bak innlogging.** Ingen kan lenger bruke AI-
+  funksjonene (og dermed Anthropic-regningen din) uten å være innlogget.
+- **Per-bruker takst på AI-kall** (mot kostnadssprekk hvis én konto spammer).
+  Kan justeres med `AI_RATE_LIMIT_MAX` (standard 30) og `AI_RATE_LIMIT_WINDOW_MIN`
+  (standard 5) i Railway hvis du vil ha strammere/løsere grense.
+- **`/docs`, `/redoc` og `/openapi.json` er slått av i produksjon** (var åpne API-
+  kart før). Krever `ENVIRONMENT=production` i Railway.
+- **«Zero-knowledge»-påstanden er fjernet** – personvern og API beskriver nå ærlig
+  server-side-kryptering.
+- **Rettssak-simulatoren er fjernet** (kunne gi falskt inntrykk av domsutfall).
+- **Ærlighet bygget inn i AI-en:** den skal si ifra når saken er svak, fristen
+  trolig er ute, eller klageveien er uttømt – i stedet for å love seier.
+- **Personvern oppdatert:** egen seksjon om art. 9/10-data og om USA-overføring
+  til Anthropic (SCC/DPA). Se de to advokat-/DPA-punktene under 🟡.
+
+---
+
 ## 🔴 Gjør nå (ellers fungerer ikke live-appen riktig)
 
 - [ ] **Ny Anthropic-nøkkel i Railway.** Du roterte nøkkelen (bra!) – den gamle
@@ -53,18 +72,31 @@ brukere · 🟢 senere/vekst.
   (deg privat / enkeltpersonforetak / AS) og skriv det inn. *(Jeg kan oppdatere
   teksten når du gir meg verdiene.)*
 
-- [ ] **Databehandleravtale (DPA) med Anthropic.** Sakstekst sendes til Anthropic
-  for AI-behandling. Anthropic tilbyr en DPA – viktig for GDPR når du behandler
-  ekte persondata.
+- [ ] **Databehandleravtale (DPA) med Anthropic – signer den.** Sakstekst sendes til
+  Anthropic for AI-behandling, og overføres til USA. Anthropic tilbyr en DPA med
+  EU Standard Contractual Clauses (SCC). Gå til Anthropic-konsollen → **Privacy /
+  Data Processing Agreement**, aksepter/signer, og ta vare på PDF-en. Personvern-
+  siden viser allerede at overføringen skjer til USA og at grunnlaget er SCC/DPA –
+  men teksten stemmer først når avtalen faktisk er signert.
 
-- [ ] **Juridisk gjennomgang.** La en advokat se over AI-svarene og
-  «ikke juridisk rådgivning»-linjen før ekte sensitive saker. Reduserer ansvar.
+- [ ] **DPIA (personvernkonsekvensvurdering).** Fordi appen behandler straffedoms-
+  opplysninger (GDPR art. 10) og særlige kategorier (art. 9) i stor skala, kreves
+  normalt en DPIA før lansering (art. 35). Datatilsynet har mal. *(Jeg kan lage et
+  førsteutkast basert på hvordan appen faktisk behandler data – si ifra.)*
+
+- [ ] **Advokatsjekk av rettslig grunnlag for art. 9/10-data.** Personvern-siden
+  angir samtykke (art. 9 nr. 2 a), rettskrav (art. 9 nr. 2 f) og
+  personopplysningsloven § 11 for straffedomsopplysninger. Få en advokat/personvern-
+  rådgiver til å bekrefte at dette holder for din konkrete modell, og la samme
+  advokat se over AI-svarene og «ikke juridisk rådgivning»-linjen.
 
 - [ ] **Brukervilkår.** Bør på plass før lansering. *(Jeg kan lage et utkast –
   du eier og godkjenner det.)*
 
 - [ ] **Kostnadstak.** Sett en usage-grense i Anthropic-konsollen (og OpenAI hvis
-  kontoen er åpen), så du ikke får en overraskelsesregning.
+  kontoen er åpen), så du ikke får en overraskelsesregning. Appen har nå både
+  innlogging og per-bruker takst på AI-kall, men et hardt tak i konsollen er
+  siste skanse.
 
 ---
 

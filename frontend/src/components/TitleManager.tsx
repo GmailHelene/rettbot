@@ -14,7 +14,6 @@ const TITLES: Record<string, string> = {
   '/document-generator': 'Dokumentgenerator – RettBot+',
   '/penalties': 'Strafferammer etter norsk lov – RettBot+',
   '/rights-protection': 'Rettighetsvern og klage – RettBot+',
-  '/trial-simulator': 'Rettssak-simulator – RettBot+',
   '/corruption-assessment': 'Korrupsjonsvurdering – RettBot+',
   '/evidence-upload': 'Last opp bevis – RettBot+',
   '/legal-chat': 'AI juridisk chat – RettBot+',

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, MessageCircle, Send, AlertCircle, Loader } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Message {
   id: string;
@@ -10,6 +11,7 @@ interface Message {
 }
 
 export default function LegalChat() {
+  const { token } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -51,6 +53,7 @@ export default function LegalChat() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           message: input,

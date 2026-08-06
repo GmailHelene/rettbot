@@ -21,11 +21,12 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from backend.security_enhancements import (
-    check_rate_limit, 
-    validate_password_strength, 
-    SecurityHeaders, 
+    check_rate_limit,
+    validate_password_strength,
+    SecurityHeaders,
     get_client_ip,
-    session_security
+    session_security,
+    rate_limiter
 )
 import jwt
 import bcrypt
@@ -48,11 +49,17 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Initialize FastAPI app
+# Initialize FastAPI app.
+# Skru av interaktiv API-dokumentasjon (/docs, /redoc, /openapi.json) i produksjon
+# så API-flaten ikke eksponeres offentlig.
+_is_production = os.getenv("ENVIRONMENT", "development").lower() == "production"
 app = FastAPI(
     title="RettBot+ API",
-    description="Zero-knowledge AI legal assistant for Norwegian citizens",
-    version="1.0.0"
+    description="AI-assistert juridisk verktøy for norske borgere. Data krypteres server-side (ikke zero-knowledge).",
+    version="1.0.0",
+    docs_url=None if _is_production else "/docs",
+    redoc_url=None if _is_production else "/redoc",
+    openapi_url=None if _is_production else "/openapi.json",
 )
 
 # CORS Configuration
@@ -892,105 +899,6 @@ Jeg står til disposisjon for ytterligere opplysninger.
 
 
 # ============================================
-# Trial Simulator Module
-# ============================================
-
-class TrialSimulationRequest(BaseModel):
-    """Request to simulate a trial"""
-    case_type: str = Field(..., description="Type of case: narkotika, vold, tyveri, bedrageri, etc.")
-    facts: str = Field(..., description="Facts of the case")
-    evidence: List[str] = Field(..., description="Available evidence")
-    defense_skill: str = Field("god", description="Defense lawyer skill: dårlig, middels, god, elite")
-    prosecution_skill: str = Field("god", description="Prosecution skill: dårlig, middels, god, elite")
-    perspective: str = Field("defense", description="Perspective: defense or prosecution")
-    include_witnesses: bool = Field(True, description="Include witness testimonies")
-    include_cross_examination: bool = Field(True, description="Include cross-examination simulation")
-
-
-# Trial simulation templates with skill-based strategies
-TRIAL_STRATEGIES = {
-    "dårlig": {
-        "defense": {
-            "opening": "Generisk åpningsinnlegg uten spesifikk strategi",
-            "evidence_handling": "Presenterer bevis uten klar struktur eller sammenheng",
-            "cross_exam": "Stiller enkle ja/nei spørsmål uten oppfølging",
-            "closing": "Oppsummerer fakta uten overbevisende argumentasjon",
-            "weaknesses": ["Glemmer viktige bevis", "Følger ikke opp vitner", "Ingen klar teori om saken"]
-        },
-        "prosecution": {
-            "opening": "Leser opp siktelsen uten kontekst",
-            "evidence_handling": "Presenterer bevis i tilfeldig rekkefølge",
-            "cross_exam": "Spør ledende spørsmål som styrker forsvaret",
-            "closing": "Gjentar kun påstander uten bevis",
-            "weaknesses": ["Beviskjeden er uklar", "Motsetninger i vitneutsagn", "Svak bevisbyrde"]
-        }
-    },
-    "middels": {
-        "defense": {
-            "opening": "Presenterer forsvarets teori med noe struktur",
-            "evidence_handling": "Kategoriserer bevis i for/mot",
-            "cross_exam": "Stiller målrettede spørsmål med delvis oppfølging",
-            "closing": "Oppsummerer med fokus på rimelig tvil",
-            "strengths": ["Finner noen hull i påtalemyndighetens sak", "Presenterer alternative teorier"]
-        },
-        "prosecution": {
-            "opening": "Presenterer saken med kronologisk fremstilling",
-            "evidence_handling": "Bygger beviskjede med noe logikk",
-            "cross_exam": "Utfordrer troverdighet til forsvarsvitner",
-            "closing": "Argumenterer for skyld basert på beviser",
-            "strengths": ["Klar beviskjede", "Konsistent narrativ"]
-        }
-    },
-    "god": {
-        "defense": {
-            "opening": "Skaper tvil umiddelbart med kraftfull åpning",
-            "evidence_handling": "Strategisk presentasjon med timeline og sammenhenger",
-            "cross_exam": "Metodisk nedbrytning av påtalens vitner",
-            "closing": "Emosjonelt og logisk appellerende avslutning",
-            "strengths": ["Finner prosedyrefeil", "Utfordrer beviskjeden", "Presenterer alternativ teori med bevis"]
-        },
-        "prosecution": {
-            "opening": "Forteller en overbevisende historie med emosjonell appell",
-            "evidence_handling": "Bygger ubrytelig beviskjede med kriminalteknikk",
-            "cross_exam": "Avdekker løgner og motsetninger hos siktede",
-            "closing": "Viser at bevisene ikke etterlater rimelig tvil",
-            "strengths": ["Sterk beviskjede", "Troverdige vitner", "Kriminaltekniske bevis"]
-        }
-    },
-    "elite": {
-        "defense": {
-            "opening": "Fremsetter frigjørende teori med umiddelbar kraft - 'Klienten er uskyldig fordi...'",
-            "evidence_handling": "Omvender påtalens bevis til forsvarets fordel - 'Dette beviser faktisk det motsatte'",
-            "cross_exam": "Ødelegger påtalens nøkkelvitner med kirurgisk presisjon",
-            "closing": "Retorisk mesterlig - kombinerer følelser, logikk og jus perfekt",
-            "elite_tactics": [
-                "Angriper beviskjeden: 'Politiet brøt § 171 - bevisene er ulovlige'",
-                "Prosedyrefeil: 'Tiltalte ble ikke lest rettigheter - alt må forkastes'",
-                "Alternativ gjerningsperson: 'Bevisene peker faktisk på X, ikke klienten'",
-                "Vitnetroverdighetskollaps: 'Dette vitnet har løyet 3 ganger under ed'",
-                "Ekspertkritikk: 'DNA-analysen er gjort feil - vi har motekspert'"
-            ],
-            "strengths": ["Finner alle prosedyrefeil", "Omvender påtalens styrke til svakhet", "Skaper rimelig tvil fra ingenting"]
-        },
-        "prosecution": {
-            "opening": "Forteller en ugjendrivelig historie støttet av vitenskap og vitner",
-            "evidence_handling": "Bygger flere uavhengige beviskjeder - 'Selv uten X, har vi Y og Z'",
-            "cross_exam": "Lar tiltalte avsløre seg selv gjennom velformulerte spørsmål",
-            "closing": "Beviser skyld ut over enhver rimelig tvil med overveldende bevis",
-            "elite_tactics": [
-                "Redundante beviskjeder: DNA + vitner + video + digitale spor",
-                "Forhåndsmotvirker forsvarets argumenter: 'Forsvaret vil si X, men...'",
-                "Ekspertbevis: Kriminaltekniker, psykologer, leger bekrefter skyld",
-                "Tilståelse eller damaging statements: 'Tiltalte sa til politiet: ...'",
-                "Mønsterbevis: 'Dette er 5. gang tiltalte gjør akkurat dette'"
-            ],
-            "strengths": ["Ubrytelig beviskjede", "Flere uavhengige bevis", "Forhåndsmotvirker alle forsvarsmotiver"]
-        }
-    }
-}
-
-
-# ============================================
 # Penalties DB (minimal, deterministic dataset)
 # ============================================
 class PenaltyQuery(BaseModel):
@@ -1141,6 +1049,25 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         raise HTTPException(status_code=401, detail="Token has expired")
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Could not validate credentials")
+
+
+# Per-bruker rate limit på AI-endepunktene. Disse kaller Anthropic-API-et og
+# koster penger; grensen hindrer at én konto kjører opp regningen (i tillegg til
+# at endepunktene allerede krever innlogging).
+AI_RATE_LIMIT_MAX = int(os.getenv("AI_RATE_LIMIT_MAX", "30"))
+AI_RATE_LIMIT_WINDOW_MIN = int(os.getenv("AI_RATE_LIMIT_WINDOW_MIN", "5"))
+
+
+def ai_rate_limit(current_user: Dict = Depends(get_current_user)) -> Dict:
+    """Auth + per-bruker takst på AI-kall. Brukes som route-dependency."""
+    key = f"ai-user:{current_user['id']}"
+    if not rate_limiter.is_allowed(key, max_requests=AI_RATE_LIMIT_MAX, window_minutes=AI_RATE_LIMIT_WINDOW_MIN):
+        raise HTTPException(
+            status_code=429,
+            detail="For mange forespørsler på kort tid. Vent noen minutter før du prøver igjen.",
+        )
+    return current_user
+
 
 def encrypt_data(data: dict) -> str:
     """Encrypt dictionary data"""
@@ -1907,8 +1834,8 @@ async def health_check():
         "version": "1.0.0"
     }
 
-@app.post("/api/evidence/analyze")
-async def analyze_evidence(request: EvidenceAnalysisRequest):
+@app.post("/api/evidence/analyze", dependencies=[Depends(ai_rate_limit)])
+async def analyze_evidence(request: EvidenceAnalysisRequest, current_user: Dict = Depends(get_current_user)):
     """
     Analyze uploaded evidence using AI
     
@@ -1963,8 +1890,8 @@ async def analyze_evidence(request: EvidenceAnalysisRequest):
         logger.error(f"Error analyzing evidence: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
-@app.post("/api/legal/research")
-async def legal_research(request: LegalResearchRequest):
+@app.post("/api/legal/research", dependencies=[Depends(ai_rate_limit)])
+async def legal_research(request: LegalResearchRequest, current_user: Dict = Depends(get_current_user)):
     """
     Perform legal research using AI
     
@@ -2000,8 +1927,8 @@ async def legal_research(request: LegalResearchRequest):
         raise HTTPException(status_code=500, detail=f"Research failed: {str(e)}")
 
 
-@app.post("/api/legal/chat")
-async def legal_chat(request: ChatRequest):
+@app.post("/api/legal/chat", dependencies=[Depends(ai_rate_limit)])
+async def legal_chat(request: ChatRequest, current_user: Dict = Depends(get_current_user)):
     """Simple legal chat endpoint used by the frontend chat UI
 
     This endpoint forwards the user's message and a short conversation history to the AI engine
@@ -2020,8 +1947,10 @@ async def legal_chat(request: ChatRequest):
 
         prompt = (
             "Du er RettBot, en hjelpsom, kortfattet og nøyaktig norsk juridisk assistent. "
-            "Svar tydelig på brukerens spørsmål, oppgi relevante lovhenvisninger når mulig, og hold svaret kort (2-6 setninger).\n"
-            f"Kontekst:\n{history_text}\nBruker: {request.message}\nSvar:" 
+            "Svar tydelig på brukerens spørsmål, oppgi relevante lovhenvisninger når mulig, og hold svaret kort (2-6 setninger). "
+            "Vær ærlig: hvis saken virker svak, fristen kan være utløpt, eller klageveien er uttømt, si det, "
+            "og anbefal advokat eller rettshjelp framfor falsk håp. Dette er generell informasjon, ikke individuell juridisk rådgivning.\n"
+            f"Kontekst:\n{history_text}\nBruker: {request.message}\nSvar:"
         )
 
         # Use the ai_engine.simple_summary helper for a concise output
@@ -2047,8 +1976,8 @@ async def legal_chat(request: ChatRequest):
         logger.error(f"Error in legal chat: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Chat failed: {str(e)}")
 
-@app.post("/api/defense/strategy")
-async def build_defense_strategy(request: DefenseStrategyRequest):
+@app.post("/api/defense/strategy", dependencies=[Depends(ai_rate_limit)])
+async def build_defense_strategy(request: DefenseStrategyRequest, current_user: Dict = Depends(get_current_user)):
     """
     Build comprehensive defense strategy using AI
     
@@ -2084,8 +2013,8 @@ async def build_defense_strategy(request: DefenseStrategyRequest):
         logger.error(f"Error building defense strategy: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Strategy generation failed: {str(e)}")
 
-@app.post("/api/legal/document")
-async def draft_legal_document(request: LegalDocumentRequest):
+@app.post("/api/legal/document", dependencies=[Depends(ai_rate_limit)])
+async def draft_legal_document(request: LegalDocumentRequest, current_user: Dict = Depends(get_current_user)):
     """
     Draft professional legal documents
     
@@ -2121,8 +2050,8 @@ async def draft_legal_document(request: LegalDocumentRequest):
         logger.error(f"Error drafting document: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Document drafting failed: {str(e)}")
 
-@app.post("/api/corruption/assess")
-async def assess_corruption_case(request: CorruptionAssessmentRequest):
+@app.post("/api/corruption/assess", dependencies=[Depends(ai_rate_limit)])
+async def assess_corruption_case(request: CorruptionAssessmentRequest, current_user: Dict = Depends(get_current_user)):
     """
     Assess corruption case and recommend escalation path
     
@@ -2151,8 +2080,8 @@ async def assess_corruption_case(request: CorruptionAssessmentRequest):
         raise HTTPException(status_code=500, detail=f"Corruption assessment failed: {str(e)}")
 
 
-@app.post("/api/legal/penalties")
-async def legal_penalties(request: PenaltyQuery):
+@app.post("/api/legal/penalties", dependencies=[Depends(ai_rate_limit)])
+async def legal_penalties(request: PenaltyQuery, current_user: Dict = Depends(get_current_user)):
     """
     Return likely statutes and penalty ranges for a given offense (heuristic).
     This is a deterministic helper to give users an overview of possible fines/prison ranges
@@ -2234,8 +2163,8 @@ async def legal_penalties(request: PenaltyQuery):
         raise HTTPException(status_code=500, detail=f"Penalty lookup failed: {str(e)}")
 
 
-@app.get("/api/penalties/lookup")
-async def penalties_lookup_get(offense: str, context: Optional[str] = None):
+@app.get("/api/penalties/lookup", dependencies=[Depends(ai_rate_limit)])
+async def penalties_lookup_get(offense: str, context: Optional[str] = None, current_user: Dict = Depends(get_current_user)):
     """
     GET endpoint for penalty lookup (compatibility with frontend)
     """
@@ -2313,8 +2242,8 @@ async def penalties_lookup_get(offense: str, context: Optional[str] = None):
         raise HTTPException(status_code=500, detail=f"Kunne ikke hente straffedata: {str(e)}")
 
 
-@app.post("/api/rights/violations")
-async def check_rights_violations(request: RightsViolationQuery):
+@app.post("/api/rights/violations", dependencies=[Depends(ai_rate_limit)])
+async def check_rights_violations(request: RightsViolationQuery, current_user: Dict = Depends(get_current_user)):
     """
     Check if user's rights have been violated and what remedies are available.
     Covers: rejected applications (besøksforbud), police misconduct, judicial bias, denied access to documents.
@@ -2400,8 +2329,8 @@ async def check_rights_violations(request: RightsViolationQuery):
         raise HTTPException(status_code=500, detail=f"Rights check failed: {str(e)}")
 
 
-@app.post("/api/rights/appeal")
-async def get_appeal_template(request: AppealRequest):
+@app.post("/api/rights/appeal", dependencies=[Depends(ai_rate_limit)])
+async def get_appeal_template(request: AppealRequest, current_user: Dict = Depends(get_current_user)):
     """
     Get appeal/complaint template and step-by-step guidance for rejected applications or rights violations.
     """
@@ -2480,209 +2409,6 @@ Use formal legal language appropriate for Norwegian courts/authorities. Include:
     except Exception as e:
         logger.error(f"Error generating appeal template: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Appeal template generation failed: {str(e)}")
-
-
-@app.post("/api/trial/simulate")
-async def simulate_trial(request: TrialSimulationRequest):
-    """
-    Simulate a complete trial from both prosecution and defense perspectives.
-    Tests different lawyer skill levels to see how strategy affects outcome.
-    """
-    try:
-        # Get strategies for both sides
-        defense_strategy = TRIAL_STRATEGIES.get(request.defense_skill, TRIAL_STRATEGIES["god"])
-        prosecution_strategy = TRIAL_STRATEGIES.get(request.prosecution_skill, TRIAL_STRATEGIES["god"])
-
-        # Build simulation narrative
-        simulation = {
-            "case_summary": {
-                "type": request.case_type,
-                "facts": request.facts,
-                "evidence_count": len(request.evidence),
-                "defense_skill": request.defense_skill,
-                "prosecution_skill": request.prosecution_skill
-            },
-            "trial_phases": []
-        }
-
-        # Phase 1: Opening Statements
-        simulation["trial_phases"].append({
-            "phase": "Åpningsinnlegg",
-            "defense": {
-                "strategy": defense_strategy["defense"]["opening"],
-                "skill_notes": defense_strategy["defense"].get("strengths", defense_strategy["defense"].get("weaknesses", []))
-            },
-            "prosecution": {
-                "strategy": prosecution_strategy["prosecution"]["opening"],
-                "skill_notes": prosecution_strategy["prosecution"].get("strengths", prosecution_strategy["prosecution"].get("weaknesses", []))
-            }
-        })
-
-        # Phase 2: Evidence Presentation
-        simulation["trial_phases"].append({
-            "phase": "Bevisføring",
-            "defense": {
-                "strategy": defense_strategy["defense"]["evidence_handling"],
-                "evidence_used": request.evidence if request.perspective == "defense" else ["Påtalemyndighetens bevis"]
-            },
-            "prosecution": {
-                "strategy": prosecution_strategy["prosecution"]["evidence_handling"],
-                "evidence_used": request.evidence if request.perspective == "prosecution" else ["Påtalemyndighetens bevis"]
-            }
-        })
-
-        # Phase 3: Cross-Examination (if requested)
-        if request.include_cross_examination:
-            simulation["trial_phases"].append({
-                "phase": "Kryssforhør",
-                "defense": {
-                    "strategy": defense_strategy["defense"]["cross_exam"],
-                    "elite_tactics": defense_strategy["defense"].get("elite_tactics", [])
-                },
-                "prosecution": {
-                    "strategy": prosecution_strategy["prosecution"]["cross_exam"],
-                    "elite_tactics": prosecution_strategy["prosecution"].get("elite_tactics", [])
-                }
-            })
-
-        # Phase 4: Closing Arguments
-        simulation["trial_phases"].append({
-            "phase": "Sluttinnlegg",
-            "defense": {
-                "strategy": defense_strategy["defense"]["closing"],
-                "key_arguments": defense_strategy["defense"].get("strengths", [])
-            },
-            "prosecution": {
-                "strategy": prosecution_strategy["prosecution"]["closing"],
-                "key_arguments": prosecution_strategy["prosecution"].get("strengths", [])
-            }
-        })
-
-        # Predict outcome based on skill levels and evidence
-        outcome_prediction = predict_trial_outcome(
-            request.defense_skill,
-            request.prosecution_skill,
-            len(request.evidence),
-            request.case_type
-        )
-
-        simulation["predicted_outcome"] = outcome_prediction
-
-        # AI-enhanced analysis (if available)
-        ai_analysis = None
-        try:
-            if ai_engine and os.getenv("ANTHROPIC_API_KEY"):
-                prompt = f"""Analyze this trial simulation:
-Case: {request.case_type}
-Facts: {request.facts}
-Evidence: {', '.join(request.evidence)}
-Defense skill: {request.defense_skill}
-Prosecution skill: {request.prosecution_skill}
-
-Provide:
-1. Most likely outcome (frifinnelse, domfellelse, delvis domfellelse)
-2. Key factors that will determine the verdict
-3. Critical mistakes each side should avoid
-4. Best strategy for the weaker side
-5. Realistic sentencing if convicted (based on Norwegian law)
-
-Format as bullet points in Norwegian.
-"""
-                ai_analysis = await ai_engine.simple_summary(prompt)
-        except Exception:
-            ai_analysis = None
-
-        return {
-            "success": True,
-            "simulation": simulation,
-            "ai_expert_analysis": ai_analysis,
-            "learning_points": {
-                "defense": get_learning_points(request.defense_skill, "defense"),
-                "prosecution": get_learning_points(request.prosecution_skill, "prosecution")
-            },
-            "timestamp": datetime.utcnow().isoformat()
-        }
-
-    except Exception as e:
-        logger.error(f"Error simulating trial: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Trial simulation failed: {str(e)}")
-
-
-def predict_trial_outcome(defense_skill: str, prosecution_skill: str, evidence_count: int, case_type: str) -> Dict[str, Any]:
-    """Predict trial outcome based on lawyer skills and evidence"""
-    
-    skill_scores = {"dårlig": 1, "middels": 2, "god": 3, "elite": 4}
-    defense_score = skill_scores.get(defense_skill, 2)
-    prosecution_score = skill_scores.get(prosecution_skill, 2)
-    
-    # Calculate win probability
-    evidence_factor = min(evidence_count / 5, 1.0)  # More evidence helps prosecution
-    
-    # Base probability
-    if defense_score > prosecution_score + 1:
-        base_prob = 0.70  # Defense heavily favored
-        verdict = "Frifinnelse"
-    elif defense_score > prosecution_score:
-        base_prob = 0.60  # Defense slightly favored
-        verdict = "Sannsynlig frifinnelse"
-    elif prosecution_score > defense_score + 1:
-        base_prob = 0.30  # Prosecution heavily favored
-        verdict = "Domfellelse"
-    elif prosecution_score > defense_score:
-        base_prob = 0.40  # Prosecution slightly favored
-        verdict = "Sannsynlig domfellelse"
-    else:
-        base_prob = 0.50  # Even match
-        verdict = "Usikkert - avhenger av faktiske bevis"
-    
-    # Adjust for evidence
-    adjusted_prob = base_prob * (1 - evidence_factor * 0.3)
-    
-    return {
-        "verdict": verdict,
-        "acquittal_probability": f"{int(adjusted_prob * 100)}%",
-        "conviction_probability": f"{int((1 - adjusted_prob) * 100)}%",
-        "key_factors": [
-            f"Forsvarets dyktighet: {defense_skill} (score: {defense_score}/4)",
-            f"Påtalemyndighetens dyktighet: {prosecution_skill} (score: {prosecution_score}/4)",
-            f"Antall bevis: {evidence_count}",
-            f"Bevisets styrke påvirker utfallet med {int(evidence_factor * 100)}%"
-        ],
-        "notes": "Dette er en simulering. Faktisk utfall avhenger av bevisenes kvalitet, ikke bare kvantitet."
-    }
-
-
-def get_learning_points(skill_level: str, side: str) -> List[str]:
-    """Get learning points for improvement"""
-    
-    if skill_level == "dårlig":
-        return [
-            "Studer hvordan 'god' eller 'elite' advokater strukturerer saken",
-            "Fokuser på beviskjeden - ikke bare liste opp fakta",
-            "Lær effektive kryssforhørsteknikker",
-            "Se på hvordan dine argumenter faktisk motvirkes av motparten"
-        ]
-    elif skill_level == "middels":
-        return [
-            "Utvikle mer sofistikerte strategier - se 'elite' tactics",
-            "Lær å forutse motpartens argumenter og forbered motangrep",
-            "Finn prosedyrefeil og tekniske svakheter i motpartens sak",
-            "Bygg redundante argumenter - ikke stol på kun ett bevis"
-        ]
-    elif skill_level == "god":
-        return [
-            "Studer 'elite' tactics for å nå neste nivå",
-            "Lær retoriske teknikker for mer overbevisende fremstilling",
-            "Utvikle evne til å omvende motpartens styrke til svakhet",
-            "Mestre alle aspekter av prosedyrerett for å finne formfeil"
-        ]
-    else:  # elite
-        return [
-            "Du er allerede på elite-nivå!",
-            "Fortsett å studere nye høyesterettsdommer for presedenser",
-            "Del kunnskapen din med andre advokater",
-            "Skriv juridiske artikler om vellykkede strategier"
-        ]
 
 
 MAX_EVIDENCE_BYTES = 25 * 1024 * 1024  # 25 MB

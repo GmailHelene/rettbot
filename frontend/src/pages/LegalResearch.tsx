@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Search, BookOpen, AlertCircle, FileText, Scale, Globe } from 'lucide-react';
 import NesteSteg from '../components/NesteSteg';
+import { useAuth } from '../contexts/AuthContext';
 
 interface ResearchResult {
   success: boolean;
@@ -17,6 +18,7 @@ interface ResearchResult {
 }
 
 export default function LegalResearch() {
+  const { token } = useAuth();
   const [query, setQuery] = useState('');
   const [caseType, setCaseType] = useState('');
   const [context, setContext] = useState('');
@@ -46,6 +48,7 @@ export default function LegalResearch() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           query: query,

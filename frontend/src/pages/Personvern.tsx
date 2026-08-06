@@ -55,13 +55,43 @@ export default function Personvern() {
           </section>
 
           <section>
+            <h2 className="text-lg font-semibold text-slate-900">Sensitive opplysninger og straffedomsopplysninger</h2>
+            <p>
+              I sakene du legger inn, kan det forekomme særlige kategorier av personopplysninger
+              (GDPR art. 9 – for eksempel helse) og opplysninger om straffedommer og lovovertredelser
+              (GDPR art. 10). Dette er opplysninger du selv velger å dele om deg selv.
+            </p>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>
+                Behandlingen bygger på ditt <strong>uttrykkelige samtykke</strong> (art. 9 nr. 2 bokstav a) og
+                på at behandlingen er nødvendig for å fastsette, gjøre gjeldende eller forsvare rettskrav
+                (art. 9 nr. 2 bokstav f).
+              </li>
+              <li>
+                For straffedomsopplysninger (art. 10) behandler vi disse på vegne av deg som registrert, med
+                grunnlag i samtykke og for å ivareta dine egne rettskrav, jf. personopplysningsloven § 11.
+              </li>
+              <li>
+                Del ikke mer sensitiv informasjon enn det saken din faktisk krever. Du kan når som helst
+                trekke samtykket tilbake og be om sletting.
+              </li>
+            </ul>
+          </section>
+
+          <section>
             <h2 className="text-lg font-semibold text-slate-900">AI-behandling hos underleverandør</h2>
             <p>
               De juridiske funksjonene bruker en språkmodell fra <strong>Anthropic</strong> (Claude).
               Når du bruker en AI-funksjon, sendes teksten du har lagt inn (for eksempel saksfakta,
               spørsmål eller bevisbeskrivelser) til Anthropic for behandling, og svaret sendes tilbake.
-              Anthropic er databehandler for dette. Vær bevisst på hva du legger inn – unngå å dele mer
-              sensitiv informasjon enn nødvendig.
+              Anthropic er databehandler for dette, regulert av en databehandleravtale (DPA).
+            </p>
+            <p>
+              <strong>Overføring til USA:</strong> Anthropic er etablert i USA, og opplysningene du sender
+              til AI-funksjonene blir derfor overført til et tredjeland utenfor EØS. Overføringen er sikret
+              gjennom EU-kommisjonens standard personvernbestemmelser (Standard Contractual Clauses / SCC)
+              som del av databehandleravtalen med Anthropic. Du bør likevel være bevisst på hva du legger
+              inn – unngå å dele mer sensitiv informasjon enn saken din faktisk krever.
             </p>
           </section>
 

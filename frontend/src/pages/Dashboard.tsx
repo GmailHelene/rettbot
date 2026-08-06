@@ -214,20 +214,6 @@ export default function Dashboard() {
           </p>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="mt-12 bg-white border-t border-slate-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-          <p className="text-center text-sm text-slate-600">
-            RettBot+ © 2026 · AI-assistert juridisk verktøy for norske borgere
-          </p>
-          <p className="mt-1 text-center text-sm">
-            <Link to="/personvern" className="text-primary-700 hover:text-primary-800 underline">
-              Personvern
-            </Link>
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }

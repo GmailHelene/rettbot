@@ -19,11 +19,14 @@ import MyCases from './pages/MyCases';
 import Personvern from './pages/Personvern';
 import CookieConsent from './components/CookieConsent';
 import ProtectedRoute from './components/ProtectedRoute';
+import SiteFooter from './components/SiteFooter';
+import TitleManager from './components/TitleManager';
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <TitleManager />
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Dashboard />} />
@@ -61,6 +64,7 @@ function App() {
           {/* Redirect unknown routes to dashboard */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        <SiteFooter />
         <CookieConsent />
       </AuthProvider>
     </BrowserRouter>

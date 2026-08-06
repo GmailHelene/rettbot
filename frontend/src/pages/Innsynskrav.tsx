@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, FileKey, Copy, Download, Printer, Check } from 'lucide-react';
+import SaveToCase from '../components/SaveToCase';
 
 type Kind = 'personvern' | 'offentleg';
 
@@ -187,7 +188,9 @@ ${navn || '[Ditt navn]'}`;
       </main>
 
       <div className="max-w-5xl mx-auto px-4 pb-8 sm:px-6 lg:px-8">
-        <div className="rounded-xl border border-primary-200 bg-primary-50 p-5 text-sm text-primary-900">
+        <SaveToCase getContent={() => letter} defaultTitle="Innsynskrav" />
+
+        <div className="mt-6 rounded-xl border border-primary-200 bg-primary-50 p-5 text-sm text-primary-900">
           <p>
             <strong>Godt å vite:</strong> Du trenger ikke begrunne et innsynskrav. Ved innsyn i egne
             personopplysninger skal den ansvarlige normalt svare innen én måned. Får du avslag eller

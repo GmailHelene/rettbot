@@ -222,6 +222,19 @@ def init_database():
         )
     """)
 
+    # Lagrede dokumenter/brev (kryptert), knyttet til en sak via saksnummer
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS saved_documents (
+            id {ID_COLUMN},
+            user_id INTEGER NOT NULL,
+            case_ref TEXT,
+            title TEXT NOT NULL,
+            encrypted_content TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    """)
+
     # Password reset tokens (hashet – overlever omstart, persistent på tvers av workere)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS password_reset_tokens (
@@ -1319,6 +1332,24 @@ async def export_user_data(current_user: Dict = Depends(get_current_user)):
                 "details": d.get("details", ""),
                 "created_at": str(r[4]),
             })
+
+        cursor.execute(
+            "SELECT id, case_ref, title, encrypted_content, created_at FROM saved_documents WHERE user_id = ?",
+            (current_user["id"],),
+        )
+        saved_docs = []
+        for r in cursor.fetchall():
+            try:
+                content = fernet.decrypt(r[3].encode()).decode()
+            except Exception:
+                content = ""
+            saved_docs.append({
+                "id": r[0],
+                "case_ref": r[1],
+                "title": r[2],
+                "content": content,
+                "created_at": str(r[4]),
+            })
         conn.close()
 
         export = {
@@ -1333,6 +1364,7 @@ async def export_user_data(current_user: Dict = Depends(get_current_user)):
             "cases": cases,
             "evidence_metadata": evidence,
             "timeline": timeline,
+            "documents": saved_docs,
             "note": "Selve bevisfilene lagres kryptert og kan lastes ned enkeltvis i appen.",
         }
         return JSONResponse(
@@ -1354,6 +1386,7 @@ async def delete_my_account(current_user: Dict = Depends(get_current_user)):
         cursor = conn.cursor()
         cursor.execute("DELETE FROM evidence WHERE user_id = ?", (uid,))
         cursor.execute("DELETE FROM timeline_events WHERE user_id = ?", (uid,))
+        cursor.execute("DELETE FROM saved_documents WHERE user_id = ?", (uid,))
         cursor.execute(
             "DELETE FROM documents WHERE case_id IN (SELECT id FROM cases WHERE user_id = ?)",
             (uid,),
@@ -1481,6 +1514,86 @@ async def list_evidence(current_user: Dict = Depends(get_current_user)):
     except Exception as e:
         logger.error(f"Evidence list error: {str(e)}")
         raise HTTPException(status_code=500, detail="Kunne ikke hente bevis")
+
+
+# ============================================
+# Lagrede dokumenter/brev (kryptert)
+# ============================================
+
+class SavedDocumentCreate(BaseModel):
+    title: str
+    content: str
+    case_ref: Optional[str] = None
+
+
+@app.post("/api/documents")
+async def save_document(doc: SavedDocumentCreate, current_user: Dict = Depends(get_current_user)):
+    if not doc.title or not doc.content:
+        raise HTTPException(status_code=400, detail="Tittel og innhold er påkrevd.")
+    try:
+        encrypted = fernet.encrypt(doc.content.encode()).decode()
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO saved_documents (user_id, case_ref, title, encrypted_content) "
+            "VALUES (?, ?, ?, ?) RETURNING id",
+            (current_user["id"], doc.case_ref, doc.title, encrypted),
+        )
+        did = cursor.fetchone()[0]
+        conn.commit()
+        conn.close()
+        return {"success": True, "id": did}
+    except Exception as e:
+        logger.error(f"Save document error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Kunne ikke lagre dokumentet")
+
+
+@app.get("/api/documents")
+async def list_documents(current_user: Dict = Depends(get_current_user)):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, case_ref, title, encrypted_content, created_at FROM saved_documents "
+            "WHERE user_id = ? ORDER BY created_at DESC",
+            (current_user["id"],),
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        docs = []
+        for r in rows:
+            try:
+                content = fernet.decrypt(r[3].encode()).decode()
+            except Exception:
+                content = ""
+            docs.append({
+                "id": r[0],
+                "case_ref": r[1],
+                "title": r[2],
+                "content": content,
+                "created_at": str(r[4]),
+            })
+        return {"success": True, "documents": docs}
+    except Exception as e:
+        logger.error(f"List documents error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Kunne ikke hente dokumenter")
+
+
+@app.delete("/api/documents/{doc_id}")
+async def delete_document(doc_id: int, current_user: Dict = Depends(get_current_user)):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "DELETE FROM saved_documents WHERE id = ? AND user_id = ?",
+            (doc_id, current_user["id"]),
+        )
+        conn.commit()
+        conn.close()
+        return {"success": True}
+    except Exception as e:
+        logger.error(f"Delete document error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Kunne ikke slette dokumentet")
 
 @app.post("/api/auth/forgot-password")
 async def forgot_password(request: PasswordResetRequest, req: Request):

@@ -25,6 +25,7 @@ export default function MyCases() {
   const [selectedCase, setSelectedCase] = useState<CaseDetails | null>(null);
   const [linkedTimeline, setLinkedTimeline] = useState<any[]>([]);
   const [linkedEvidence, setLinkedEvidence] = useState<any[]>([]);
+  const [linkedDocuments, setLinkedDocuments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -81,17 +82,30 @@ export default function MyCases() {
 
       // Hent tidslinje + bevis knyttet til denne saken (via saksnummer)
       const ref = c.case_number;
-      const [tlRes, evRes] = await Promise.all([
+      const [tlRes, evRes, docRes] = await Promise.all([
         fetch('/api/timeline', { headers: { Authorization: `Bearer ${token}` } }),
         fetch('/api/evidence', { headers: { Authorization: `Bearer ${token}` } }),
+        fetch('/api/documents', { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       const tl = tlRes.ok ? (await tlRes.json()).events || [] : [];
       const ev = evRes.ok ? (await evRes.json()).evidence || [] : [];
+      const docs = docRes.ok ? (await docRes.json()).documents || [] : [];
       setLinkedTimeline(tl.filter((e: any) => e.case_ref === ref));
       setLinkedEvidence(ev.filter((e: any) => e.case_ref === ref));
+      setLinkedDocuments(docs.filter((e: any) => e.case_ref === ref));
     } catch (err: any) {
       setError(err.message);
     }
+  };
+
+  const downloadDoc = (title: string, content: string) => {
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title.replace(/[^\w\s-]/g, '').trim() || 'dokument'}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const createCase = async () => {
@@ -347,6 +361,32 @@ export default function MyCases() {
                             <li key={ev.id}>
                               {ev.filename}
                               {ev.description ? ` – ${ev.description}` : ''}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-gray-900 dark:text-white">Lagrede dokumenter</h3>
+                        <Link to="/maler" className="text-sm text-primary-700 hover:text-primary-800 underline">
+                          Lag nytt →
+                        </Link>
+                      </div>
+                      {linkedDocuments.length === 0 ? (
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Ingen lagrede dokumenter for denne saken ennå.</p>
+                      ) : (
+                        <ul className="space-y-2">
+                          {linkedDocuments.map((doc) => (
+                            <li key={doc.id} className="flex items-center justify-between gap-3 bg-gray-50 dark:bg-gray-700/40 rounded-lg px-3 py-2">
+                              <span className="text-sm text-gray-800 dark:text-gray-200 truncate">{doc.title}</span>
+                              <button
+                                onClick={() => downloadDoc(doc.title, doc.content)}
+                                className="text-sm text-primary-700 hover:text-primary-800 underline flex-shrink-0"
+                              >
+                                Last ned
+                              </button>
                             </li>
                           ))}
                         </ul>

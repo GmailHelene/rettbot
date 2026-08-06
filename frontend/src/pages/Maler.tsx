@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, FileText, Copy, Download, Check, Lightbulb, Printer } from 'lucide-react';
 import { templates } from '../data/templates';
+import SaveToCase from '../components/SaveToCase';
 
 export default function Maler() {
   const [activeId, setActiveId] = useState(templates[0].id);
@@ -144,6 +145,8 @@ export default function Maler() {
             className="w-full font-mono text-sm p-4 bg-white border border-slate-300 rounded-lg focus:border-primary-500 focus:ring-1 focus:ring-primary-500 focus:outline-none resize-y"
           />
         </div>
+
+        <SaveToCase getContent={() => text} defaultTitle={active.title} />
 
         <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5">
           <p className="text-sm text-amber-900">

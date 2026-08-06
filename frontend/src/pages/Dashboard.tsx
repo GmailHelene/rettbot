@@ -13,6 +13,7 @@ import {
   Compass,
   ClipboardList,
   CalendarClock,
+  FileKey,
   ChevronRight,
 } from 'lucide-react';
 
@@ -55,6 +56,13 @@ const groups: Group[] = [
         description: 'Regn ut når klage- eller ankefristen din går ut – ikke gå glipp av fristen.',
         icon: <CalendarClock className="icon-md" />,
         path: '/fristkalkulator',
+      },
+      {
+        id: 'access',
+        title: 'Innsynskrav',
+        description: 'Be om innsyn i egne personopplysninger eller offentlige dokumenter – ferdig brev.',
+        icon: <FileKey className="icon-md" />,
+        path: '/innsynskrav',
       },
       {
         id: 'penalties',

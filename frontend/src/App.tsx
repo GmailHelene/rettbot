@@ -26,6 +26,7 @@ import NotFound from './pages/NotFound';
 import Eskalering from './pages/Eskalering';
 import Maler from './pages/Maler';
 import Fristkalkulator from './pages/Fristkalkulator';
+import Innsynskrav from './pages/Innsynskrav';
 import MinKonto from './pages/MinKonto';
 import Vilkar from './pages/Vilkar';
 
@@ -95,6 +96,9 @@ function App() {
 
           {/* Fristkalkulator */}
           <Route path="/fristkalkulator" element={<Fristkalkulator />} />
+
+          {/* Innsynskrav-veiviser */}
+          <Route path="/innsynskrav" element={<Innsynskrav />} />
 
           {/* Ekte 404-side for ukjente adresser */}
           <Route path="*" element={<NotFound />} />

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Upload, AlertCircle, FileText, Check, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -14,11 +14,20 @@ export default function EvidenceUpload() {
   const { token } = useAuth();
   const [files, setFiles] = useState<File[]>([]);
   const [caseId, setCaseId] = useState('');
+  const [cases, setCases] = useState<{ case_number: string; title: string }[]>([]);
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  useEffect(() => {
+    if (!token) return;
+    fetch('/api/cases', { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => (r.ok ? r.json() : { cases: [] }))
+      .then((d) => setCases((d.cases || []).map((c: any) => ({ case_number: c.case_number, title: c.title }))))
+      .catch(() => {});
+  }, [token]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -137,15 +146,20 @@ export default function EvidenceUpload() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Saks-ID eller referanse
+                  Knytt til sak
                 </label>
-                <input
-                  type="text"
+                <select
                   value={caseId}
                   onChange={(e) => setCaseId(e.target.value)}
-                  placeholder="F.eks: SAK-2024-001"
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
+                >
+                  <option value="">Ingen sak</option>
+                  {cases.map((c) => (
+                    <option key={c.case_number} value={c.case_number}>
+                      {c.title} ({c.case_number})
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

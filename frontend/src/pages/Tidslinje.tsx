@@ -18,6 +18,7 @@ export default function Tidslinje() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  const [cases, setCases] = useState<{ case_number: string; title: string }[]>([]);
   const [date, setDate] = useState('');
   const [title, setTitle] = useState('');
   const [details, setDetails] = useState('');
@@ -38,6 +39,10 @@ export default function Tidslinje() {
 
   useEffect(() => {
     load();
+    fetch('/api/cases', { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => (r.ok ? r.json() : { cases: [] }))
+      .then((d) => setCases((d.cases || []).map((c: any) => ({ case_number: c.case_number, title: c.title }))))
+      .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
@@ -110,9 +115,16 @@ export default function Tidslinje() {
                 className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg focus:border-primary-500 focus:ring-1 focus:ring-primary-500 focus:outline-none" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Saksreferanse (valgfritt)</label>
-              <input type="text" value={caseRef} onChange={(e) => setCaseRef(e.target.value)} placeholder="f.eks. SAK-2026-001"
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg focus:border-primary-500 focus:ring-1 focus:ring-primary-500 focus:outline-none" />
+              <label className="block text-sm font-medium text-slate-700 mb-1">Knytt til sak (valgfritt)</label>
+              <select value={caseRef} onChange={(e) => setCaseRef(e.target.value)}
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg focus:border-primary-500 focus:ring-1 focus:ring-primary-500 focus:outline-none">
+                <option value="">Ingen sak</option>
+                {cases.map((c) => (
+                  <option key={c.case_number} value={c.case_number}>
+                    {c.title} ({c.case_number})
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
           <div className="mt-4">

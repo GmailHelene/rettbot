@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, FileText, AlertCircle, Download, Copy, Check } from 'lucide-react';
+import { ArrowLeft, FileText, AlertCircle, Download, Copy, Check, Printer } from 'lucide-react';
 
 interface DocumentResult {
   success: boolean;
@@ -96,6 +96,23 @@ export default function DocumentGenerator() {
       a.click();
       URL.revokeObjectURL(url);
     }
+  };
+
+  const handlePrint = () => {
+    if (!result) return;
+    const w = window.open('', '_blank');
+    if (!w) {
+      alert('Kunne ikke åpne utskriftsvindu. Tillat popup for denne siden.');
+      return;
+    }
+    const esc = result.document.content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    w.document.write(
+      `<!doctype html><html lang="nb"><head><meta charset="utf-8"><title>${result.document.type}</title>` +
+        `<style>body{font-family:Georgia,'Times New Roman',serif;white-space:pre-wrap;line-height:1.6;font-size:12pt;color:#111;padding:2.5cm;}@media print{body{padding:2cm;}}</style></head><body>${esc}</body></html>`
+    );
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 300);
   };
 
   return (
@@ -259,6 +276,13 @@ export default function DocumentGenerator() {
                       title="Kopier til utklippstavle"
                     >
                       {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                    </button>
+                    <button
+                      onClick={handlePrint}
+                      className="p-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg transition-colors"
+                      title="Skriv ut / lagre som PDF"
+                    >
+                      <Printer className="w-5 h-5" />
                     </button>
                     <button
                       onClick={handleDownload}

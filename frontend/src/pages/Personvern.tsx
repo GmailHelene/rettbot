@@ -130,8 +130,17 @@ export default function Personvern() {
           <section>
             <h2 className="text-lg font-semibold text-slate-900">Lagringstid</h2>
             <p>
-              Vi lagrer konto- og saksdata så lenge du har en aktiv konto. Du kan når som helst be om
-              at kontoen og tilhørende data slettes.
+              Vi lagrer konto- og saksdata så lenge du har en aktiv konto. Du kan når som helst slette
+              kontoen og alle tilhørende data selv, under «Min konto». Vi tar sikte på å slette kontoer
+              som har vært inaktive i mer enn 24 måneder, etter et varsel på e-post først.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold text-slate-900">Aldersgrense</h2>
+            <p>
+              Tjenesten er ment for voksne. Er du under 18 år, bør du bruke RettBot+ sammen med en
+              forelder eller verge, og ikke legge inn sensitive opplysninger på egen hånd.
             </p>
           </section>
 

@@ -449,8 +449,10 @@ Denne e-posten er automatisk generert. Ikke svar på denne e-posten.
             server.quit()
             return True
         else:
-            # In development, just log the reset URL
-            print(f"Password reset URL for {email}: {reset_url}")
+            # Kun i utvikling: logg reset-lenken lokalt. Aldri i produksjon
+            # (reset-token gir tilgang til å bytte passord).
+            if os.getenv("ENVIRONMENT", "development").lower() != "production":
+                print(f"[dev] Password reset URL for {email}: {reset_url}")
             return True
             
     except Exception as e:
@@ -1740,10 +1742,10 @@ async def forgot_password(request: PasswordResetRequest, req: Request):
         email_sent = send_password_reset_email(request.email, reset_token, base_url)
         
         if not email_sent:
-            logger.error(f"Failed to send reset email to {request.email}")
+            logger.error("Failed to send reset email")
             raise HTTPException(status_code=500, detail="Failed to send reset email")
         
-        logger.info(f"Password reset email sent to {request.email}")
+        logger.info("Password reset email sent")
         return {"message": "If the email exists, you will receive a reset link"}
         
     except HTTPException:
@@ -1806,7 +1808,7 @@ async def reset_password(request: PasswordResetConfirm):
         # Engangstoken - slett etter bruk
         _delete_reset_token(request.token)
 
-        logger.info(f"Password successfully reset for {token_data['email']}")
+        logger.info("Password successfully reset")
         return {"message": "Password successfully reset"}
         
     except HTTPException:
@@ -2066,7 +2068,7 @@ async def analyze_evidence(request: EvidenceAnalysisRequest, current_user: Dict 
     try:
         if not ai_engine:
             raise HTTPException(status_code=503, detail="AI engine unavailable. Set ANTHROPIC_API_KEY.")
-        logger.info(f"Analyzing evidence: {request.file_name} ({request.file_type})")
+        logger.info(f"Analyzing evidence ({request.file_type})")
 
         # Vi analyserer basert på beskrivelsen/metadataene brukeren har sendt inn.
         
@@ -2119,7 +2121,7 @@ async def legal_research(request: LegalResearchRequest, current_user: Dict = Dep
     try:
         if not ai_engine:
             raise HTTPException(status_code=503, detail="AI engine unavailable. Set ANTHROPIC_API_KEY.")
-        logger.info(f"Legal research query: {request.query[:100]}...")
+        logger.info("Legal research query received")
         
         research = await ai_engine.legal_research(
             question=request.query,
@@ -2205,7 +2207,7 @@ async def build_defense_strategy(request: DefenseStrategyRequest, current_user: 
     if not ai_engine:
         raise HTTPException(status_code=503, detail="AI engine unavailable. Set ANTHROPIC_API_KEY.")
     try:
-        logger.info(f"Building defense strategy for charges: {request.charges[:100]}...")
+        logger.info("Building defense strategy")
         
         strategy = await ai_engine.build_defense_strategy(
             case_facts=request.case_facts,
@@ -2279,7 +2281,7 @@ async def assess_corruption_case(request: CorruptionAssessmentRequest, current_u
     if not ai_engine:
         raise HTTPException(status_code=503, detail="AI engine unavailable. Set ANTHROPIC_API_KEY.")
     try:
-        logger.info(f"Assessing corruption case involving: {', '.join(request.institutions)}")
+        logger.info("Assessing corruption case")
         
         assessment = await ai_engine.assess_corruption_case(
             allegations=request.allegations,

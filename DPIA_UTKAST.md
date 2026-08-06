@@ -2,7 +2,7 @@
 
 **Tjeneste:** RettBot+ (rettbot.com)
 **Behandlingsansvarlig:** Grønberg Tech Solutions [org.nr: sett inn] / alternativt Helene Åsheim Grønberg privat
-**Dato:** [sett inn]
+**Dato:** 06.08.2026
 **Status:** Utkast. Må gjennomgås og ferdigstilles av behandlingsansvarlig, og bør kvalitetssikres av en personvernrådgiver/advokat før lansering til ekte brukere.
 
 > Dette er et arbeidsdokument, ikke juridisk rådgivning. Det er skrevet for å gi
@@ -113,16 +113,31 @@ Anthropics databehandleravtale (DPA), som er innbakt i de kommersielle vilkåren
 
 ## 8. Tiltak som bør vurderes / gjenstår
 
-- [ ] Signere/bekrefte DPA med Anthropic og databehandleravtale med Railway.
-- [ ] Rutine for varsling ved brudd på personopplysningssikkerheten (72-timers
-      melding til Datatilsynet).
-- [ ] Vurdere kryptering av flere felt / roterbar nøkkelhåndtering, og sikker
-      lagring av `ENCRYPTION_KEY`.
-- [ ] Vurdere maksimal lagringstid / automatisk sletting av inaktive kontoer.
-- [ ] Vurdere aldersgrense/samtykke for mindreårige.
-- [ ] Logg-gjennomgang: bekrefte at saksinnhold aldri havner i logger.
-- [ ] Vurdere supplerende tiltak (TIA) for USA-overføringen.
-- [ ] Fagperson bekrefter rettslig grunnlag (art. 9/10).
+Gjennomgått 06.08.2026. Status:
+
+- [x] **Rutine for varsling ved brudd (72-timers).** Utarbeidet – se
+      [VARSLINGSRUTINE_BRUDD.md](VARSLINGSRUTINE_BRUDD.md).
+- [x] **Logg-gjennomgang.** Gjennomført: fjernet saksinnhold (research-spørring,
+      tiltale, institusjoner, filnavn) og e-postadresser fra loggene; reset-token
+      logges aldri i produksjon. Loggene inneholder nå kun tekniske data.
+- [x] **Maksimal lagringstid.** Policy angitt i personvern: bruker kan slette selv
+      når som helst; kontoer inaktive > 24 mnd slettes etter varsel.
+      *(Automatisk slette-jobb gjenstår å implementere – Fase 3.)*
+- [x] **Aldersgrense.** Angitt i personvern/vilkår: tjenesten for voksne; under 18
+      bør bruke med verge.
+- [~] **Kryptering / nøkkelhåndtering.** Saksdata er Fernet-kryptert server-side.
+      `ENCRYPTION_KEY` lagres kun som Railway-miljøvariabel (aldri i repo).
+      Nøkkelrotasjon (MultiFernet) og kryptering av flere felt vurderes senere;
+      vurdert som akseptabelt nå.
+- [~] **TIA (USA-overføring).** Kort vurdering: grunnlag er SCC via Anthropics DPA,
+      supplert av kryptering i transit (HTTPS), ingen AI-trening og dataminimering.
+      Sjekk om Anthropic er DPF-sertifisert (forenkler overføringen). Full TIA bør
+      bekreftes av fagperson.
+- [ ] **Signere/bekrefte DPA (Anthropic + Railway).** Anthropic: auto-innbakt i de
+      kommersielle vilkårene (ta vare på kopi). Railway: gjennomgå/aksepter Railways
+      DPA. **Din handling.**
+- [ ] **Fagperson bekrefter rettslig grunnlag (art. 9/10).** **Din handling** –
+      kan ikke erstattes av kode.
 
 ## 9. Restrisiko og konklusjon
 
@@ -131,5 +146,5 @@ må reduseres ytterligere]**. Behandlingen [kan / bør ikke] starte for ekte bru
 før de gjenstående punktene i punkt 8 er lukket. Ved høy restrisiko som ikke lar seg
 redusere, skal Datatilsynet forhåndskonsulteres (art. 36).
 
-**Ansvarlig for oppfølging:** [navn]
-**Neste gjennomgang:** [dato]
+**Ansvarlig for oppfølging:** Helene Åsheim Grønberg
+**Neste gjennomgang:** 06.12.2026

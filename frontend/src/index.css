@@ -48,6 +48,16 @@
   .card-legal {
     @apply bg-white rounded-lg shadow-sm border border-slate-200 hover:shadow-md transition-all duration-200;
   }
+
+  /* Standard kort-flate (brukt på tvers av sidene) */
+  .card-professional {
+    @apply bg-white rounded-xl border border-slate-200 shadow-sm p-6;
+  }
+
+  /* Header tilbake-/tittel-ikon */
+  .header-icon {
+    @apply w-6 h-6 text-slate-600;
+  }
   
   .input-legal {
     @apply w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:border-slate-500 focus:ring-1 focus:ring-slate-500 focus:outline-none transition-all;

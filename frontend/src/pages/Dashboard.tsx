@@ -191,7 +191,7 @@ export default function Dashboard() {
               className="card-professional group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
             >
               <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center justify-center w-12 h-12 bg-slate-100 rounded-lg group-hover:bg-slate-200 transition-colors">
+                <div className="flex items-center justify-center w-12 h-12 bg-primary-50 text-primary-700 rounded-lg group-hover:bg-primary-100 transition-colors">
                   {feature.icon}
                 </div>
                 <ChevronRight className="icon-sm text-slate-400 group-hover:text-slate-600 transition-colors" />
@@ -205,36 +205,13 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* API Status */}
-        <div className="mt-8 card-professional">
-          <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
-            <Shield className="icon-sm mr-2 text-slate-600" />
-            API Endpoints Status
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[
-              'evidence/analyze',
-              'legal/research',
-              'defense/strategy',
-              'legal/document',
-              'legal/penalties',
-              'rights/violations',
-              'rights/appeal',
-              'trial/simulate',
-              'corruption/assess',
-              'evidence/upload'
-            ].map((endpoint) => (
-              <div
-                key={endpoint}
-                className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200"
-              >
-                <span className="text-sm text-slate-700 font-mono">
-                  /api/{endpoint}
-                </span>
-                <span className="w-2 h-2 bg-green-500 rounded-full" title="Online" />
-              </div>
-            ))}
-          </div>
+        {/* Ansvarsfraskrivelse */}
+        <div className="mt-8 rounded-xl border border-amber-200 bg-amber-50 p-5">
+          <p className="text-sm text-amber-900">
+            <strong>Viktig:</strong> RettBot+ gir generell, AI-generert juridisk informasjon og er
+            ikke en erstatning for personlig rådgivning fra en advokat. Ved en konkret sak bør du
+            kontakte en advokat eller offentlig rettshjelp.
+          </p>
         </div>
       </main>
 
@@ -242,7 +219,12 @@ export default function Dashboard() {
       <footer className="mt-12 bg-white border-t border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
           <p className="text-center text-sm text-slate-600">
-            RettBot+ © 2025 | Zero-Knowledge AI Legal Defense Platform
+            RettBot+ © 2026 · AI-assistert juridisk verktøy for norske borgere
+          </p>
+          <p className="mt-1 text-center text-sm">
+            <Link to="/personvern" className="text-primary-700 hover:text-primary-800 underline">
+              Personvern
+            </Link>
           </p>
         </div>
       </footer>

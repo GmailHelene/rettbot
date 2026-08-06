@@ -69,7 +69,9 @@ app.add_middleware(
 @app.middleware("http")
 async def enforce_https_redirect(request: Request, call_next):
     try:
-        force_https = os.getenv("FORCE_HTTPS", "true").lower() == "true"
+        # HTTPS tvinges i produksjon; av som standard lokalt (unngår redirect-loop i dev).
+        _is_prod = os.getenv("ENVIRONMENT", "development").lower() == "production"
+        force_https = os.getenv("FORCE_HTTPS", "true" if _is_prod else "false").lower() == "true"
         # Respect proxy headers (Railway sets X-Forwarded-Proto)
         xf_proto = request.headers.get("x-forwarded-proto") or request.url.scheme
         if force_https and xf_proto == "http":
@@ -2424,10 +2426,21 @@ async def catch_all(path: str):
     # Skip API routes - they should not fall through to frontend
     if path.startswith("api/"):
         raise HTTPException(status_code=404, detail="API endpoint not found")
-    
+
     frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
     index_file = frontend_dist / "index.html"
-    
+
+    # Serve ekte statiske filer i dist-roten (robots.txt, sitemap.xml, favicon, ikoner, m.m.)
+    # før vi faller tilbake til SPA index.html. Trygg mot path-traversal.
+    if path and not path.endswith("/"):
+        candidate = (frontend_dist / path).resolve()
+        try:
+            candidate.relative_to(frontend_dist.resolve())
+            if candidate.is_file():
+                return FileResponse(candidate)
+        except (ValueError, OSError):
+            pass
+
     if index_file.exists():
         return FileResponse(index_file)
     else:

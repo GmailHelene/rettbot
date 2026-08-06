@@ -16,6 +16,8 @@ import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import MyCases from './pages/MyCases';
+import Personvern from './pages/Personvern';
+import CookieConsent from './components/CookieConsent';
 
 function App() {
   return (
@@ -44,10 +46,14 @@ function App() {
           
           {/* Auth-required routes */}
           <Route path="/my-cases" element={<MyCases />} />
-          
+
+          {/* Personvern */}
+          <Route path="/personvern" element={<Personvern />} />
+
           {/* Redirect unknown routes to dashboard */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        <CookieConsent />
       </AuthProvider>
     </BrowserRouter>
   );

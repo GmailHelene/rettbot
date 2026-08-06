@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Ikke krav om å indeksere autentiserte verktøysider isolert
+Disallow: /reset-password
+
+Sitemap: https://rettbot.com/sitemap.xml

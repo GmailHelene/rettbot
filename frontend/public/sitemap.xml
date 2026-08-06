@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://rettbot.com/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://rettbot.com/legal-research</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://rettbot.com/penalties</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://rettbot.com/rights-protection</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://rettbot.com/defense-strategy</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://rettbot.com/document-generator</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://rettbot.com/evidence-analysis</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://rettbot.com/trial-simulator</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://rettbot.com/corruption-assessment</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://rettbot.com/legal-chat</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://rettbot.com/personvern</loc><changefreq>yearly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://rettbot.com/login</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://rettbot.com/register</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
+</urlset>

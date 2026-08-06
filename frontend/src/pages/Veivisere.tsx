@@ -28,7 +28,7 @@ export default function Veivisere() {
 
       <main className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <p className="text-slate-600 text-sm mb-6 max-w-2xl">
-          Velg situasjonen din, så tar vi deg gjennom stegene i riktig rekkefølge – med lenker til
+          Velg situasjonen din, så tar vi deg gjennom stegene i riktig rekkefølge - med lenker til
           verktøyene du trenger underveis. Du kan krysse av etter hvert som du gjør dem.
         </p>
 
@@ -47,7 +47,7 @@ export default function Veivisere() {
               </div>
               <h2 className="text-base font-semibold text-slate-900">{v.title}</h2>
               <p className="mt-1 text-sm text-slate-600">{v.intro}</p>
-              <p className="mt-3 text-xs text-slate-400">{v.steps.length} steg</p>
+              <p className="mt-3 text-xs text-slate-500">{v.steps.length} steg</p>
             </Link>
           ))}
         </div>

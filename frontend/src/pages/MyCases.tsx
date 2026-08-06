@@ -194,7 +194,7 @@ export default function MyCases() {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
               Mine Saker
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <p className="text-gray-600 dark:text-gray-500 mt-2">
               Saksdata krypteres server-side før lagring
             </p>
           </div>
@@ -226,8 +226,8 @@ export default function MyCases() {
             <div className="lg:col-span-1 space-y-4">
               {cases.length === 0 ? (
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-8 text-center">
-                  <Folder className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <Folder className="w-12 h-12 text-gray-500 mx-auto mb-4" />
+                  <p className="text-gray-600 dark:text-gray-500">
                     Du har ingen saker ennå
                   </p>
                   <button
@@ -252,14 +252,14 @@ export default function MyCases() {
                       <h3 className="font-semibold text-gray-900 dark:text-white">
                         {caseItem.title}
                       </h3>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                      <span className="text-xs text-gray-500 dark:text-gray-500">
                         {caseItem.case_number}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-500 mb-2">
                       {caseItem.case_type}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-gray-500 dark:text-gray-500">
                       Opprettet: {formatDate(caseItem.created_at)}
                     </p>
                   </div>
@@ -276,7 +276,7 @@ export default function MyCases() {
                       <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                         {selectedCase.title}
                       </h2>
-                      <p className="text-gray-600 dark:text-gray-400">
+                      <p className="text-gray-600 dark:text-gray-500">
                         {selectedCase.case_number}
                       </p>
                     </div>
@@ -328,7 +328,7 @@ export default function MyCases() {
                         </Link>
                       </div>
                       {linkedTimeline.length === 0 ? (
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Ingen hendelser knyttet til denne saken ennå.</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-500">Ingen hendelser knyttet til denne saken ennå.</p>
                       ) : (
                         <ol className="border-l-2 border-gray-200 dark:border-gray-700 ml-2 space-y-3">
                           {linkedTimeline.map((ev) => (
@@ -338,7 +338,7 @@ export default function MyCases() {
                               </p>
                               <p className="text-sm font-semibold text-gray-900 dark:text-white">{ev.title}</p>
                               {ev.details && (
-                                <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">{ev.details}</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-500 whitespace-pre-line">{ev.details}</p>
                               )}
                             </li>
                           ))}
@@ -354,13 +354,13 @@ export default function MyCases() {
                         </Link>
                       </div>
                       {linkedEvidence.length === 0 ? (
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Ingen bevisfiler knyttet til denne saken ennå.</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-500">Ingen bevisfiler knyttet til denne saken ennå.</p>
                       ) : (
                         <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300 list-disc list-inside">
                           {linkedEvidence.map((ev) => (
                             <li key={ev.id}>
                               {ev.filename}
-                              {ev.description ? ` – ${ev.description}` : ''}
+                              {ev.description ? ` - ${ev.description}` : ''}
                             </li>
                           ))}
                         </ul>
@@ -375,7 +375,7 @@ export default function MyCases() {
                         </Link>
                       </div>
                       {linkedDocuments.length === 0 ? (
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Ingen lagrede dokumenter for denne saken ennå.</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-500">Ingen lagrede dokumenter for denne saken ennå.</p>
                       ) : (
                         <ul className="space-y-2">
                           {linkedDocuments.map((doc) => (
@@ -394,10 +394,10 @@ export default function MyCases() {
                     </div>
 
                     <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-sm text-gray-500 dark:text-gray-500">
                         Opprettet: {formatDate(selectedCase.created_at)}
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-sm text-gray-500 dark:text-gray-500">
                         Sist oppdatert: {formatDate(selectedCase.updated_at)}
                       </p>
                     </div>
@@ -414,8 +414,8 @@ export default function MyCases() {
                 </div>
               ) : (
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-12 text-center">
-                  <Eye className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <Eye className="w-12 h-12 text-gray-500 mx-auto mb-4" />
+                  <p className="text-gray-600 dark:text-gray-500">
                     Velg en sak for å se detaljer
                   </p>
                 </div>

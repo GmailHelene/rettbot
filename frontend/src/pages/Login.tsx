@@ -52,7 +52,7 @@ export default function Login() {
                 E-post
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                 <input
                   id="login-email"
                   type="email"
@@ -71,7 +71,7 @@ export default function Login() {
                 Passord
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                 <input
                   id="login-password"
                   type="password"

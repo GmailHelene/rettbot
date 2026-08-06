@@ -3,17 +3,19 @@ Server-side SEO for SPA-en.
 
 Vi serverer en React-SPA, og crawlere/delingsroboter ser i utgangspunktet en
 tom side. Her injiserer vi per-rute <title>, meta-beskrivelse, canonical,
-Open Graph/Twitter og et lite, crawlbart innholdsblokk i #root – uten
+Open Graph/Twitter og et lite, crawlbart innholdsblokk i #root - uten
 Puppeteer eller endringer i frontend-bygget. React overskriver blokken når
 JavaScript kjører, så vanlige brukere merker ingenting.
 """
 
 import re
+import json
 import html as _html
+from functools import lru_cache
 
 SITE = "https://rettbot.com"
 
-_SUFFIX = " – RettBot+"
+_SUFFIX = " - RettBot+"
 
 # Felles «neste steg»-lenker vi kan gjenbruke i innholdsblokken.
 _COMMON_LINKS = [
@@ -27,8 +29,8 @@ _COMMON_LINKS = [
 # innloggede verktøy, ukjente ruter).
 PAGES = {
     "/": {
-        "title": "RettBot+ – Kjenn rettighetene dine mot politi og myndigheter",
-        "description": "Forstå norsk lov, dokumentér saken din og skriv klage eller anke selv – når du står mot politi, NAV, barnevern eller forvaltningen. Gratis verktøy. Ikke en erstatning for advokat.",
+        "title": "RettBot+ - Kjenn rettighetene dine mot politi og myndigheter",
+        "description": "Forstå norsk lov, dokumentér saken din og skriv klage eller anke selv - når du står mot politi, NAV, barnevern eller forvaltningen. Gratis verktøy. Ikke en erstatning for advokat.",
         "h1": "Kjenn rettighetene dine. Stå stødig mot systemet.",
         "intro": "RettBot+ hjelper deg å forstå norsk lov, dokumentere saken din og skrive klagen selv når du står mot politi, myndigheter eller et system som ikke lytter.",
         "links": _COMMON_LINKS,
@@ -43,7 +45,7 @@ PAGES = {
     "/veivisere": {
         "title": "Veivisere: steg for steg" + _SUFFIX,
         "description": "Steg-for-steg-veivisere for konkrete situasjoner: klage på politiet, klage på et vedtak, dokumentere en hendelse og varsling. Med sjekkliste og lenker til verktøyene du trenger.",
-        "h1": "Veivisere – steg for steg gjennom en situasjon",
+        "h1": "Veivisere - steg for steg gjennom en situasjon",
         "intro": "Velg situasjonen din, så tar vi deg gjennom stegene i riktig rekkefølge med lenker til rett verktøy underveis.",
         "links": [
             ("Klage på politiet", "/veivisere/klage-paa-politiet"),
@@ -53,30 +55,30 @@ PAGES = {
         ],
     },
     "/veivisere/klage-paa-politiet": {
-        "title": "Klage på politiet – steg for steg" + _SUFFIX,
+        "title": "Klage på politiet - steg for steg" + _SUFFIX,
         "description": "Slik klager du på politiet: finn ut om det er klage på oppførsel, mistanke om noe straffbart eller klage på henleggelse, finn rett instans, sjekk fristen og skriv klagen.",
-        "h1": "Klage på politiet – steg for steg",
+        "h1": "Klage på politiet - steg for steg",
         "intro": "Det finnes flere spor, og det er lett å sende til feil sted. Denne veiviseren tar deg gjennom hvordan du klager på politiet.",
         "links": [("Hvor klager du?", "/hvor-klager-du"), ("Regn ut fristen", "/fristkalkulator"), ("Eksempler", "/eksempler")],
     },
     "/veivisere/anke-vedtak": {
-        "title": "Klage på et vedtak – steg for steg" + _SUFFIX,
+        "title": "Klage på et vedtak - steg for steg" + _SUFFIX,
         "description": "Fått et avslag eller vedtak fra NAV, kommunen eller en etat du mener er feil? Slik klager du: finn klagefristen, be om innsyn og begrunnelse, og skriv klagen.",
-        "h1": "Klage på et forvaltningsvedtak – steg for steg",
+        "h1": "Klage på et forvaltningsvedtak - steg for steg",
         "intro": "Har du fått et avslag eller vedtak fra det offentlige du mener er feil? Denne veiviseren viser hvordan du klager.",
         "links": [("Regn ut fristen", "/fristkalkulator"), ("Lag innsynskrav", "/innsynskrav"), ("Eksempler", "/eksempler")],
     },
     "/veivisere/dokumenter-hendelse": {
-        "title": "Dokumentér en hendelse – steg for steg" + _SUFFIX,
+        "title": "Dokumentér en hendelse - steg for steg" + _SUFFIX,
         "description": "Det du dokumenterer nå er ofte viktigere enn selve klagen senere. Slik sikrer du bevis, lager en tidslinje og oppbevarer alt trygt.",
-        "h1": "Dokumentér en hendelse – steg for steg",
+        "h1": "Dokumentér en hendelse - steg for steg",
         "intro": "Gjør det mens det er ferskt: skriv ned hva som skjedde, sikre bevisene og legg det inn i en tidslinje.",
         "links": [("Lag en tidslinje", "/tidslinje"), ("Veivisere", "/veivisere")],
     },
     "/veivisere/varsling": {
-        "title": "Varsling – steg for steg" + _SUFFIX,
+        "title": "Varsling - steg for steg" + _SUFFIX,
         "description": "Vil du varsle om kritikkverdige forhold? Slik finner du rett kanal, dokumenterer grunnlaget og tenker gjennom vern og risiko før du varsler.",
-        "h1": "Varsling – steg for steg",
+        "h1": "Varsling - steg for steg",
         "intro": "Varsling kan være alvorlig og komplekst. Denne veiviseren hjelper deg å tenke gjennom rekkefølge og risiko.",
         "links": [("Hvor varsler du?", "/hvor-klager-du"), ("Dokumentér hendelsen", "/veivisere/dokumenter-hendelse")],
     },
@@ -89,7 +91,7 @@ PAGES = {
     },
     "/maler": {
         "title": "Maler: klage, anke, anmeldelse og innsyn" + _SUFFIX,
-        "description": "Ferdige, redigerbare maler for klage, anke, anmeldelse og innsynskrav på norsk. Fyll ut, kopier eller skriv ut – og send selv.",
+        "description": "Ferdige, redigerbare maler for klage, anke, anmeldelse og innsynskrav på norsk. Fyll ut, kopier eller skriv ut - og send selv.",
         "h1": "Dokumentmaler",
         "intro": "Ferdige maler for klage, anke, anmeldelse og innsynskrav som du kan tilpasse og bruke selv.",
         "links": [("Eksempler", "/eksempler"), ("Hvor klager du?", "/hvor-klager-du"), ("Regn ut fristen", "/fristkalkulator")],
@@ -102,14 +104,14 @@ PAGES = {
         "links": [("Bruk en mal", "/maler"), ("Veivisere", "/veivisere"), ("Hvor klager du?", "/hvor-klager-du")],
     },
     "/fristkalkulator": {
-        "title": "Fristkalkulator – klage- og ankefrist" + _SUFFIX,
-        "description": "Regn ut når klage- eller ankefristen din går ut. Ikke mist muligheten fordi fristen løp ut – de fleste klagefrister er tre uker.",
+        "title": "Fristkalkulator - klage- og ankefrist" + _SUFFIX,
+        "description": "Regn ut når klage- eller ankefristen din går ut. Ikke mist muligheten fordi fristen løp ut - de fleste klagefrister er tre uker.",
         "h1": "Fristkalkulator",
         "intro": "Regn ut når klage- eller ankefristen din går ut, så du ikke mister muligheten.",
         "links": _COMMON_LINKS,
     },
     "/innsynskrav": {
-        "title": "Innsynskrav – be om innsyn i egne data" + _SUFFIX,
+        "title": "Innsynskrav - be om innsyn i egne data" + _SUFFIX,
         "description": "Lag et ferdig innsynskrav: be om innsyn i egne personopplysninger eller offentlige dokumenter, jf. forvaltningsloven og personvernregelverket.",
         "h1": "Innsynskrav-veiviser",
         "intro": "Be om innsyn i egne personopplysninger eller offentlige dokumenter med et ferdig brev.",
@@ -132,7 +134,7 @@ PAGES = {
 }
 
 _DEFAULT = {
-    "title": "RettBot+ – Kjenn rettighetene dine",
+    "title": "RettBot+ - Kjenn rettighetene dine",
     "description": "AI-assistert verktøy som hjelper deg å forstå rettighetene dine og skrive klagen selv. Ikke en erstatning for advokat.",
     "h1": "RettBot+",
     "intro": "Kjenn rettighetene dine. Stå stødig mot systemet.",
@@ -223,6 +225,43 @@ def render_index_html(base_html: str, path: str) -> str:
         f'<meta name="twitter:description" content="{_esc(desc)}" />',
     )
 
+    # Strukturerte data (JSON-LD) for indekserbare sider - hjelper både Google og
+    # AI-søkemotorer (Perplexity/ChatGPT) å forstå hva siden er.
+    if indexable:
+        graph = {
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": title,
+            "description": desc,
+            "url": url,
+            "inLanguage": "nb-NO",
+            "isPartOf": {"@type": "WebSite", "name": "RettBot+", "url": SITE + "/"},
+            "publisher": {"@type": "Organization", "name": "Grønberg Tech Solutions"},
+            "provider": {
+                "@type": "LegalService",
+                "name": "RettBot+",
+                "areaServed": {"@type": "Country", "name": "Norway"},
+            },
+        }
+        if p.startswith("/veivisere/"):
+            graph["@type"] = ["WebPage", "HowTo"]
+            graph["step"] = [{"@type": "HowToStep", "name": lbl} for lbl, _ in cfg.get("links", [])]
+        script = '<script type="application/ld+json">' + json.dumps(graph, ensure_ascii=False) + "</script>"
+        html = html.replace("</head>", f"    {script}\n</head>", 1)
+
     # Crawlbart innhold som React overskriver når JS kjører.
     html = html.replace('<div id="root"></div>', f'<div id="root">{_content_block(cfg)}</div>', 1)
     return html
+
+
+@lru_cache(maxsize=1)
+def _load_base(index_path: str) -> str:
+    """Les den bygde index.html én gang (caches - prosessen restartes ved deploy)."""
+    with open(index_path, encoding="utf-8") as f:
+        return f.read()
+
+
+@lru_cache(maxsize=256)
+def render_for_path(index_path: str, path: str) -> str:
+    """Cachet per rute: leser index.html én gang og gjenbruker ferdig injisert HTML."""
+    return render_index_html(_load_base(index_path), path)

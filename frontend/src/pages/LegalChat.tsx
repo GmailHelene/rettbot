@@ -122,7 +122,7 @@ export default function LegalChat() {
       {/* Chat Messages */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-6 sm:px-6 lg:px-8 overflow-y-auto">
         <AiDisclaimer className="mb-4" />
-        <div className="space-y-4">
+        <div className="space-y-4" aria-live="polite" aria-atomic="false" aria-busy={loading}>
           {messages.map((message) => (
             <div
               key={message.id}

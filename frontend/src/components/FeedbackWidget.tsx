@@ -43,7 +43,7 @@ export default function FeedbackWidget({ tool, className = '' }: Props) {
         }),
       });
     } catch {
-      /* stille – tilbakemelding er ikke kritisk for brukeren */
+      /* stille - tilbakemelding er ikke kritisk for brukeren */
     } finally {
       try {
         localStorage.setItem(storageKey(tool), '1');

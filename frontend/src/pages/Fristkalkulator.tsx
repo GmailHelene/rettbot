@@ -43,7 +43,7 @@ export default function Fristkalkulator() {
       : remaining < 0
       ? { text: 'Fristen er utløpt', cls: 'bg-red-50 text-red-800 border-red-200' }
       : remaining <= 3
-      ? { text: `Haster – ${remaining} dag(er) igjen`, cls: 'bg-amber-50 text-amber-900 border-amber-200' }
+      ? { text: `Haster - ${remaining} dag(er) igjen`, cls: 'bg-amber-50 text-amber-900 border-amber-200' }
       : { text: `${remaining} dager igjen`, cls: 'bg-green-50 text-green-800 border-green-200' };
 
   return (
@@ -124,10 +124,10 @@ export default function Fristkalkulator() {
 
         <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5">
           <p className="text-sm text-amber-900">
-            <strong>Viktig:</strong> Den nøyaktige fristen står i vedtaket/avgjørelsen din – den kan
+            <strong>Viktig:</strong> Den nøyaktige fristen står i vedtaket/avgjørelsen din - den kan
             avvike fra standardvalgene her. Dette er kun et hjelpemiddel for å regne ut en dato, ikke
             juridisk rådgivning. Har du allerede oversittet fristen, kan du i noen tilfeller be om at
-            klagen behandles likevel – kontakt instansen eller et{' '}
+            klagen behandles likevel - kontakt instansen eller et{' '}
             <Link to="/hvor-klager-du" className="underline">rettshjelptiltak</Link>.
           </p>
         </div>

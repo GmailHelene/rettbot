@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 
 /**
- * Global footer – vises på alle sider. Samler juridiske lenker og
+ * Global footer - vises på alle sider. Samler juridiske lenker og
  * «ikke juridisk rådgivning»-ansvarsfraskrivelsen ett sted.
  */
 export default function SiteFooter() {

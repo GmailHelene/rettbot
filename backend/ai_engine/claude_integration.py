@@ -42,11 +42,11 @@ logger = logging.getLogger(__name__)
 
 
 # ============================================================
-# Realisme og ansvar – motvekt mot falsk håp
+# Realisme og ansvar - motvekt mot falsk håp
 # ============================================================
 # Legges til i systemprompten for de rådgivende verktøyene. Poenget er at
 # verktøyet skal si ifra når saken er svak, når fristen er ute, og når
-# klageveien reelt er uttømt – i stedet for å love seier og sende brukeren
+# klageveien reelt er uttømt - i stedet for å love seier og sende brukeren
 # ut i enda en nytteløs runde.
 REALISME_OG_ANSVAR = (
     "REALISME OG ANSVAR (svært viktig, dette veier tyngre enn å være «på brukerens lag»):\n"

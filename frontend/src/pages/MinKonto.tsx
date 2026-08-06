@@ -71,11 +71,11 @@ export default function MinKonto() {
           <dl className="text-sm text-slate-700 space-y-1">
             <div className="flex gap-2">
               <dt className="font-medium text-slate-500 w-24">Navn:</dt>
-              <dd>{user?.full_name || '–'}</dd>
+              <dd>{user?.full_name || '-'}</dd>
             </div>
             <div className="flex gap-2">
               <dt className="font-medium text-slate-500 w-24">E-post:</dt>
-              <dd>{user?.email || '–'}</dd>
+              <dd>{user?.email || '-'}</dd>
             </div>
           </dl>
         </div>
@@ -98,7 +98,7 @@ export default function MinKonto() {
           </div>
           <p className="mt-2 text-xs text-slate-500">
             JSON er for dataportabilitet. Saksmappen (PDF) er en lesbar oppsummering av tidslinje,
-            bevis og dokumenter – grei å skrive ut eller ta med til en advokat.
+            bevis og dokumenter - grei å skrive ut eller ta med til en advokat.
           </p>
         </div>
 

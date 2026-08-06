@@ -33,7 +33,7 @@ export default function Innsynskrav() {
 ${adresse || '[Din adresse]'}
 ${epost || '[Din e-post]'}
 
-${mottaker || '[Mottaker – instans]'}
+${mottaker || '[Mottaker - instans]'}
 ${mottakerAdresse || '[Adresse]'}
 
 ${sted || '[Sted]'}, ${today}
@@ -194,7 +194,7 @@ ${navn || '[Ditt navn]'}`;
           <p>
             <strong>Godt å vite:</strong> Du trenger ikke begrunne et innsynskrav. Ved innsyn i egne
             personopplysninger skal den ansvarlige normalt svare innen én måned. Får du avslag eller
-            ikke svar, kan du klage – se{' '}
+            ikke svar, kan du klage - se{' '}
             <Link to="/hvor-klager-du" className="underline">Hvor klager du?</Link> (personvern:
             Datatilsynet). Dette er generell informasjon, ikke juridisk rådgivning.
           </p>

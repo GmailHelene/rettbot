@@ -14,7 +14,7 @@ export default function AiDisclaimer({ className = '' }: { className?: string })
     >
       <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
       <p className="text-sm text-amber-900 leading-relaxed">
-        <strong>AI-generert – sjekk alltid kilden.</strong> Dette er automatisk generert
+        <strong>AI-generert - sjekk alltid kilden.</strong> Dette er automatisk generert
         informasjon som kan inneholde feil. Kontroller paragrafer, lover og datoer mot{' '}
         <a
           href="https://lovdata.no"

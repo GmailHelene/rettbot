@@ -61,7 +61,7 @@ export default function Personvern() {
             <h2 className="text-lg font-semibold text-slate-900">Sensitive opplysninger og straffedomsopplysninger</h2>
             <p>
               I sakene du legger inn, kan det forekomme særlige kategorier av personopplysninger
-              (GDPR art. 9 – for eksempel helse) og opplysninger om straffedommer og lovovertredelser
+              (GDPR art. 9 - for eksempel helse) og opplysninger om straffedommer og lovovertredelser
               (GDPR art. 10). Dette er opplysninger du selv velger å dele om deg selv.
             </p>
             <ul className="list-disc pl-5 space-y-1">
@@ -94,7 +94,7 @@ export default function Personvern() {
               til AI-funksjonene blir derfor overført til et tredjeland utenfor EØS. Overføringen er sikret
               gjennom EU-kommisjonens standard personvernbestemmelser (Standard Contractual Clauses / SCC)
               som del av databehandleravtalen med Anthropic. Du bør likevel være bevisst på hva du legger
-              inn – unngå å dele mer sensitiv informasjon enn saken din faktisk krever.
+              inn - unngå å dele mer sensitiv informasjon enn saken din faktisk krever.
             </p>
           </section>
 
@@ -113,7 +113,7 @@ export default function Personvern() {
             <p>
               <strong>Lokal/offline bruk:</strong> RettBot+ er per i dag en skytjeneste. Den kan ikke kjøres
               lokalt på din egen maskin, og AI-delen krever at teksten sendes til Anthropic for behandling.
-              Vil du holde noe helt privat, så la være å legge det inn – bruk heller delene som ikke
+              Vil du holde noe helt privat, så la være å legge det inn - bruk heller delene som ikke
               involverer AI (for eksempel fristkalkulator, maler og innsynskrav-veiviseren).
             </p>
           </section>
@@ -122,7 +122,7 @@ export default function Personvern() {
             <h2 className="text-lg font-semibold text-slate-900">Lagring og sikkerhet</h2>
             <p>
               Saksdata krypteres på serveren før lagring. Merk: dette er <strong>server-side</strong>
-              {' '}kryptering – serveren har krypteringsnøkkelen. Tjenesten er per i dag ikke
+              {' '}kryptering - serveren har krypteringsnøkkelen. Tjenesten er per i dag ikke
               zero-knowledge (klient-side) kryptert. Overføring skjer over HTTPS.
             </p>
           </section>

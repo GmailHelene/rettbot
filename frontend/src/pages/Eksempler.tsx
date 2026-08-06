@@ -4,7 +4,7 @@ import NesteSteg from '../components/NesteSteg';
 import FeedbackWidget from '../components/FeedbackWidget';
 
 /**
- * Anonymiserte, illustrative eksempler. Ingen ekte saker – strukturer du kan
+ * Anonymiserte, illustrative eksempler. Ingen ekte saker - strukturer du kan
  * tilpasse selv. Bygger tillit ved å vise hva som faktisk funker, uten å love
  * for mye.
  */
@@ -62,7 +62,7 @@ export default function Eksempler() {
 {`Til: Statsadvokaten i [region]
 Fra: [Navn], [adresse]
 Dato: 14.03.2026
-Gjelder: Klage på henleggelse – politiets sak nr. [XX-XXXXXX]
+Gjelder: Klage på henleggelse - politiets sak nr. [XX-XXXXXX]
 
 Jeg klager på politiets beslutning av 28.02.2026 om å henlegge saken
 etter bevisets stilling.
@@ -81,7 +81,7 @@ Vedlegg: kopi av anmeldelse, e-post til etterforsker 05.02.2026.
           </div>
           <p className="mt-3 text-sm text-slate-600">
             Legg merke til: den er kort, viser til et <strong>konkret</strong> bevis som mangler, og
-            sier tydelig hva som kreves. Ingen sinte utrop. Klagefristen på henleggelse er tre uker –
+            sier tydelig hva som kreves. Ingen sinte utrop. Klagefristen på henleggelse er tre uker -
             regn den ut før du sender.
           </p>
         </section>

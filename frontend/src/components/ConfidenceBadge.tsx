@@ -1,5 +1,5 @@
 interface Props {
-  /** Sikkerhet 0–100 (fra AI-svaret). */
+  /** Sikkerhet 0-100 (fra AI-svaret). */
   value: number;
   label?: string;
   className?: string;
@@ -26,7 +26,7 @@ export default function ConfidenceBadge({ value, label = 'Sikkerhet', className 
   } else {
     tier = 'Lav';
     cls = 'bg-red-50 text-red-700 border-red-200';
-    hint = 'Vær ekstra kritisk – dette bør bekreftes av en fagperson.';
+    hint = 'Vær ekstra kritisk - dette bør bekreftes av en fagperson.';
   }
 
   return (

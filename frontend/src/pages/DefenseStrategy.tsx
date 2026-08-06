@@ -94,7 +94,7 @@ export default function DefenseStrategy() {
                 <Shield className="header-title-icon mr-3 text-green-600" />
                 Forsvarsstrategi
               </h1>
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-500">
                 AI-generert forsvarsstrategi basert på saksdetaljer
               </p>
             </div>
@@ -335,7 +335,7 @@ export default function DefenseStrategy() {
                         key={index}
                         className="flex items-start bg-gray-50 dark:bg-gray-700 p-3 rounded"
                       >
-                        <span className="text-gray-600 dark:text-gray-400 mr-2 font-semibold">{index + 1}.</span>
+                        <span className="text-gray-600 dark:text-gray-500 mr-2 font-semibold">{index + 1}.</span>
                         <span className="text-gray-700 dark:text-gray-300">{step}</span>
                       </li>
                     ))}
@@ -347,7 +347,7 @@ export default function DefenseStrategy() {
 
           {!result && (
             <div className="flex items-center justify-center bg-white dark:bg-gray-800 rounded-lg shadow-lg p-12">
-              <div className="text-center text-gray-400 dark:text-gray-600">
+              <div className="text-center text-gray-500 dark:text-gray-600">
                 <Shield className="w-16 h-16 mx-auto mb-4" />
                 <p className="text-lg">Fyll ut saksinformasjon</p>
                 <p className="text-sm mt-2">AI vil generere en omfattende forsvarsstrategi</p>

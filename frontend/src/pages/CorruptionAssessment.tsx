@@ -93,7 +93,7 @@ export default function CorruptionAssessment() {
                 <AlertTriangle className="header-title-icon mr-3 text-yellow-600" />
                 Korrupsjonsvurdering
               </h1>
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-500">
                 Analyser potensielle korrupsjonssaker og få eskaleringsplan
               </p>
             </div>
@@ -336,7 +336,7 @@ export default function CorruptionAssessment() {
 
           {!result && (
             <div className="flex items-center justify-center bg-white dark:bg-gray-800 rounded-lg shadow-lg p-12">
-              <div className="text-center text-gray-400 dark:text-gray-600">
+              <div className="text-center text-gray-500 dark:text-gray-600">
                 <AlertTriangle className="w-16 h-16 mx-auto mb-4" />
                 <p className="text-lg">Fyll ut informasjon om korrupsjonssaken</p>
                 <p className="text-sm mt-2">AI vil analysere og gi eskaleringsplan</p>

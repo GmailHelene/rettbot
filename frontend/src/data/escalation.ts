@@ -1,5 +1,5 @@
 /**
- * Eskaleringsveier – hvor man klager/varsler i Norge, etter område.
+ * Eskaleringsveier - hvor man klager/varsler i Norge, etter område.
  *
  * Dette er faktisk, offentlig tilgjengelig informasjon om norske klage- og
  * tilsynsorganer (ikke juridisk rådgivning). Lenkene går til de offisielle
@@ -33,7 +33,7 @@ export const escalationAreas: EscalationArea[] = [
         url: 'https://www.spesialenheten.no',
       },
       {
-        name: 'Politiet – klage til politimesteren',
+        name: 'Politiet - klage til politimesteren',
         handles: 'Klager på kritikkverdig oppførsel eller dårlig behandling som ikke er straffbart.',
         when: 'Ved dårlig oppførsel, manglende hjelp eller kritikkverdig opptreden. Kan bringes videre til Politidirektoratet.',
         url: 'https://www.politiet.no/rad/klage-pa-politiet/',
@@ -73,7 +73,7 @@ export const escalationAreas: EscalationArea[] = [
       {
         name: 'Datatilsynet',
         handles: 'Tilsyn og klager om personvern og behandling av personopplysninger (GDPR).',
-        when: 'Ved brudd på personvern – f.eks. innsyn, sletting, ulovlig deling.',
+        when: 'Ved brudd på personvern - f.eks. innsyn, sletting, ulovlig deling.',
         url: 'https://www.datatilsynet.no',
       },
     ],
@@ -122,7 +122,7 @@ export const escalationAreas: EscalationArea[] = [
     intro: 'Er du uenig i en avgjørelse fra NAV, kan du klage.',
     bodies: [
       {
-        name: 'NAV – klage og anke',
+        name: 'NAV - klage og anke',
         handles: 'Klage på NAV-vedtak, som eventuelt går videre til NAV Klageinstans og Trygderetten.',
         when: 'Når du er uenig i et vedtak om ytelser eller tjenester fra NAV.',
         url: 'https://www.nav.no/klage',

@@ -113,12 +113,12 @@ export const veivisere: Veiviser[] = [
       {
         title: 'Skriv ned mens du husker',
         body:
-          'Noter hva som skjedde, når (dato og klokkeslett), hvor, hvem som var til stede, og hva som ble sagt. Skriv nøkternt – fakta, ikke følelser.',
+          'Noter hva som skjedde, når (dato og klokkeslett), hvor, hvem som var til stede, og hva som ble sagt. Skriv nøkternt - fakta, ikke følelser.',
       },
       {
         title: 'Sikre bevisene',
         body:
-          'Ta vare på meldinger, e-poster, bilder, kvitteringer og navn på vitner. Ikke rediger originalene – ta kopier.',
+          'Ta vare på meldinger, e-poster, bilder, kvitteringer og navn på vitner. Ikke rediger originalene - ta kopier.',
       },
       {
         title: 'Legg det inn i en tidslinje',

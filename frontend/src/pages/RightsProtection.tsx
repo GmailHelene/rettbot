@@ -220,7 +220,7 @@ export default function RightsProtection() {
                           <ul className="mt-1 space-y-1">
                             {result.appeal_process.required_documents.map((doc, idx) => (
                               <li key={idx} className="flex items-start gap-2">
-                                <span className="text-slate-400">•</span>
+                                <span className="text-slate-500">•</span>
                                 <span>{doc}</span>
                               </li>
                             ))}

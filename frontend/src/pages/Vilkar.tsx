@@ -22,11 +22,11 @@ export default function Vilkar() {
 
           <p>
             Disse vilkårene gjelder når du bruker RettBot+. Ved å bruke tjenesten godtar du dem. Les
-            dem gjennom – de er skrevet så tydelig vi klarer.
+            dem gjennom - de er skrevet så tydelig vi klarer.
           </p>
 
           <section>
-            <h2 className="text-lg font-semibold text-slate-900">Hva RettBot+ er – og ikke er</h2>
+            <h2 className="text-lg font-semibold text-slate-900">Hva RettBot+ er - og ikke er</h2>
             <p>
               RettBot+ er et digitalt verktøy som bruker kunstig intelligens til å gi generell
               juridisk informasjon, hjelpe deg å forstå norsk lov, og lage utkast til dokumenter.

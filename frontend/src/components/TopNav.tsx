@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Scale, User, LogOut, LogIn, FolderOpen } from 'lucide-react';
 
-// Auth-sidene har eget fullskjerm-uttrykk – skjul topp-navigasjonen der.
+// Auth-sidene har eget fullskjerm-uttrykk - skjul topp-navigasjonen der.
 const HIDDEN_ON = ['/login', '/register', '/forgot-password', '/reset-password'];
 
 export default function TopNav() {
@@ -18,7 +18,7 @@ export default function TopNav() {
           <Link
             to="/"
             className="flex items-center gap-2 font-semibold text-slate-900"
-            aria-label="RettBot+ – til forsiden"
+            aria-label="RettBot+ - til forsiden"
           >
             <span
               className="flex items-center justify-center w-8 h-8 rounded-md bg-primary-600 text-white"

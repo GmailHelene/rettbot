@@ -1,7 +1,7 @@
 /**
  * Generiske dokumentmaler (klage, anke, anmeldelse, innsyn m.m.).
  *
- * Dette er nøytrale skjeletter du fyller ut selv – ikke ferdig juridisk
+ * Dette er nøytrale skjeletter du fyller ut selv - ikke ferdig juridisk
  * argumentasjon eller rådgivning. Tekst i [KLAMMER] bytter du ut. Sjekk alltid
  * frist og fremgangsmåte hos instansen saken gjelder.
  */
@@ -20,7 +20,7 @@ export const templates: DocTemplate[] = [
     title: 'Klage på vedtak',
     description: 'Generell klage på et enkeltvedtak fra en offentlig instans (kommune, NAV, Statsforvalteren m.fl.).',
     tips: [
-      'Klagefristen er ofte 3 uker fra du mottok vedtaket – sjekk vedtaket ditt.',
+      'Klagefristen er ofte 3 uker fra du mottok vedtaket - sjekk vedtaket ditt.',
       'Send klagen til den som fattet vedtaket; de sender den videre til klageinstansen.',
       'Vær konkret om hva du er uenig i, og hva du mener er riktig.',
     ],
@@ -46,14 +46,14 @@ Hva jeg klager på:
 [Beskriv konkret hva i vedtaket du er uenig i.]
 
 Begrunnelse:
-[Forklar hvorfor du mener vedtaket er feil – faktiske forhold, opplysninger som
+[Forklar hvorfor du mener vedtaket er feil - faktiske forhold, opplysninger som
 mangler eller er misforstått, eller hvorfor konklusjonen er urimelig.]
 
 Hva jeg ber om:
-[Skriv hva du ønsker – f.eks. at vedtaket omgjøres, eller at saken vurderes på nytt.]
+[Skriv hva du ønsker - f.eks. at vedtaket omgjøres, eller at saken vurderes på nytt.]
 
 Vedlegg:
-[List opp eventuelle vedlegg – f.eks. kopi av vedtaket, dokumentasjon.]
+[List opp eventuelle vedlegg - f.eks. kopi av vedtaket, dokumentasjon.]
 
 Med vennlig hilsen
 [Ditt navn]`,
@@ -61,9 +61,9 @@ Med vennlig hilsen
   {
     id: 'anke',
     title: 'Anke',
-    description: 'Generelt skjelett for en anke. Fremgangsmåte og frist varierer etter sakstype – sjekk avgjørelsen du anker på.',
+    description: 'Generelt skjelett for en anke. Fremgangsmåte og frist varierer etter sakstype - sjekk avgjørelsen du anker på.',
     tips: [
-      'Ankefristen står vanligvis i avgjørelsen – ikke vent for lenge.',
+      'Ankefristen står vanligvis i avgjørelsen - ikke vent for lenge.',
       'Vær tydelig på hva du anker over og hvorfor avgjørelsen bør endres.',
     ],
     body: `[Ditt navn]
@@ -71,7 +71,7 @@ Med vennlig hilsen
 [Postnummer og sted]
 [Telefon / e-post]
 
-[Mottaker – instans/domstol]
+[Mottaker - instans/domstol]
 [Adresse]
 
 Sted, [dato]
@@ -87,7 +87,7 @@ Hva anken gjelder:
 [Beskriv hvilken del av avgjørelsen du anker over.]
 
 Begrunnelse:
-[Forklar hvorfor du mener avgjørelsen er feil – faktisk og/eller rettslig.]
+[Forklar hvorfor du mener avgjørelsen er feil - faktisk og/eller rettslig.]
 
 Hva jeg ber om:
 [Skriv hva du ønsker at utfallet skal bli.]
@@ -103,7 +103,7 @@ Med vennlig hilsen
     title: 'Anmeldelse til politiet',
     description: 'Skjelett for å anmelde et forhold. Du kan også anmelde direkte hos politiet (oppmøte eller på nett).',
     tips: [
-      'Ta med tid, sted og hva som skjedde – så konkret som mulig.',
+      'Ta med tid, sted og hva som skjedde - så konkret som mulig.',
       'Oppgi eventuelle vitner og bevis.',
     ],
     body: `[Ditt navn]
@@ -141,7 +141,7 @@ Med vennlig hilsen
   {
     id: 'innsyn',
     title: 'Krav om innsyn',
-    description: 'Be om innsyn i opplysninger eller dokumenter – i egne personopplysninger (personvern) eller i offentlige dokumenter.',
+    description: 'Be om innsyn i opplysninger eller dokumenter - i egne personopplysninger (personvern) eller i offentlige dokumenter.',
     tips: [
       'Du har rett til innsyn i personopplysninger om deg selv (personvern).',
       'I offentlige organers dokumenter kan du be om innsyn etter offentleglova.',
@@ -152,14 +152,14 @@ Med vennlig hilsen
 [Postnummer og sted]
 [Telefon / e-post]
 
-[Mottaker – instans]
+[Mottaker - instans]
 [Adresse]
 
 Sted, [dato]
 
 KRAV OM INNSYN
 
-Jeg ber med dette om innsyn i [beskriv hva du vil ha innsyn i – f.eks. alle
+Jeg ber med dette om innsyn i [beskriv hva du vil ha innsyn i - f.eks. alle
 personopplysninger dere har om meg, eller dokumentene i sak [saksnr]].
 
 [Hvis personvern:] Kravet fremmes etter retten til innsyn i egne

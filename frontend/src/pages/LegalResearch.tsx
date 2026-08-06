@@ -282,7 +282,7 @@ export default function LegalResearch() {
                   </h2>
                   <ul className="space-y-1 text-sm">
                     {result.research.citations.map((citation, index) => (
-                      <li key={index} className="text-gray-600 dark:text-gray-400">
+                      <li key={index} className="text-gray-600 dark:text-gray-500">
                         {index + 1}. {citation}
                       </li>
                     ))}
@@ -294,7 +294,7 @@ export default function LegalResearch() {
 
           {!result && (
             <div className="flex items-center justify-center bg-white dark:bg-gray-800 rounded-lg shadow-lg p-12">
-              <div className="text-center text-gray-400 dark:text-gray-600">
+              <div className="text-center text-gray-500 dark:text-gray-600">
                 <BookOpen className="w-16 h-16 mx-auto mb-4" />
                 <p className="text-lg">Skriv inn spørsmål for å søke</p>
                 <p className="text-sm mt-2">AI vil søke i norsk lov, EMD og rettspraksis</p>

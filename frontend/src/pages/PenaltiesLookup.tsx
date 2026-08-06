@@ -101,7 +101,7 @@ export default function PenaltiesLookup() {
                 <Scale className="header-title-icon mr-3 text-red-600" />
                 Strafferammer
               </h1>
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-500">
                 Se strafferammer etter norsk lov
               </p>
             </div>
@@ -171,7 +171,7 @@ export default function PenaltiesLookup() {
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 {result.offense_type}
               </h2>
-              <div className="flex items-center text-gray-600 dark:text-gray-400">
+              <div className="flex items-center text-gray-600 dark:text-gray-500">
                 <Info className="w-4 h-4 mr-2" />
                 <span className="font-mono text-sm">{result.statute_reference}</span>
               </div>
@@ -254,7 +254,7 @@ export default function PenaltiesLookup() {
                     key={index}
                     className="flex items-start bg-gray-50 dark:bg-gray-700 p-3 rounded"
                   >
-                    <span className="text-gray-600 dark:text-gray-400 mr-2">•</span>
+                    <span className="text-gray-600 dark:text-gray-500 mr-2">•</span>
                     <span className="text-gray-700 dark:text-gray-300">{consideration}</span>
                   </li>
                 ))}

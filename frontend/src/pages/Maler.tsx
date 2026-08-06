@@ -68,7 +68,7 @@ export default function Maler() {
             <FileText className="header-title-icon text-primary-700" />
             <div>
               <h1 className="header-title">Maler</h1>
-              <p className="header-subtitle">Klage, anke, anmeldelse og innsyn – fyll ut, kopier eller last ned</p>
+              <p className="header-subtitle">Klage, anke, anmeldelse og innsyn - fyll ut, kopier eller last ned</p>
             </div>
           </div>
         </div>
@@ -152,7 +152,7 @@ export default function Maler() {
         <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5">
           <p className="text-sm text-amber-900">
             <strong>Merk:</strong> Dette er nøytrale maler, ikke ferdig juridisk argumentasjon eller
-            rådgivning. Frister og fremgangsmåte varierer – sjekk hos instansen saken gjelder, eller
+            rådgivning. Frister og fremgangsmåte varierer - sjekk hos instansen saken gjelder, eller
             se <Link to="/hvor-klager-du" className="underline">Hvor klager du?</Link>
           </p>
         </div>

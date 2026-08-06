@@ -127,7 +127,7 @@ export default function EvidenceUpload() {
                 <Upload className="header-title-icon mr-3 text-blue-600" />
                 Last opp bevis
               </h1>
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-500">
                 Sikker opplasting og kryptering av dokumenter
               </p>
             </div>
@@ -187,7 +187,7 @@ export default function EvidenceUpload() {
               onDragOver={handleDragOver}
               className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer"
             >
-              <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+              <Upload className="w-12 h-12 mx-auto mb-4 text-gray-500" />
               <p className="text-gray-700 dark:text-gray-300 mb-2">
                 Dra og slipp filer her, eller
               </p>
@@ -201,7 +201,7 @@ export default function EvidenceUpload() {
                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt,.xls,.xlsx"
                 />
               </label>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+              <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
                 Støttede formater: PDF, Word, Excel, Bilder, Tekst
               </p>
             </div>
@@ -224,7 +224,7 @@ export default function EvidenceUpload() {
                           <div className="text-sm font-medium text-gray-900 dark:text-white">
                             {file.name}
                           </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                          <div className="text-xs text-gray-500 dark:text-gray-500">
                             {formatFileSize(file.size)}
                           </div>
                         </div>
@@ -292,7 +292,7 @@ export default function EvidenceUpload() {
                         <div className="text-sm font-medium text-gray-900 dark:text-white">
                           {file.name}
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                        <div className="text-xs text-gray-500 dark:text-gray-500">
                           {formatFileSize(file.size)} • Kryptert • {new Date(file.uploadedAt).toLocaleString('nb-NO')}
                         </div>
                       </div>
@@ -312,7 +312,7 @@ export default function EvidenceUpload() {
               <li>• Filer krypteres server-side (Fernet / AES) før de lagres i databasen</li>
               <li>• Overføres kryptert via HTTPS</li>
               <li>• Kun du (innlogget) har tilgang til dine egne filer</li>
-              <li>• Merk: serveren har krypteringsnøkkelen – dette er ikke zero-knowledge</li>
+              <li>• Merk: serveren har krypteringsnøkkelen - dette er ikke zero-knowledge</li>
             </ul>
           </div>
         </div>

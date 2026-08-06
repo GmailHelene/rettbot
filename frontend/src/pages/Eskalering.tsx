@@ -43,12 +43,12 @@ export default function Eskalering() {
         </p>
 
         <div className="relative mb-8">
-          <Search className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
+          <Search className="w-5 h-5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
           <input
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Søk – f.eks. «politi», «personvern», «NAV», «diskriminering»"
+            placeholder="Søk - f.eks. «politi», «personvern», «NAV», «diskriminering»"
             aria-label="Søk i klageorganer"
             className="w-full pl-11 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:border-primary-500 focus:ring-1 focus:ring-primary-500 focus:outline-none"
           />
@@ -82,7 +82,7 @@ export default function Eskalering() {
                           </p>
                         </div>
                         <ExternalLink
-                          className="w-5 h-5 text-slate-400 group-hover:text-primary-700 flex-shrink-0 mt-1"
+                          className="w-5 h-5 text-slate-500 group-hover:text-primary-700 flex-shrink-0 mt-1"
                           aria-hidden="true"
                         />
                       </div>
@@ -97,7 +97,7 @@ export default function Eskalering() {
         <div className="mt-10 rounded-xl border border-amber-200 bg-amber-50 p-5">
           <p className="text-sm text-amber-900">
             <strong>Merk:</strong> Dette er generell informasjon om hvor saker hører hjemme, ikke
-            juridisk rådgivning. Frister og fremgangsmåte kan variere – sjekk alltid hos den
+            juridisk rådgivning. Frister og fremgangsmåte kan variere - sjekk alltid hos den
             aktuelle instansen, eller kontakt en advokat eller et rettshjelptiltak ved en konkret sak.
           </p>
         </div>

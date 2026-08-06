@@ -101,7 +101,7 @@ export default function Veiviser() {
                     )}
                   </button>
                   <div className="min-w-0">
-                    <h2 className={`text-base font-semibold ${isDone ? 'text-slate-400 line-through' : 'text-slate-900'}`}>
+                    <h2 className={`text-base font-semibold ${isDone ? 'text-slate-500 line-through' : 'text-slate-900'}`}>
                       {i + 1}. {step.title}
                     </h2>
                     <p className="mt-1 text-sm text-slate-600">{step.body}</p>

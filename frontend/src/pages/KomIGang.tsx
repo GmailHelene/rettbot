@@ -119,7 +119,7 @@ export default function KomIGang() {
 
         <div className="mt-8 rounded-xl border border-amber-200 bg-amber-50 p-5">
           <p className="text-sm text-amber-900">
-            RettBot+ gir generell informasjon og hjelp til å hjelpe deg selv – ikke individuell
+            RettBot+ gir generell informasjon og hjelp til å hjelpe deg selv - ikke individuell
             juridisk rådgivning. Ved en alvorlig eller konkret sak: kontakt en advokat eller et{' '}
             <Link to="/hvor-klager-du" className="underline">rettshjelptiltak</Link>.
           </p>

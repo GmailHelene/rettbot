@@ -140,7 +140,7 @@ export default function EvidenceAnalysis() {
                   rows={10}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 transition-all"
                 />
-                <p className="text-gray-500 dark:text-gray-400 text-xs mt-2">
+                <p className="text-gray-500 dark:text-gray-500 text-xs mt-2">
                   💡 Tips: Jo mer detaljert, desto bedre analyse
                 </p>
               </div>
@@ -314,10 +314,10 @@ export default function EvidenceAnalysis() {
             ) : (
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-12 text-center transition-all hover:shadow-xl">
                 <Brain className="w-20 h-20 text-gray-300 dark:text-gray-600 mx-auto mb-6" />
-                <h3 className="text-2xl font-bold text-gray-400 dark:text-gray-500 mb-2">
+                <h3 className="text-2xl font-bold text-gray-500 dark:text-gray-500 mb-2">
                   Klar for Analyse
                 </h3>
-                <p className="text-gray-500 dark:text-gray-400">
+                <p className="text-gray-500 dark:text-gray-500">
                   Last opp beviset ditt til venstre for å få en detaljert AI-analyse
                 </p>
               </div>

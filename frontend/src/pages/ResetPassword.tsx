@@ -153,7 +153,7 @@ export default function ResetPassword() {
               Nytt passord
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
               <input
                 id="rp-password"
                 type={showPassword ? 'text' : 'password'}
@@ -168,13 +168,13 @@ export default function ResetPassword() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600"
                 aria-label={showPassword ? 'Skjul passord' : 'Vis passord'}
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
-            <p className="mt-1 text-xs text-slate-500">Bruk minst 8 tegn – gjerne en blanding av bokstaver, tall og symboler.</p>
+            <p className="mt-1 text-xs text-slate-500">Bruk minst 8 tegn - gjerne en blanding av bokstaver, tall og symboler.</p>
           </div>
 
           <div>
@@ -182,7 +182,7 @@ export default function ResetPassword() {
               Bekreft nytt passord
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
               <input
                 id="rp-confirm"
                 type={showPassword ? 'text' : 'password'}

@@ -1,38 +1,54 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
 import Dashboard from './pages/Dashboard';
-import PenaltiesLookup from './pages/PenaltiesLookup';
-import RightsProtection from './pages/RightsProtection';
-import EvidenceAnalysis from './pages/EvidenceAnalysis';
-import LegalResearch from './pages/LegalResearch';
-import DefenseStrategy from './pages/DefenseStrategy';
-import DocumentGenerator from './pages/DocumentGenerator';
-import CorruptionAssessment from './pages/CorruptionAssessment';
-import EvidenceUpload from './pages/EvidenceUpload';
-import LegalChat from './pages/LegalChat';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-import MyCases from './pages/MyCases';
-import Personvern from './pages/Personvern';
+import NotFound from './pages/NotFound';
 import CookieConsent from './components/CookieConsent';
 import ProtectedRoute from './components/ProtectedRoute';
 import SiteFooter from './components/SiteFooter';
 import TitleManager from './components/TitleManager';
 import TopNav from './components/TopNav';
-import NotFound from './pages/NotFound';
-import Eskalering from './pages/Eskalering';
-import Maler from './pages/Maler';
-import Fristkalkulator from './pages/Fristkalkulator';
-import Innsynskrav from './pages/Innsynskrav';
-import KomIGang from './pages/KomIGang';
-import Eksempler from './pages/Eksempler';
-import Veivisere from './pages/Veivisere';
-import Veiviser from './pages/Veiviser';
-import MinKonto from './pages/MinKonto';
-import Vilkar from './pages/Vilkar';
-import Tidslinje from './pages/Tidslinje';
+
+// Rute-basert code splitting: tunge sider lastes først når de faktisk besøkes.
+// Dette holder den første JS-pakken (forside + innlogging) liten og rask.
+const PenaltiesLookup = lazy(() => import('./pages/PenaltiesLookup'));
+const RightsProtection = lazy(() => import('./pages/RightsProtection'));
+const EvidenceAnalysis = lazy(() => import('./pages/EvidenceAnalysis'));
+const LegalResearch = lazy(() => import('./pages/LegalResearch'));
+const DefenseStrategy = lazy(() => import('./pages/DefenseStrategy'));
+const DocumentGenerator = lazy(() => import('./pages/DocumentGenerator'));
+const CorruptionAssessment = lazy(() => import('./pages/CorruptionAssessment'));
+const EvidenceUpload = lazy(() => import('./pages/EvidenceUpload'));
+const LegalChat = lazy(() => import('./pages/LegalChat'));
+const MyCases = lazy(() => import('./pages/MyCases'));
+const Personvern = lazy(() => import('./pages/Personvern'));
+const Eskalering = lazy(() => import('./pages/Eskalering'));
+const Maler = lazy(() => import('./pages/Maler'));
+const Fristkalkulator = lazy(() => import('./pages/Fristkalkulator'));
+const Innsynskrav = lazy(() => import('./pages/Innsynskrav'));
+const KomIGang = lazy(() => import('./pages/KomIGang'));
+const Eksempler = lazy(() => import('./pages/Eksempler'));
+const Veivisere = lazy(() => import('./pages/Veivisere'));
+const Veiviser = lazy(() => import('./pages/Veiviser'));
+const MinKonto = lazy(() => import('./pages/MinKonto'));
+const Vilkar = lazy(() => import('./pages/Vilkar'));
+const Tidslinje = lazy(() => import('./pages/Tidslinje'));
+
+function PageFallback() {
+  return (
+    <div
+      className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-500"
+      role="status"
+      aria-live="polite"
+    >
+      Laster …
+    </div>
+  );
+}
 
 function App() {
   return (
@@ -47,6 +63,7 @@ function App() {
         </a>
         <TopNav />
         <div id="main-content">
+        <Suspense fallback={<PageFallback />}>
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Dashboard />} />
@@ -54,11 +71,11 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          
+
           {/* Dashboard (åpen) */}
           <Route path="/app" element={<Dashboard />} />
 
-          {/* AI-verktøy – krever innlogging (beskytter mot misbruk av Anthropic-API-et) */}
+          {/* AI-verktøy - krever innlogging (beskytter mot misbruk av Anthropic-API-et) */}
           <Route path="/evidence-analysis" element={<ProtectedRoute><EvidenceAnalysis /></ProtectedRoute>} />
           <Route path="/legal-research" element={<ProtectedRoute><LegalResearch /></ProtectedRoute>} />
           <Route path="/defense-strategy" element={<ProtectedRoute><DefenseStrategy /></ProtectedRoute>} />
@@ -68,7 +85,7 @@ function App() {
           <Route path="/corruption-assessment" element={<ProtectedRoute><CorruptionAssessment /></ProtectedRoute>} />
           <Route path="/evidence-upload" element={<ProtectedRoute><EvidenceUpload /></ProtectedRoute>} />
           <Route path="/legal-chat" element={<ProtectedRoute><LegalChat /></ProtectedRoute>} />
-          
+
           {/* Auth-required routes */}
           <Route
             path="/my-cases"
@@ -126,6 +143,7 @@ function App() {
           {/* Ekte 404-side for ukjente adresser */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </Suspense>
         </div>
         <SiteFooter />
         <CookieConsent />

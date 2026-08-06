@@ -60,7 +60,7 @@ export default function Register() {
                 Fullt navn
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                 <input
                   id="reg-name"
                   type="text"
@@ -79,7 +79,7 @@ export default function Register() {
                 E-post
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                 <input
                   id="reg-email"
                   type="email"
@@ -98,7 +98,7 @@ export default function Register() {
                 Passord
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                 <input
                   id="reg-password"
                   type="password"
@@ -119,7 +119,7 @@ export default function Register() {
                 Bekreft passord
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                 <input
                   id="reg-confirm"
                   type="password"
@@ -176,7 +176,7 @@ export default function Register() {
             <ShieldCheck className="w-4 h-4" />
             <span>Saksdata krypteres server-side · passord hashet med bcrypt · HTTPS</span>
           </div>
-          <p className="text-slate-400 text-xs">
+          <p className="text-slate-500 text-xs">
             Ved å opprette konto godtar du våre{' '}
             <Link to="/vilkar" className="text-primary-700 hover:text-primary-800">vilkår</Link> og{' '}
             <Link to="/personvern" className="text-primary-700 hover:text-primary-800">personvernregler</Link>.

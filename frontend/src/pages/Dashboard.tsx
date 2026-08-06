@@ -36,7 +36,7 @@ interface Group {
 const groups: Group[] = [
   {
     title: 'Rettighetene dine',
-    intro: 'Forstå hva politiet og myndighetene faktisk har lov til – og hva du kan gjøre.',
+    intro: 'Forstå hva politiet og myndighetene faktisk har lov til - og hva du kan gjøre.',
     features: [
       {
         id: 'veivisere',
@@ -48,7 +48,7 @@ const groups: Group[] = [
       {
         id: 'escalation',
         title: 'Hvor klager du?',
-        description: 'Oversikt over norske klage- og tilsynsorganer – finn rett instans for saken din.',
+        description: 'Oversikt over norske klage- og tilsynsorganer - finn rett instans for saken din.',
         icon: <Compass className="icon-md" />,
         path: '/hvor-klager-du',
       },
@@ -62,14 +62,14 @@ const groups: Group[] = [
       {
         id: 'deadline',
         title: 'Fristkalkulator',
-        description: 'Regn ut når klage- eller ankefristen din går ut – ikke gå glipp av fristen.',
+        description: 'Regn ut når klage- eller ankefristen din går ut - ikke gå glipp av fristen.',
         icon: <CalendarClock className="icon-md" />,
         path: '/fristkalkulator',
       },
       {
         id: 'access',
         title: 'Innsynskrav',
-        description: 'Be om innsyn i egne personopplysninger eller offentlige dokumenter – ferdig brev.',
+        description: 'Be om innsyn i egne personopplysninger eller offentlige dokumenter - ferdig brev.',
         icon: <FileKey className="icon-md" />,
         path: '/innsynskrav',
       },
@@ -129,21 +129,21 @@ const groups: Group[] = [
       {
         id: 'documents',
         title: 'Dokumentgenerator',
-        description: 'Lag klage, anke eller brev til rett instans – ferdig formulert.',
+        description: 'Lag klage, anke eller brev til rett instans - ferdig formulert.',
         icon: <FileText className="icon-md" />,
         path: '/document-generator',
       },
       {
         id: 'templates',
         title: 'Maler',
-        description: 'Ferdige skjeletter for klage, anke, anmeldelse og innsyn – fyll ut og last ned.',
+        description: 'Ferdige skjeletter for klage, anke, anmeldelse og innsyn - fyll ut og last ned.',
         icon: <ClipboardList className="icon-md" />,
         path: '/maler',
       },
       {
         id: 'timeline',
         title: 'Saks-tidslinje',
-        description: 'Dokumentér hva som skjedde og når – bygg en oversikt over saken din.',
+        description: 'Dokumentér hva som skjedde og når - bygg en oversikt over saken din.',
         icon: <ListOrdered className="icon-md" />,
         path: '/tidslinje',
       },
@@ -155,7 +155,7 @@ const groups: Group[] = [
       {
         id: 'research',
         title: 'Juridisk oppslag',
-        description: 'Søk i norsk lov og få forklaring på klarspråk – med henvisninger.',
+        description: 'Søk i norsk lov og få forklaring på klarspråk - med henvisninger.',
         icon: <Scale className="icon-md" />,
         path: '/legal-research',
       },
@@ -180,7 +180,7 @@ function FeatureCard({ feature }: { feature: Feature }) {
         <div className="flex items-center justify-center w-12 h-12 bg-primary-50 text-primary-700 rounded-lg group-hover:bg-primary-100 transition-colors">
           {feature.icon}
         </div>
-        <ChevronRight className="icon-sm text-slate-400 group-hover:text-slate-600 transition-colors" />
+        <ChevronRight className="icon-sm text-slate-500 group-hover:text-slate-600 transition-colors" />
       </div>
       <h3 className="text-lg font-semibold mb-2 text-slate-800 group-hover:text-slate-900">
         {feature.title}
@@ -201,7 +201,7 @@ export default function Dashboard() {
               Kjenn rettighetene dine. Stå stødig mot systemet.
             </h1>
             <p className="mt-4 text-primary-100 text-lg">
-              RettBot+ hjelper deg å forstå norsk lov, dokumentere saken din og skrive klagen selv –
+              RettBot+ hjelper deg å forstå norsk lov, dokumentere saken din og skrive klagen selv -
               når du står mot politi, myndigheter eller et system som ikke lytter.
             </p>
             <p className="mt-3 text-primary-200 text-sm">

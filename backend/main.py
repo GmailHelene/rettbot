@@ -29,7 +29,7 @@ from backend.security_enhancements import (
     session_security,
     rate_limiter
 )
-from backend.seo import render_index_html
+from backend.seo import render_for_path
 import jwt
 import bcrypt
 import secrets
@@ -103,7 +103,7 @@ except Exception as e:
 # Authentication & Security Setup
 # ============================================
 
-# Environment flag – styrer om manglende hemmeligheter skal feile hardt.
+# Environment flag - styrer om manglende hemmeligheter skal feile hardt.
 IS_PRODUCTION = os.getenv("ENVIRONMENT", "development").lower() == "production"
 
 # JWT Configuration.
@@ -119,7 +119,7 @@ if not SECRET_KEY:
         )
     SECRET_KEY = secrets.token_urlsafe(32)
     logger.warning(
-        "JWT_SECRET ikke satt – bruker midlertidig nøkkel (kun dev). "
+        "JWT_SECRET ikke satt - bruker midlertidig nøkkel (kun dev). "
         "Innlogginger blir ugyldige ved hver omstart."
     )
 ALGORITHM = "HS256"
@@ -139,7 +139,7 @@ if not ENCRYPTION_KEY:
         )
     ENCRYPTION_KEY = Fernet.generate_key().decode()
     logger.warning(
-        "ENCRYPTION_KEY ikke satt – genererer midlertidig nøkkel (kun dev). "
+        "ENCRYPTION_KEY ikke satt - genererer midlertidig nøkkel (kun dev). "
         "Krypterte data overlever IKKE en omstart."
     )
 try:
@@ -153,7 +153,7 @@ except Exception as exc:
 # HTTP Bearer for JWT tokens
 security = HTTPBearer()
 
-# Database — SQLite lokalt, PostgreSQL i produksjon (via DATABASE_URL). Se backend/db.py.
+# Database - SQLite lokalt, PostgreSQL i produksjon (via DATABASE_URL). Se backend/db.py.
 from backend.db import get_connection, ID_COLUMN, SQLITE_PATH, database_ok
 DB_PATH = SQLITE_PATH  # bakoverkompatibel referanse
 
@@ -244,7 +244,7 @@ def init_database():
         )
     """)
 
-    # Password reset tokens (hashet – overlever omstart, persistent på tvers av workere)
+    # Password reset tokens (hashet - overlever omstart, persistent på tvers av workere)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS password_reset_tokens (
             token_hash TEXT PRIMARY KEY,
@@ -342,7 +342,7 @@ class CaseUpdate(BaseModel):
     facts: Optional[str] = None
     evidence: Optional[List[str]] = None
 
-# Password Reset Token Storage – lagres hashet i databasen slik at de overlever
+# Password Reset Token Storage - lagres hashet i databasen slik at de overlever
 # omstart og fungerer på tvers av flere prosesser/instanser.
 def _hash_reset_token(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
@@ -395,12 +395,15 @@ class PasswordResetConfirm(BaseModel):
     token: str
     new_password: str
 
-# Email configuration
-SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USERNAME = os.getenv("SMTP_USERNAME", "")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
-FROM_EMAIL = os.getenv("FROM_EMAIL", "noreply@rettbot.com")
+# E-postkonfig. Leser MAIL_*-variabler (Brevo o.l.) med fallback til SMTP_*,
+# slik at både Brevo-oppsett og et rent SMTP-oppsett virker.
+SMTP_SERVER = os.getenv("MAIL_SERVER") or os.getenv("SMTP_SERVER", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("MAIL_PORT") or os.getenv("SMTP_PORT", "587"))
+SMTP_USERNAME = os.getenv("MAIL_USERNAME") or os.getenv("SMTP_USERNAME", "")
+SMTP_PASSWORD = os.getenv("MAIL_PASSWORD") or os.getenv("SMTP_PASSWORD", "")
+FROM_EMAIL = os.getenv("MAIL_DEFAULT_SENDER") or os.getenv("FROM_EMAIL", "noreply@rettbot.com")
+# STARTTLS på som standard (Brevo/Gmail bruker 587 + STARTTLS). MAIL_USE_TLS=false slår av.
+MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "true").strip().lower() not in ("false", "0", "no")
 
 def send_password_reset_email(email: str, reset_token: str, base_url: str = "http://localhost:5173"):
     """Send password reset email"""
@@ -438,7 +441,8 @@ Denne e-posten er automatisk generert. Ikke svar på denne e-posten.
         # Send email
         if SMTP_USERNAME and SMTP_PASSWORD:
             server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-            server.starttls()
+            if MAIL_USE_TLS:
+                server.starttls()
             server.login(SMTP_USERNAME, SMTP_PASSWORD)
             text = msg.as_string()
             server.sendmail(FROM_EMAIL, email, text)
@@ -986,7 +990,7 @@ async def root():
     index_file = frontend_dist / "index.html"
 
     if index_file.exists():
-        return HTMLResponse(content=render_index_html(index_file.read_text(encoding="utf-8"), "/"))
+        return HTMLResponse(content=render_for_path(str(index_file), "/"))
     else:
         # Fallback: Return simple HTML with API info
         return HTMLResponse(content="""
@@ -1540,7 +1544,7 @@ async def download_saksmappe_pdf(
         from reportlab.lib import colors
         from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
     except ImportError:
-        logger.error("reportlab mangler – kan ikke generere PDF")
+        logger.error("reportlab mangler - kan ikke generere PDF")
         raise HTTPException(status_code=500, detail="PDF-generering er ikke tilgjengelig på serveren.")
 
     def esc(value) -> str:
@@ -1799,7 +1803,7 @@ async def reset_password(request: PasswordResetConfirm):
         conn.commit()
         conn.close()
 
-        # Engangstoken – slett etter bruk
+        # Engangstoken - slett etter bruk
         _delete_reset_token(request.token)
 
         logger.info(f"Password successfully reset for {token_data['email']}")
@@ -2743,7 +2747,7 @@ async def catch_all(path: str):
             pass
 
     if index_file.exists():
-        return HTMLResponse(content=render_index_html(index_file.read_text(encoding="utf-8"), "/" + path))
+        return HTMLResponse(content=render_for_path(str(index_file), "/" + path))
     else:
         # Fallback for development
         return HTMLResponse(content=f"""

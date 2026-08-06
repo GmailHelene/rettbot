@@ -169,10 +169,10 @@ export default function Tidslinje() {
                       <p className="text-xs font-medium text-primary-700 capitalize">{fmt(ev.event_date)}</p>
                       <h3 className="font-semibold text-slate-900">{ev.title}</h3>
                       {ev.details && <p className="mt-1 text-sm text-slate-700 whitespace-pre-line">{ev.details}</p>}
-                      {ev.case_ref && <p className="mt-2 text-xs text-slate-400">Sak: {ev.case_ref}</p>}
+                      {ev.case_ref && <p className="mt-2 text-xs text-slate-500">Sak: {ev.case_ref}</p>}
                     </div>
                     <button onClick={() => remove(ev.id)} aria-label="Slett hendelse"
-                      className="p-2 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500">
+                      className="p-2 rounded-md text-slate-500 hover:text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>

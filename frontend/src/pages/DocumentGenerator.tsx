@@ -137,7 +137,7 @@ export default function DocumentGenerator() {
                 <FileText className="header-title-icon mr-3 text-orange-600" />
                 Dokumentgenerator
               </h1>
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-500">
                 Lag profesjonelle juridiske dokumenter med AI
               </p>
             </div>
@@ -171,7 +171,7 @@ export default function DocumentGenerator() {
                     <div className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
                       {type.name}
                     </div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">
+                    <div className="text-xs text-gray-600 dark:text-gray-500">
                       {type.description}
                     </div>
                   </button>
@@ -300,7 +300,7 @@ export default function DocumentGenerator() {
                   </div>
                 </div>
                 
-                <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                <div className="text-sm text-gray-600 dark:text-gray-500 space-y-1">
                   <div>Opprettet: {new Date(result.document.metadata.created).toLocaleString('nb-NO')}</div>
                   {result.document.metadata.case_number && (
                     <div>Saksnummer: {result.document.metadata.case_number}</div>
@@ -330,7 +330,7 @@ export default function DocumentGenerator() {
 
           {!result && (
             <div className="flex items-center justify-center bg-white dark:bg-gray-800 rounded-lg shadow-lg p-12">
-              <div className="text-center text-gray-400 dark:text-gray-600">
+              <div className="text-center text-gray-500 dark:text-gray-600">
                 <FileText className="w-16 h-16 mx-auto mb-4" />
                 <p className="text-lg">Velg dokumenttype og fyll ut detaljer</p>
                 <p className="text-sm mt-2">AI vil generere et profesjonelt juridisk dokument</p>

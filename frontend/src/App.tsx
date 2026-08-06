@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import Dashboard from './pages/Dashboard';
 import PenaltiesLookup from './pages/PenaltiesLookup';
@@ -22,6 +22,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import SiteFooter from './components/SiteFooter';
 import TitleManager from './components/TitleManager';
 import TopNav from './components/TopNav';
+import NotFound from './pages/NotFound';
 
 function App() {
   return (
@@ -70,8 +71,8 @@ function App() {
           {/* Personvern */}
           <Route path="/personvern" element={<Personvern />} />
 
-          {/* Redirect unknown routes to dashboard */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* Ekte 404-side for ukjente adresser */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
         </div>
         <SiteFooter />

@@ -77,24 +77,24 @@ export default function EvidenceAnalysis() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50">
-      <div className="container-legal section-legal">
+    <div className="min-h-screen bg-slate-50">
+      <div className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-8 animate-fadeIn">
+        <div className="mb-8">
           <button
             onClick={() => navigate('/')}
-            className="flex items-center text-blue-900 hover:text-blue-700 mb-4 transition-colors font-semibold"
+            className="flex items-center text-primary-700 hover:text-primary-800 mb-4 transition-colors font-medium text-sm"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
-            Tilbake til Dashboard
+            <ArrowLeft className="w-5 h-5 mr-1.5" />
+            Tilbake til forsiden
           </button>
-          <div className="flex items-center gap-4">
-            <div className="p-4 bg-gradient-to-br from-blue-900 to-blue-600 rounded-2xl shadow-xl">
-              <Brain className="w-10 h-10 text-white" />
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary-50 text-primary-700">
+              <Brain className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-5xl font-bold text-blue-900 mb-2">Bevisanalyse</h1>
-              <p className="text-neutral-600 text-lg">AI-drevet analyse av juridiske bevis</p>
+              <h1 className="text-2xl font-bold text-slate-900">Bevisanalyse</h1>
+              <p className="text-slate-600 text-sm">AI-drevet analyse av juridiske bevis</p>
             </div>
           </div>
         </div>
@@ -102,16 +102,16 @@ export default function EvidenceAnalysis() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Input Section */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 transition-all hover:shadow-xl">
-            <h2 className="text-3xl font-bold text-blue-900 dark:text-blue-400 mb-6 flex items-center gap-3">
-              <Upload className="w-5 h-5 text-amber-600" />
-              Last Opp Bevis
+            <h2 className="text-lg font-semibold text-slate-900 mb-5 flex items-center gap-2">
+              <Upload className="w-5 h-5 text-primary-700" />
+              Last opp bevis
             </h2>
 
             <div className="space-y-5">
               {/* Case Context */}
               <div>
                 <label className="block text-gray-700 dark:text-gray-300 mb-2 font-medium text-sm">
-                  Saks Kontekst
+                  Sakskontekst
                 </label>
                 <textarea
                   value={caseContext}
@@ -125,7 +125,7 @@ export default function EvidenceAnalysis() {
               {/* Evidence Text */}
               <div>
                 <label className="block text-gray-700 dark:text-gray-300 mb-2 font-medium text-sm">
-                  Bevis Tekst
+                  Bevistekst
                 </label>
                 <textarea
                   value={evidenceText}

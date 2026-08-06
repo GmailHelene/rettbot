@@ -1235,6 +1235,106 @@ async def get_current_user_info(current_user: Dict = Depends(get_current_user)):
     """Get current user information"""
     return current_user
 
+
+@app.get("/api/user/export")
+async def export_user_data(current_user: Dict = Depends(get_current_user)):
+    """GDPR: last ned alle data om den innloggede brukeren som JSON (innsyn + portabilitet)."""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "SELECT id, email, full_name, created_at, last_login FROM users WHERE id = ?",
+            (current_user["id"],),
+        )
+        u = cursor.fetchone()
+
+        cursor.execute(
+            "SELECT id, case_number, title, case_type, encrypted_data, created_at, updated_at "
+            "FROM cases WHERE user_id = ?",
+            (current_user["id"],),
+        )
+        cases = []
+        for row in cursor.fetchall():
+            try:
+                data = decrypt_data(row[4])
+            except Exception:
+                data = {}
+            cases.append({
+                "id": row[0],
+                "case_number": row[1],
+                "title": row[2],
+                "case_type": row[3],
+                "created_at": str(row[5]),
+                "updated_at": str(row[6]),
+                "data": data,
+            })
+
+        cursor.execute(
+            "SELECT id, case_ref, filename, file_type, size, description, uploaded_at "
+            "FROM evidence WHERE user_id = ?",
+            (current_user["id"],),
+        )
+        evidence = [
+            {
+                "id": r[0],
+                "case_ref": r[1],
+                "filename": r[2],
+                "file_type": r[3],
+                "size": r[4],
+                "description": r[5],
+                "uploaded_at": str(r[6]),
+            }
+            for r in cursor.fetchall()
+        ]
+        conn.close()
+
+        export = {
+            "exported_at": datetime.utcnow().isoformat(),
+            "user": {
+                "id": u[0],
+                "email": u[1],
+                "full_name": u[2],
+                "created_at": str(u[3]),
+                "last_login": str(u[4]),
+            } if u else None,
+            "cases": cases,
+            "evidence_metadata": evidence,
+            "note": "Selve bevisfilene lagres kryptert og kan lastes ned enkeltvis i appen.",
+        }
+        return JSONResponse(
+            content=export,
+            headers={"Content-Disposition": "attachment; filename=rettbot-mine-data.json"},
+        )
+    except Exception as e:
+        logger.error(f"Export error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Kunne ikke eksportere data")
+
+
+@app.delete("/api/user/me")
+async def delete_my_account(current_user: Dict = Depends(get_current_user)):
+    """GDPR: slett den innloggede brukerens konto og alle tilhørende data."""
+    uid = current_user["id"]
+    email = current_user["email"]
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM evidence WHERE user_id = ?", (uid,))
+        cursor.execute(
+            "DELETE FROM documents WHERE case_id IN (SELECT id FROM cases WHERE user_id = ?)",
+            (uid,),
+        )
+        cursor.execute("DELETE FROM cases WHERE user_id = ?", (uid,))
+        cursor.execute("DELETE FROM password_reset_tokens WHERE email = ?", (email,))
+        cursor.execute("DELETE FROM users WHERE id = ?", (uid,))
+        conn.commit()
+        conn.close()
+        logger.info(f"Deleted account and all data for user {uid}")
+        return {"success": True, "message": "Kontoen og alle tilhørende data er slettet."}
+    except Exception as e:
+        logger.error(f"Account deletion error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Kunne ikke slette kontoen")
+
 @app.post("/api/auth/forgot-password")
 async def forgot_password(request: PasswordResetRequest, req: Request):
     """Send password reset email"""

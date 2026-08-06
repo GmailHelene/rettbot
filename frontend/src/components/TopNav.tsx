@@ -34,10 +34,13 @@ export default function TopNav() {
           <nav className="flex items-center gap-1 sm:gap-2 text-sm" aria-label="Hovedmeny">
             {isAuthenticated ? (
               <>
-                <span className="hidden sm:flex items-center gap-1.5 text-slate-600 px-2">
+                <Link
+                  to="/min-konto"
+                  className="hidden sm:flex items-center gap-1.5 text-slate-600 px-2 py-1.5 rounded-md hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
                   <User className="w-4 h-4" aria-hidden="true" />
                   <span className="max-w-[10rem] truncate">{user?.full_name}</span>
-                </span>
+                </Link>
                 <Link
                   to="/my-cases"
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500"

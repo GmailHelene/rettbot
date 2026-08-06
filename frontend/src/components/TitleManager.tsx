@@ -19,6 +19,7 @@ const TITLES: Record<string, string> = {
   '/evidence-upload': 'Last opp bevis – RettBot+',
   '/legal-chat': 'AI juridisk chat – RettBot+',
   '/my-cases': 'Mine saker – RettBot+',
+  '/min-konto': 'Min konto – RettBot+',
   '/hvor-klager-du': 'Hvor klager du? Norske klageorganer – RettBot+',
   '/maler': 'Maler: klage, anke, anmeldelse, innsyn – RettBot+',
   '/fristkalkulator': 'Fristkalkulator – klage- og ankefrist – RettBot+',

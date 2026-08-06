@@ -26,6 +26,7 @@ import NotFound from './pages/NotFound';
 import Eskalering from './pages/Eskalering';
 import Maler from './pages/Maler';
 import Fristkalkulator from './pages/Fristkalkulator';
+import MinKonto from './pages/MinKonto';
 
 function App() {
   return (
@@ -67,6 +68,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <MyCases />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/min-konto"
+            element={
+              <ProtectedRoute>
+                <MinKonto />
               </ProtectedRoute>
             }
           />

@@ -85,7 +85,7 @@ export default function CorruptionAssessment() {
               <ArrowLeft className="header-icon" />
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
                 <AlertTriangle className="header-title-icon mr-3 text-yellow-600" />
                 Korrupsjonsvurdering
               </h1>

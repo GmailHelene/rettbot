@@ -86,7 +86,7 @@ export default function DefenseStrategy() {
               <ArrowLeft className="header-icon" />
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
                 <Shield className="header-title-icon mr-3 text-green-600" />
                 Forsvarsstrategi
               </h1>

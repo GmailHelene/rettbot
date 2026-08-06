@@ -94,7 +94,7 @@ export default function PenaltiesLookup() {
               <ArrowLeft className="header-icon" />
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
                 <Scale className="header-title-icon mr-3 text-red-600" />
                 Strafferammer
               </h1>

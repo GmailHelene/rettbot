@@ -128,7 +128,7 @@ export default function DocumentGenerator() {
               <ArrowLeft className="header-icon" />
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
                 <FileText className="header-title-icon mr-3 text-orange-600" />
                 Dokumentgenerator
               </h1>

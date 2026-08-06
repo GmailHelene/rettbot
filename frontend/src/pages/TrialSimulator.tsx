@@ -119,7 +119,7 @@ export default function TrialSimulator() {
               <ArrowLeft className="header-icon" />
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
                 <Briefcase className="header-title-icon mr-3 text-indigo-600" />
                 Rettssaksimulator
               </h1>

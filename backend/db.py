@@ -1,23 +1,25 @@
 """
 Databaselag for RettBot+.
 
-Støtter SQLite lokalt (ingen konfig) og PostgreSQL i produksjon (via DATABASE_URL).
-Railway setter DATABASE_URL automatisk når du legger til en Postgres-tjeneste.
+Bygger på SQLAlchemys engine for connection pooling og robust håndtering
+(`pool_pre_ping` unngår «stale connection»-feil mot Postgres på Railway, og
+poolen gjenbruker tilkoblinger i stedet for å åpne en ny per kall).
 
-Bruk get_connection() akkurat som sqlite3.connect():
+Grensesnittet er bevisst uendret, så resten av koden ikke trenger å røres:
+bruk get_connection() som sqlite3.connect(), med '?'-plassholdere som automatisk
+oversettes til '%s' på Postgres.
+
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("SELECT id FROM users WHERE email = ?", (email,))
     row = cur.fetchone()
-    conn.close()
-
-'?'-plassholdere oversettes automatisk til '%s' når vi kjører mot Postgres,
-slik at resten av koden kan skrives i én dialekt.
+    conn.close()  # returnerer tilkoblingen til poolen
 """
 
 import os
-import sqlite3
 from pathlib import Path
+
+from sqlalchemy import create_engine
 
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 IS_POSTGRES = DATABASE_URL.startswith(("postgres://", "postgresql://"))
@@ -28,8 +30,26 @@ SQLITE_PATH = Path(__file__).parent / "rettbot.db"
 # Dialektavhengig auto-inkrement primærnøkkel (brukes i CREATE TABLE).
 ID_COLUMN = "SERIAL PRIMARY KEY" if IS_POSTGRES else "INTEGER PRIMARY KEY AUTOINCREMENT"
 
-if IS_POSTGRES:
-    import psycopg  # importeres kun i produksjon
+
+def _make_engine():
+    if IS_POSTGRES:
+        # SQLAlchemy 2.0 + psycopg (v3). pool_pre_ping sjekker at tilkoblingen lever
+        # før bruk; pool_recycle bytter ut tilkoblinger som har blitt for gamle.
+        url = DATABASE_URL
+        for prefix in ("postgresql://", "postgres://"):
+            if url.startswith(prefix):
+                url = "postgresql+psycopg://" + url[len(prefix):]
+                break
+        return create_engine(
+            url, pool_pre_ping=True, pool_size=5, max_overflow=5, pool_recycle=1800
+        )
+    # SQLite: én fil, delt på tvers av tråder (uvicorn kjører sync-kall i threadpool).
+    return create_engine(
+        f"sqlite:///{SQLITE_PATH}", connect_args={"check_same_thread": False}
+    )
+
+
+_engine = _make_engine()
 
 
 class _Cursor:
@@ -59,7 +79,9 @@ class _Cursor:
 
 
 class _Connection:
-    """Tynn connection-wrapper som gir _Cursor og støtter with-blokk."""
+    """Tynn wrapper rundt en pooled DBAPI-tilkobling.
+
+    close() returnerer tilkoblingen til poolen (lukker den ikke faktisk)."""
 
     def __init__(self, conn):
         self._conn = conn
@@ -84,10 +106,8 @@ class _Connection:
 
 
 def get_connection():
-    """Returner en DB-tilkobling – Postgres hvis DATABASE_URL er satt, ellers SQLite."""
-    if IS_POSTGRES:
-        return _Connection(psycopg.connect(DATABASE_URL))
-    return _Connection(sqlite3.connect(str(SQLITE_PATH)))
+    """Hent en tilkobling fra poolen. Grensesnitt likt sqlite3.connect()."""
+    return _Connection(_engine.raw_connection())
 
 
 def database_ok() -> bool:

@@ -27,7 +27,7 @@ ferdigbygde React-appen. Ingen separat frontend-server i prod.
 | `lovdata_sync.py` | Laster ned Lovdatas gratis lov-API og cacher lovtekst i `data/laws/` |
 | `evals/` | Juridisk eval-suite: fasit + runner som sjekker AI-svar mot frister/paragrafer |
 | `seo.py` | Injiserer per-rute `<title>`/meta/OG/canonical + crawlbart innhold (LRU-cachet) |
-| `db.py` | Abstraksjon SQLite (dev) / PostgreSQL (prod): oversetter `?`→`%s`, `RETURNING`, autoincrement |
+| `db.py` | SQLAlchemy-engine (connection pool + `pool_pre_ping`) bak et uendret `get_connection()`-grensesnitt; oversetter `?`→`%s` på Postgres |
 | `security_enhancements.py` | `RateLimiter` (in-memory), passordstyrke, CSP/security headers, klient-IP |
 | `ai_engine/claude_integration.py` | `ClaudeEngine`: bevisanalyse, research, forsvarsstrategi, dokument, korrupsjon, chat + «realisme/ærlighet»-føringer |
 | `ai_engine/norwegian_law_db.py` | Statisk utvalg lovtekst brukt som kontekst til AI |
@@ -89,11 +89,13 @@ som React overskriver når JS kjører. Offentlige sider er `index`, gated/auth-s
 injeksjon LRU-cachet · PII-scrubbing (fnr/telefon) før Anthropic · juridisk eval-suite
 · CI/CD (GitHub Actions) · server-side MIME-validering · Lovdata gratis lov-API.
 
-**Gjenstår (bevisste, større valg):**
-- `db.py` er en egen abstraksjon; SQLAlchemy 2.0 + Alembic ville vært mer robust.
-- In-memory `RateLimiter` deles ikke mellom flere workers/instanser (Redis ved
-  skalering; kjører bevisst 1 web-worker inntil videre).
-- `db.py` → SQLAlchemy 2.0 + Alembic ville vært mer robust (nåværende abstraksjon virker, men er hjemmesnekret).
+**Gjenstår (valgfritt, ikke haster):**
+- Alembic for formelle skjema-migrasjoner (i dag: `CREATE TABLE IF NOT EXISTS`).
+- Redis rate limiting er klar (`RedisRateLimiter`); aktiveres ved skalering via `REDIS_URL`.
+
+*(Alle andre punkter fra ekstern gjennomgang er løst eller vist å ikke være reelle:
+`db.py` kjører nå på SQLAlchemy-engine med connection pool; JWT flyttet til
+HttpOnly-cookie + CSRF; N+1 og selektiv Fernet var ikke reelle problemer.)*
 
 *(N+1 og selektiv Fernet-kryptering ble undersøkt og er ikke reelle problemer:
 metadata ligger allerede i klartekst-kolonner, og spørringene er single-query.

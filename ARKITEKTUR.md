@@ -87,10 +87,10 @@ som React overskriver når JS kjører. Offentlige sider er `index`, gated/auth-s
 
 **Gjort siden forrige versjon:** `main.py` splittet i `routers/` + `deps.py` · SEO-
 injeksjon LRU-cachet · PII-scrubbing (fnr/telefon) før Anthropic · juridisk eval-suite
-· CI/CD (GitHub Actions) · server-side MIME-validering · Lovdata gratis lov-API.
+· CI/CD (GitHub Actions) · server-side MIME-validering · Lovdata gratis lov-API ·
+Alembic-migrasjoner (kjøres automatisk ved oppstart, se `backend/alembic/README.md`).
 
 **Gjenstår (valgfritt, ikke haster):**
-- Alembic for formelle skjema-migrasjoner (i dag: `CREATE TABLE IF NOT EXISTS`).
 - Redis rate limiting er klar (`RedisRateLimiter`); aktiveres ved skalering via `REDIS_URL`.
 
 *(Alle andre punkter fra ekstern gjennomgang er løst eller vist å ikke være reelle:

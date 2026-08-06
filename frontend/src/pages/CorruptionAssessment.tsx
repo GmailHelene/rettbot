@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, AlertTriangle, AlertCircle, Building2, FileText, TrendingUp } from 'lucide-react';
 import NesteSteg from '../components/NesteSteg';
 import { useAuth } from '../contexts/AuthContext';
+import AiDisclaimer from '../components/AiDisclaimer';
 
 interface AssessmentResult {
   success: boolean;
@@ -102,6 +103,7 @@ export default function CorruptionAssessment() {
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <AiDisclaimer className="mb-6" />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column - Input Form */}
           <div className="space-y-6">

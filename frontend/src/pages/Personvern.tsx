@@ -99,6 +99,26 @@ export default function Personvern() {
           </section>
 
           <section>
+            <h2 className="text-lg font-semibold text-slate-900">Brukes dataene dine til å trene AI?</h2>
+            <p>
+              Nei. Anthropic bruker som standard ikke det du sender inn via API-et (spørsmål, saksfakta,
+              bevisbeskrivelser) til å trene språkmodellene sine. Vi bruker heller ikke innholdet ditt til
+              å trene noen egen modell.
+            </p>
+            <p>
+              <strong>Logging:</strong> Vanlige tjenerlogger inneholder tekniske opplysninger (tidspunkt,
+              feilmeldinger, hvilken funksjon som ble brukt), ikke selve saksinnholdet ditt. Vi logger ikke
+              teksten du legger inn i AI-funksjonene.
+            </p>
+            <p>
+              <strong>Lokal/offline bruk:</strong> RettBot+ er per i dag en skytjeneste. Den kan ikke kjøres
+              lokalt på din egen maskin, og AI-delen krever at teksten sendes til Anthropic for behandling.
+              Vil du holde noe helt privat, så la være å legge det inn – bruk heller delene som ikke
+              involverer AI (for eksempel fristkalkulator, maler og innsynskrav-veiviseren).
+            </p>
+          </section>
+
+          <section>
             <h2 className="text-lg font-semibold text-slate-900">Lagring og sikkerhet</h2>
             <p>
               Saksdata krypteres på serveren før lagring. Merk: dette er <strong>server-side</strong>

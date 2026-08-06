@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Search, BookOpen, AlertCircle, FileText, Scale, Globe } from 'lucide-react';
 import NesteSteg from '../components/NesteSteg';
 import { useAuth } from '../contexts/AuthContext';
+import AiDisclaimer from '../components/AiDisclaimer';
+import ConfidenceBadge from '../components/ConfidenceBadge';
 
 interface ResearchResult {
   success: boolean;
@@ -99,6 +101,7 @@ export default function LegalResearch() {
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <AiDisclaimer className="mb-6" />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column - Search Form */}
           <div className="space-y-6">
@@ -194,8 +197,8 @@ export default function LegalResearch() {
                 <div className="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 whitespace-pre-line">
                   {result.research.answer}
                 </div>
-                <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-                  Tillitsnivå: <span className="font-semibold">{result.research.confidence}</span>
+                <div className="mt-4">
+                  <ConfidenceBadge value={result.research.confidence} label="Modellens sikkerhet" />
                 </div>
               </div>
 

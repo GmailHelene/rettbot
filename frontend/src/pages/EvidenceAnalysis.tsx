@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload, FileText, Brain, CheckCircle, AlertCircle, Scale } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import AiDisclaimer from '../components/AiDisclaimer';
+import ConfidenceBadge from '../components/ConfidenceBadge';
 
 interface AnalysisResult {
   success: boolean;
@@ -101,6 +103,8 @@ export default function EvidenceAnalysis() {
           </div>
         </div>
 
+        <AiDisclaimer className="mb-6" />
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Input Section */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 transition-all hover:shadow-xl">
@@ -174,6 +178,7 @@ export default function EvidenceAnalysis() {
                         AI Konfidans
                       </h3>
                       <p className="text-4xl font-bold text-gray-900 dark:text-white">{result.assessment.confidence}%</p>
+                      <ConfidenceBadge value={result.assessment.confidence} className="mt-2" />
                     </div>
                     <div className={`p-3 rounded-lg border-2 ${getRelevanceColor(result.assessment.relevance)}`}>
                       <h3 className="text-sm font-semibold uppercase tracking-wide mb-1">

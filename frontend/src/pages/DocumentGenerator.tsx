@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, FileText, AlertCircle, Download, Copy, Check, Printer } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import AiDisclaimer from '../components/AiDisclaimer';
 
 interface DocumentResult {
   success: boolean;
@@ -145,6 +146,7 @@ export default function DocumentGenerator() {
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <AiDisclaimer className="mb-6" />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column - Input Form */}
           <div className="space-y-6">

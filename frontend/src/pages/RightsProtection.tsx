@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Shield, FileText, Send, AlertTriangle } from 'lucide-react';
 import NesteSteg from '../components/NesteSteg';
 import { useAuth } from '../contexts/AuthContext';
+import AiDisclaimer from '../components/AiDisclaimer';
 
 interface ViolationResponse {
   violation_type: string;
@@ -111,6 +112,7 @@ export default function RightsProtection() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <AiDisclaimer className="mb-6" />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Skjema */}
           <div className="card-professional">

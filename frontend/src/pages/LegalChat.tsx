@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, MessageCircle, Send, AlertCircle, Loader } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import AiDisclaimer from '../components/AiDisclaimer';
 
 interface Message {
   id: string;
@@ -120,6 +121,7 @@ export default function LegalChat() {
 
       {/* Chat Messages */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-6 sm:px-6 lg:px-8 overflow-y-auto">
+        <AiDisclaimer className="mb-4" />
         <div className="space-y-4">
           {messages.map((message) => (
             <div

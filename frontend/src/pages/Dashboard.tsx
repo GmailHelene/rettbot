@@ -218,12 +218,37 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* Ansvarsfraskrivelse */}
-        <div className="mt-10 rounded-xl border border-amber-200 bg-amber-50 p-5">
-          <p className="text-sm text-amber-900">
-            <strong>Viktig:</strong> RettBot+ gir generell, AI-generert juridisk informasjon og er
-            ikke en erstatning for personlig rådgivning fra en advokat. Ved en konkret sak bør du
-            kontakte en advokat eller offentlig rettshjelp.
+        {/* Ærlige begrensninger */}
+        <div className="mt-10 rounded-xl border border-slate-200 bg-white p-6">
+          <h2 className="text-lg font-semibold text-slate-900 mb-3">Dette kan RettBot+ ikke</h2>
+          <p className="text-sm text-slate-600 mb-4">
+            Vi vil heller være ærlige enn å love for mye. Verktøyet hjelper deg å forstå og
+            dokumentere saken din selv, men det har klare grenser:
+          </p>
+          <ul className="space-y-2 text-sm text-slate-700">
+            <li className="flex items-start gap-2">
+              <span className="text-amber-500 mt-0.5">•</span>
+              Det kan ikke avgjøre om du «vinner» saken, eller garantere et utfall.
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-amber-500 mt-0.5">•</span>
+              Det kan ikke tolke bevisene dine eller vurdere hvor sterke de er i en domstol.
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-amber-500 mt-0.5">•</span>
+              Det erstatter ikke en advokat i alvorlige saker (straffesak, barnevern, tvangssaker).
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-amber-500 mt-0.5">•</span>
+              AI-en kan ta feil. Kontroller alltid lover, paragrafer og frister mot Lovdata.
+            </li>
+          </ul>
+          <p className="mt-4 text-sm text-slate-600">
+            Ved en konkret, alvorlig sak: kontakt advokat eller offentlig rettshjelp. Se{' '}
+            <Link to="/hvor-klager-du" className="text-primary-700 underline hover:text-primary-800">
+              hvor du klager
+            </Link>
+            .
           </p>
         </div>
       </main>

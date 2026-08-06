@@ -31,6 +31,12 @@ load_dotenv()
 
 # Norsk lovdatabase
 from .norwegian_law_db import get_relevant_law_sections, format_law_for_ai
+# Autoritative kilder + Lovdata-integrasjonspunkt (rettspraksis)
+from backend.legal_sources import (
+    authoritative_laws_for,
+    format_sources_for_ai,
+    lovdata_case_law_search,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -243,8 +249,17 @@ Svar i JSON format:
         keywords = question.split() + case_context.split()
         relevant_laws = get_relevant_law_sections(case_type, keywords)
         law_text = format_law_for_ai(relevant_laws)
+        sources_text = format_sources_for_ai(authoritative_laws_for(keywords))
 
-        prompt = f"""Du er en elite norsk advokat som utfører juridisk research.
+        case_law = lovdata_case_law_search(question)
+        case_law_text = ""
+        if case_law:
+            case_law_text = "RETTSPRAKSIS (fra Lovdata):\n" + "\n".join(
+                f"- {c.get('reference', '')}: {c.get('summary', '')} ({c.get('url', '')})"
+                for c in case_law
+            )
+
+        prompt = f"""Du er en erfaren norsk jurist som lager et forståelig forskningsnotat.
 
 JURIDISK SPØRSMÅL:
 {question}
@@ -254,24 +269,28 @@ SAKSKONTEKST:
 
 SAKSTYPE: {case_type}
 
-NORSK LOVDATABASE:
+NORSK LOVDATABASE (utdrag):
 {law_text}
 
-OPPGAVE: Gi et omfattende juridisk forskningsnotat som svarer på spørsmålet.
-Bruk ALLTID den medsendte lovdatabasen som primær kilde.
+{sources_text}
+
+{case_law_text}
+
+OPPGAVE: Gi et forståelig juridisk forskningsnotat som svarer på spørsmålet.
 
 Inkluder:
-1. KLART SVAR basert på norsk lov
-2. NORSK LOV: Spesifikke paragrafer med eksakte sitater
-3. ECHR/EMK: Relevante menneskerettigheter
-4. RETTSPRAKSIS: Høyesterettsdommer og prinsipper
+1. KLART SVAR på klarspråk
+2. NORSK LOV: Spesifikke paragrafer og hvilken lov de står i
+3. ECHR/EMK der relevant
+4. RETTSPRAKSIS der relevant (bruk kun konkrete dommer du er trygg på)
 5. PROSESSUELLE RETTIGHETER
-6. ANBEFALINGER: Praktiske råd
+6. ANBEFALINGER: Praktiske neste steg
 
-KRITISK:
-- Bruk BARE lover og dommer fra den medsendte databasen
-- Hver juridisk påstand MÅ ha spesifikk kilde
-- Gi eksakte paragrafhenvisninger og lovtekster
+KRITISK (tillit og etterrettelighet):
+- Henvis til de autoritative kildene over, og legg ved Lovdata-lenken slik at brukeren kan lese lovteksten selv.
+- Vær ærlig om usikkerhet. Er du usikker på et paragrafnummer eller en dom, si det tydelig i stedet for å gjette.
+- Ikke dikt opp lover eller dommer. Det er bedre å anbefale å sjekke kilden enn å oppgi feil.
+- Minn om at dette er generell informasjon, ikke individuell juridisk rådgivning.
 
 Svar i JSON format:
 {{

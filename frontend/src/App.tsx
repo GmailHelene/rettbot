@@ -29,6 +29,7 @@ import Fristkalkulator from './pages/Fristkalkulator';
 import Innsynskrav from './pages/Innsynskrav';
 import MinKonto from './pages/MinKonto';
 import Vilkar from './pages/Vilkar';
+import Tidslinje from './pages/Tidslinje';
 
 function App() {
   return (
@@ -78,6 +79,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <MinKonto />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tidslinje"
+            element={
+              <ProtectedRoute>
+                <Tidslinje />
               </ProtectedRoute>
             }
           />

@@ -14,6 +14,7 @@ import {
   ClipboardList,
   CalendarClock,
   FileKey,
+  ListOrdered,
   ChevronRight,
 } from 'lucide-react';
 
@@ -130,6 +131,13 @@ const groups: Group[] = [
         description: 'Ferdige skjeletter for klage, anke, anmeldelse og innsyn – fyll ut og last ned.',
         icon: <ClipboardList className="icon-md" />,
         path: '/maler',
+      },
+      {
+        id: 'timeline',
+        title: 'Saks-tidslinje',
+        description: 'Dokumentér hva som skjedde og når – bygg en oversikt over saken din.',
+        icon: <ListOrdered className="icon-md" />,
+        path: '/tidslinje',
       },
     ],
   },

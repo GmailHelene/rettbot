@@ -209,6 +209,19 @@ def init_database():
         )
     """)
 
+    # Tidslinje-hendelser (kryptert server-side; event_date i klartekst for sortering)
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS timeline_events (
+            id {ID_COLUMN},
+            user_id INTEGER NOT NULL,
+            case_ref TEXT,
+            event_date TEXT NOT NULL,
+            encrypted_data TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    """)
+
     # Password reset tokens (hashet – overlever omstart, persistent på tvers av workere)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS password_reset_tokens (
@@ -1287,6 +1300,25 @@ async def export_user_data(current_user: Dict = Depends(get_current_user)):
             }
             for r in cursor.fetchall()
         ]
+
+        cursor.execute(
+            "SELECT id, case_ref, event_date, encrypted_data, created_at FROM timeline_events WHERE user_id = ?",
+            (current_user["id"],),
+        )
+        timeline = []
+        for r in cursor.fetchall():
+            try:
+                d = decrypt_data(r[3])
+            except Exception:
+                d = {}
+            timeline.append({
+                "id": r[0],
+                "case_ref": r[1],
+                "event_date": r[2],
+                "title": d.get("title", ""),
+                "details": d.get("details", ""),
+                "created_at": str(r[4]),
+            })
         conn.close()
 
         export = {
@@ -1300,6 +1332,7 @@ async def export_user_data(current_user: Dict = Depends(get_current_user)):
             } if u else None,
             "cases": cases,
             "evidence_metadata": evidence,
+            "timeline": timeline,
             "note": "Selve bevisfilene lagres kryptert og kan lastes ned enkeltvis i appen.",
         }
         return JSONResponse(
@@ -1320,6 +1353,7 @@ async def delete_my_account(current_user: Dict = Depends(get_current_user)):
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute("DELETE FROM evidence WHERE user_id = ?", (uid,))
+        cursor.execute("DELETE FROM timeline_events WHERE user_id = ?", (uid,))
         cursor.execute(
             "DELETE FROM documents WHERE case_id IN (SELECT id FROM cases WHERE user_id = ?)",
             (uid,),
@@ -1334,6 +1368,88 @@ async def delete_my_account(current_user: Dict = Depends(get_current_user)):
     except Exception as e:
         logger.error(f"Account deletion error: {str(e)}")
         raise HTTPException(status_code=500, detail="Kunne ikke slette kontoen")
+
+
+# ============================================
+# Saks-tidslinje (kryptert)
+# ============================================
+
+class TimelineCreate(BaseModel):
+    event_date: str
+    title: str
+    details: Optional[str] = ""
+    case_ref: Optional[str] = None
+
+
+@app.post("/api/timeline")
+async def create_timeline_event(event: TimelineCreate, current_user: Dict = Depends(get_current_user)):
+    if not event.event_date or not event.title:
+        raise HTTPException(status_code=400, detail="Dato og tittel er påkrevd.")
+    try:
+        encrypted = encrypt_data({"title": event.title, "details": event.details or ""})
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO timeline_events (user_id, case_ref, event_date, encrypted_data) "
+            "VALUES (?, ?, ?, ?) RETURNING id",
+            (current_user["id"], event.case_ref, event.event_date, encrypted),
+        )
+        eid = cursor.fetchone()[0]
+        conn.commit()
+        conn.close()
+        return {"success": True, "id": eid}
+    except Exception as e:
+        logger.error(f"Timeline create error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Kunne ikke lagre hendelsen")
+
+
+@app.get("/api/timeline")
+async def list_timeline_events(current_user: Dict = Depends(get_current_user)):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, case_ref, event_date, encrypted_data, created_at FROM timeline_events "
+            "WHERE user_id = ? ORDER BY event_date DESC, id DESC",
+            (current_user["id"],),
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        events = []
+        for r in rows:
+            try:
+                d = decrypt_data(r[3])
+            except Exception:
+                d = {}
+            events.append({
+                "id": r[0],
+                "case_ref": r[1],
+                "event_date": r[2],
+                "title": d.get("title", ""),
+                "details": d.get("details", ""),
+                "created_at": str(r[4]),
+            })
+        return {"success": True, "events": events}
+    except Exception as e:
+        logger.error(f"Timeline list error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Kunne ikke hente tidslinjen")
+
+
+@app.delete("/api/timeline/{event_id}")
+async def delete_timeline_event(event_id: int, current_user: Dict = Depends(get_current_user)):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "DELETE FROM timeline_events WHERE id = ? AND user_id = ?",
+            (event_id, current_user["id"]),
+        )
+        conn.commit()
+        conn.close()
+        return {"success": True}
+    except Exception as e:
+        logger.error(f"Timeline delete error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Kunne ikke slette hendelsen")
 
 @app.post("/api/auth/forgot-password")
 async def forgot_password(request: PasswordResetRequest, req: Request):

@@ -10,6 +10,7 @@ import {
   ShieldAlert,
   Briefcase,
   MessageSquare,
+  Compass,
   ChevronRight,
 } from 'lucide-react';
 
@@ -32,6 +33,13 @@ const groups: Group[] = [
     title: 'Rettighetene dine',
     intro: 'Forstå hva politiet og myndighetene faktisk har lov til – og hva du kan gjøre.',
     features: [
+      {
+        id: 'escalation',
+        title: 'Hvor klager du?',
+        description: 'Oversikt over norske klage- og tilsynsorganer – finn rett instans for saken din.',
+        icon: <Compass className="icon-md" />,
+        path: '/hvor-klager-du',
+      },
       {
         id: 'rights',
         title: 'Rettighetsvern og klage',

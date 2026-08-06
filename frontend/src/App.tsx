@@ -23,6 +23,7 @@ import SiteFooter from './components/SiteFooter';
 import TitleManager from './components/TitleManager';
 import TopNav from './components/TopNav';
 import NotFound from './pages/NotFound';
+import Eskalering from './pages/Eskalering';
 
 function App() {
   return (
@@ -70,6 +71,9 @@ function App() {
 
           {/* Personvern */}
           <Route path="/personvern" element={<Personvern />} />
+
+          {/* Eskaleringsguide */}
+          <Route path="/hvor-klager-du" element={<Eskalering />} />
 
           {/* Ekte 404-side for ukjente adresser */}
           <Route path="*" element={<NotFound />} />

@@ -25,6 +25,7 @@ const TITLES: Record<string, string> = {
   '/fristkalkulator': 'Fristkalkulator – klage- og ankefrist – RettBot+',
   '/innsynskrav': 'Innsynskrav – be om innsyn i egne data – RettBot+',
   '/kom-i-gang': 'Kom i gang – RettBot+',
+  '/eksempler': 'Eksempler: gode klager og vanlige feil – RettBot+',
   '/personvern': 'Personvernerklæring – RettBot+',
   '/vilkar': 'Brukervilkår – RettBot+',
 };

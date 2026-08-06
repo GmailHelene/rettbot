@@ -4,6 +4,7 @@ import { ArrowLeft, Shield, FileText, Send, AlertTriangle } from 'lucide-react';
 import NesteSteg from '../components/NesteSteg';
 import { useAuth } from '../contexts/AuthContext';
 import AiDisclaimer from '../components/AiDisclaimer';
+import FeedbackWidget from '../components/FeedbackWidget';
 
 interface ViolationResponse {
   violation_type: string;
@@ -290,6 +291,7 @@ export default function RightsProtection() {
             )}
           </div>
         </div>
+        {result && <FeedbackWidget tool="rights-protection" className="mt-6" />}
       </main>
     </div>
   );

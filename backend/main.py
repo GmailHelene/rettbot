@@ -1,6 +1,7 @@
 """
 RettBot+ Backend API
-FastAPI REST API for zero-knowledge AI legal assistant
+FastAPI REST API for et AI-assistert juridisk verktøy. Data krypteres server-side
+(ikke zero-knowledge/klient-side).
 """
 
 from fastapi import FastAPI, HTTPException, Depends, File, UploadFile, Form, status, Request
@@ -249,6 +250,18 @@ def init_database():
             email TEXT NOT NULL,
             expires_at TEXT NOT NULL,
             used INTEGER NOT NULL DEFAULT 0
+        )
+    """)
+
+    # Anonym nytte-tilbakemelding (ingen PII, ikke knyttet til bruker)
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS feedback (
+            id {ID_COLUMN},
+            tool TEXT,
+            helpful INTEGER,
+            sent_complaint TEXT,
+            comment TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
 
@@ -1834,22 +1847,52 @@ async def health_check():
         "version": "1.0.0"
     }
 
+
+class FeedbackRequest(BaseModel):
+    """Anonym nytte-tilbakemelding fra brukeren (ingen PII forventet)."""
+    tool: str = Field(..., max_length=80, description="Hvilket verktøy/side tilbakemeldingen gjelder")
+    helpful: bool = Field(..., description="Opplevde brukeren det som nyttig?")
+    sent_complaint: Optional[str] = Field(None, max_length=40, description="ja|nei|ikke_enda")
+    comment: Optional[str] = Field(None, max_length=1000)
+
+
+@app.post("/api/feedback")
+async def submit_feedback(request: FeedbackRequest, req: Request):
+    """Lagre anonym tilbakemelding om nytte. Ikke knyttet til bruker-ID."""
+    # Lett takst mot spam (offentlig endepunkt, ingen innlogging kreves).
+    check_rate_limit(req, max_requests=20, window_minutes=60)
+    try:
+        comment = (request.comment or "").strip()[:1000] or None
+        sent = (request.sent_complaint or "").strip()[:40] or None
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO feedback (tool, helpful, sent_complaint, comment) VALUES (?, ?, ?, ?)",
+            (request.tool.strip()[:80], 1 if request.helpful else 0, sent, comment),
+        )
+        conn.commit()
+        conn.close()
+        return {"success": True}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Feedback save failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Kunne ikke lagre tilbakemelding")
+
+
 @app.post("/api/evidence/analyze", dependencies=[Depends(ai_rate_limit)])
 async def analyze_evidence(request: EvidenceAnalysisRequest, current_user: Dict = Depends(get_current_user)):
     """
-    Analyze uploaded evidence using AI
-    
-    Note: File content should be encrypted on client-side.
-    Server only sees encrypted data (zero-knowledge architecture).
+    Analyser innsendt bevis med AI.
+
+    Merk: innholdet krypteres server-side ved lagring (ikke klient-side/zero-knowledge).
     """
     try:
         if not ai_engine:
             raise HTTPException(status_code=503, detail="AI engine unavailable. Set ANTHROPIC_API_KEY.")
         logger.info(f"Analyzing evidence: {request.file_name} ({request.file_type})")
-        
-        # In zero-knowledge mode, we work with encrypted data
-        # For demo, we'll analyze based on metadata
-        # In production, client would decrypt locally, send to AI, re-encrypt results
+
+        # Vi analyserer basert på beskrivelsen/metadataene brukeren har sendt inn.
         
         # Build additional context from optional fields
         additional_context_parts = []

@@ -9,6 +9,7 @@ import {
   Gavel,
   ShieldAlert,
   MessageSquare,
+  BookOpen,
   Compass,
   ClipboardList,
   CalendarClock,
@@ -63,6 +64,13 @@ const groups: Group[] = [
         description: 'Be om innsyn i egne personopplysninger eller offentlige dokumenter – ferdig brev.',
         icon: <FileKey className="icon-md" />,
         path: '/innsynskrav',
+      },
+      {
+        id: 'examples',
+        title: 'Eksempler',
+        description: 'Slik ser en god klage ut, vanlige feil, og hva som ofte fungerer.',
+        icon: <BookOpen className="icon-md" />,
+        path: '/eksempler',
       },
       {
         id: 'penalties',

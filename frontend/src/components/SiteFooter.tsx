@@ -14,6 +14,7 @@ export default function SiteFooter() {
           </p>
           <nav className="flex items-center gap-4 text-sm">
             <Link to="/" className="text-slate-600 hover:text-primary-700">Hjem</Link>
+            <Link to="/eksempler" className="text-slate-600 hover:text-primary-700">Eksempler</Link>
             <Link to="/personvern" className="text-slate-600 hover:text-primary-700">Personvern</Link>
             <Link to="/vilkar" className="text-slate-600 hover:text-primary-700">Vilkår</Link>
             <a

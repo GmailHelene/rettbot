@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, FileText, Copy, Download, Check, Lightbulb, Printer } from 'lucide-react';
 import { templates } from '../data/templates';
 import SaveToCase from '../components/SaveToCase';
+import FeedbackWidget from '../components/FeedbackWidget';
 
 export default function Maler() {
   const [activeId, setActiveId] = useState(templates[0].id);
@@ -155,6 +156,7 @@ export default function Maler() {
             se <Link to="/hvor-klager-du" className="underline">Hvor klager du?</Link>
           </p>
         </div>
+        <FeedbackWidget tool="maler" className="mt-8" />
       </main>
     </div>
   );

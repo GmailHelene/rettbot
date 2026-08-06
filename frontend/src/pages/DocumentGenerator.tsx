@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, FileText, AlertCircle, Download, Copy, Check, Printer } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import AiDisclaimer from '../components/AiDisclaimer';
+import FeedbackWidget from '../components/FeedbackWidget';
 
 interface DocumentResult {
   success: boolean;
@@ -337,6 +338,7 @@ export default function DocumentGenerator() {
             </div>
           )}
         </div>
+        {result && <FeedbackWidget tool="document-generator" className="mt-6" />}
       </main>
     </div>
   );

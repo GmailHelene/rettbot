@@ -4,6 +4,7 @@ import { ArrowLeft, Search, BookOpen, AlertCircle, FileText, Scale, Globe } from
 import NesteSteg from '../components/NesteSteg';
 import { useAuth } from '../contexts/AuthContext';
 import AiDisclaimer from '../components/AiDisclaimer';
+import FeedbackWidget from '../components/FeedbackWidget';
 import ConfidenceBadge from '../components/ConfidenceBadge';
 
 interface ResearchResult {
@@ -310,6 +311,7 @@ export default function LegalResearch() {
             ]}
           />
         )}
+        {result && <FeedbackWidget tool="legal-research" className="mt-6" />}
       </main>
     </div>
   );

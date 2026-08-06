@@ -1,0 +1,35 @@
+﻿
+# PWA Files - Service Worker and Manifest
+@app.get("/registerSW.js")
+async def serve_register_sw():
+    frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
+    file_path = frontend_dist / "registerSW.js"
+    if file_path.exists():
+        return FileResponse(file_path, media_type="application/javascript")
+    raise HTTPException(status_code=404, detail="registerSW.js not found")
+
+@app.get("/sw.js")
+async def serve_sw():
+    frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
+    file_path = frontend_dist / "sw.js"
+    if file_path.exists():
+        return FileResponse(file_path, media_type="application/javascript")
+    raise HTTPException(status_code=404, detail="sw.js not found")
+
+@app.get("/manifest.webmanifest")
+async def serve_manifest():
+    frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
+    file_path = frontend_dist / "manifest.webmanifest"
+    if file_path.exists():
+        return FileResponse(file_path, media_type="application/manifest+json")
+    raise HTTPException(status_code=404, detail="manifest.webmanifest not found")
+
+@app.get("/manifest.json")
+async def serve_manifest_json():
+    """Redirect old manifest.json to new manifest.webmanifest"""
+    frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
+    file_path = frontend_dist / "manifest.webmanifest"
+    if file_path.exists():
+        return FileResponse(file_path, media_type="application/json")
+    raise HTTPException(status_code=404, detail="manifest.json not found")
+

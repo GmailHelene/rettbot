@@ -1,0 +1,43 @@
+﻿
+@app.post("/api/legal/chat")
+async def legal_chat(request: dict):
+    """
+    Interactive legal chat with AI
+    
+    Provides conversational legal guidance with context awareness
+    """
+    try:
+        message = request.get("message", "")
+        history = request.get("conversation_history", [])
+        
+        logger.info(f"Legal chat message: {message[:100]}...")
+        
+        # Build conversation context
+        context = "Du er RettBot, en AI juridisk assistent som hjelper norske borgere med juridiske spørsmål. "
+        context += "Du har ekspertise i norsk lov, EMK (Menneskerettighetsloven), og nordisk rettspraksis. "
+        context += "Gi alltid konkrete svar basert på gjeldende norsk lovgivning.\n\n"
+        
+        # Add conversation history
+        for msg in history[-5:]:  # Last 5 messages for context
+            role = msg.get("role", "")
+            content = msg.get("content", "")
+            if role == "user":
+                context += f"Bruker: {content}\n"
+            elif role == "assistant":
+                context += f"RettBot: {content}\n"
+        
+        context += f"Bruker: {message}\nRettBot:"
+        
+        # Call AI engine
+        response = await ai_engine.chat_response(context, message)
+        
+        return {
+            "success": True,
+            "response": response,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in legal chat: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Chat failed: {str(e)}")
+

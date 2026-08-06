@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Shield, AlertCircle, FileText, Target, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLocalDraft } from '../hooks/useLocalDraft';
 import AiDisclaimer from '../components/AiDisclaimer';
 
 interface StrategyResult {
@@ -27,7 +28,7 @@ interface StrategyResult {
 
 export default function DefenseStrategy() {
   const { token } = useAuth();
-  const [caseFacts, setCaseFacts] = useState('');
+  const [caseFacts, setCaseFacts] = useLocalDraft('rb_draft_defense_casefacts');
   const [charges, setCharges] = useState('');
   const [evidence, setEvidence] = useState('');
   const [legalResearch, setLegalResearch] = useState('');

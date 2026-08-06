@@ -2550,6 +2550,47 @@ Use formal legal language appropriate for Norwegian courts/authorities. Include:
 MAX_EVIDENCE_BYTES = 25 * 1024 * 1024  # 25 MB
 
 
+def _looks_like_text(content: bytes) -> bool:
+    """Grov tekst-heuristikk: ingen null-bytes og gyldig UTF-8 i starten."""
+    sample = content[:4096]
+    if b"\x00" in sample:
+        return False
+    try:
+        sample.decode("utf-8")
+        return True
+    except UnicodeDecodeError:
+        return False
+
+
+def validate_evidence_mime(content: bytes) -> str:
+    """Server-side innholdssjekk via magic bytes (ikke bare filending).
+
+    Returnerer verifisert MIME-type, eller kaster 400 for utillatte formater.
+    Tillatt: PDF, vanlige bilder og ren tekst. Blokkerer bl.a. kjørbare filer.
+    """
+    head = content[:16]
+    signatures = [
+        (b"%PDF", "application/pdf"),
+        (b"\x89PNG\r\n\x1a\n", "image/png"),
+        (b"\xff\xd8\xff", "image/jpeg"),
+        (b"GIF87a", "image/gif"),
+        (b"GIF89a", "image/gif"),
+        (b"II*\x00", "image/tiff"),
+        (b"MM\x00*", "image/tiff"),
+    ]
+    for sig, mime in signatures:
+        if head.startswith(sig):
+            return mime
+    if head.startswith(b"RIFF") and content[8:12] == b"WEBP":
+        return "image/webp"
+    if _looks_like_text(content):
+        return "text/plain"
+    raise HTTPException(
+        status_code=400,
+        detail="Ugyldig filformat. Tillatt: PDF, bilder (PNG/JPEG/GIF/TIFF/WEBP) og tekst.",
+    )
+
+
 @app.post("/api/evidence/upload")
 async def upload_evidence_file(
     file: UploadFile = File(...),
@@ -2570,6 +2611,9 @@ async def upload_evidence_file(
         if len(content) > MAX_EVIDENCE_BYTES:
             raise HTTPException(status_code=413, detail="Filen er for stor (maks 25 MB).")
 
+        # Server-side innholdssjekk (magic bytes), ikke bare filending fra klienten.
+        verified_mime = validate_evidence_mime(content)
+
         encrypted = fernet.encrypt(content).decode()
 
         conn = get_connection()
@@ -2577,7 +2621,7 @@ async def upload_evidence_file(
         cursor.execute(
             "INSERT INTO evidence (user_id, case_ref, filename, file_type, size, description, encrypted_content) "
             "VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id",
-            (current_user["id"], case_ref, file.filename, file.content_type, len(content), description, encrypted),
+            (current_user["id"], case_ref, file.filename, verified_mime, len(content), description, encrypted),
         )
         evidence_id = cursor.fetchone()[0]
         conn.commit()
@@ -2591,7 +2635,7 @@ async def upload_evidence_file(
                 "id": evidence_id,
                 "filename": file.filename,
                 "size": len(content),
-                "content_type": file.content_type,
+                "content_type": verified_mime,
                 "uploaded": datetime.utcnow().isoformat(),
                 "encrypted": True,
                 "case_ref": case_ref,

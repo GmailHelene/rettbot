@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, FileText, AlertCircle, Download, Copy, Check, Printer } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLocalDraft } from '../hooks/useLocalDraft';
 import AiDisclaimer from '../components/AiDisclaimer';
 import FeedbackWidget from '../components/FeedbackWidget';
 
@@ -23,7 +24,7 @@ export default function DocumentGenerator() {
   const [documentType, setDocumentType] = useState('');
   const [caseNumber, setCaseNumber] = useState('');
   const [court, setCourt] = useState('');
-  const [details, setDetails] = useState('');
+  const [details, setDetails] = useLocalDraft('rb_draft_document_details');
   const [strategy, setStrategy] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<DocumentResult | null>(null);

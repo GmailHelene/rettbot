@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, MessageCircle, Send, AlertCircle, Loader } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLocalDraft } from '../hooks/useLocalDraft';
 import AiDisclaimer from '../components/AiDisclaimer';
 
 interface Message {
@@ -21,7 +22,7 @@ export default function LegalChat() {
       timestamp: new Date().toISOString()
     }
   ]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useLocalDraft('rb_draft_chat_input');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);

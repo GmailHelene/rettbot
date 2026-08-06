@@ -157,7 +157,15 @@ export default function Tidslinje() {
         {loading ? (
           <p className="text-slate-500">Laster …</p>
         ) : events.length === 0 ? (
-          <p className="text-slate-500">Ingen hendelser ennå. Legg til den første over.</p>
+          <div className="card-professional text-center py-10">
+            <ListOrdered className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+            <h2 className="text-base font-semibold text-slate-900">Ingen hendelser ennå</h2>
+            <p className="mt-1 text-sm text-slate-600 max-w-md mx-auto">
+              Start med datoen du mottok vedtaket eller da noe skjedde. En tidslinje gjør saken
+              lett å forklare for en klageinstans eller advokat senere.
+            </p>
+            <p className="mt-3 text-xs text-slate-400">Bruk skjemaet over for å legge inn den første hendelsen.</p>
+          </div>
         ) : (
           <ol className="relative border-l-2 border-slate-200 ml-3 space-y-6">
             {events.map((ev) => (

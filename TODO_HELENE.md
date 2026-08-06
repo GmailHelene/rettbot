@@ -102,6 +102,20 @@ brukere · 🟢 senere/vekst.
 
 ## 🟢 Senere / vekst
 
+- [ ] **Google Search Console (SEO – gjør gjerne snart).** Dette er det som får
+  Google til å begynne å indeksere sidene. Appen leverer nå riktig tittel,
+  beskrivelse og sitemap per side, men Google må «inviteres» inn. Steg:
+  1. Gå til `search.google.com/search-console` og logg inn med Google-kontoen din.
+  2. Legg til eiendom → velg **URL-prefiks** → skriv `https://rettbot.com`.
+  3. Verifiser eierskap. Enklest: last ned HTML-verifiseringsfila Google gir deg
+     og send den til meg – så legger jeg den inn så den ligger på
+     `rettbot.com/google<...>.html`. (Alternativt: verifiser via DNS hos
+     domeneleverandøren.)
+  4. Når du er verifisert: **Sitemaps** → lim inn `sitemap.xml` → Send inn.
+  5. Bruk **URL-inspeksjon** på forsiden og be om indeksering for å komme raskt i gang.
+  Indeksering tar gjerne noen dager til uker – ikke bli urolig om det ikke skjer
+  med en gang.
+
 - [ ] **Lovdata Pro-lisens for rettspraksis (dommer).** Kontakt Lovdata om API-
   tilgang. Når du har det: send meg **API-dokumentasjonen**, så fyller jeg inn
   `lovdata_case_law_search` og du setter `LOVDATA_API_KEY` + `LOVDATA_API_BASE`
@@ -115,7 +129,8 @@ brukere · 🟢 senere/vekst.
 ---
 
 ## Ting jeg (Claude) tar når du gir grønt lys
-- Flere funksjoner: innsynskrav-veiviser, saks-tidslinje, PDF-eksport av brev.
-- Wire opp e-posttjeneste / Sentry / analyse.
+- Legge inn Google-verifiseringsfila når du har lastet den ned.
+- Wire opp e-posttjeneste / Sentry / personvernvennlig analyse.
 - Utkast til brukervilkår.
 - Fullføre Lovdata-integrasjonen når du har API-dok.
+- Full SSR/prerendering av innholdssidene hvis vi vil presse SEO enda lenger.

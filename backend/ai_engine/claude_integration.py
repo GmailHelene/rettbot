@@ -130,6 +130,22 @@ def _extract_json(text: str) -> dict:
     return json.loads(cleaned)
 
 
+# Fjern åpenbare, unødvendige personidentifikatorer før tekst sendes til Anthropic.
+# Fødselsnummer/D-nummer trengs aldri for den juridiske vurderingen og er svært
+# sensitivt; telefonnummer med +47 fjernes også. (Navn beholdes – de trengs ofte
+# for å gi mening til saken, og brukeren er informert og har samtykket.)
+_FNR_RE = re.compile(r"\b\d{6}[ ]?\d{5}\b")
+_PHONE_RE = re.compile(r"\+47[ ]?\d{8}\b")
+
+
+def scrub_pii(text: str) -> str:
+    if not text:
+        return text
+    text = _FNR_RE.sub("[FØDSELSNUMMER]", text)
+    text = _PHONE_RE.sub("[TELEFON]", text)
+    return text
+
+
 class ClaudeEngine:
     """Anthropic Claude-integrasjon for RettBot+"""
 
@@ -157,6 +173,7 @@ class ClaudeEngine:
         Streamer alltid for å unngå timeout ved lange svar og for å
         hente det komplette svaret via get_final_message().
         """
+        prompt = scrub_pii(prompt)
         async with self.client.messages.stream(
             model=self.model,
             max_tokens=max_tokens,

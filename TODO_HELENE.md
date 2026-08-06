@@ -1,136 +1,104 @@
 # TODO – ting bare du (Helene) kan gjøre
 
-Koden er ferdig og pushet. Dette er stegene som krever *deg* – kontoer,
-nøkler, beslutninger og verifisering. Prioritert: 🔴 gjør nå · 🟡 før ekte
-brukere · 🟢 senere/vekst.
+Oppdatert 06.08.2026. Koden er langt på vei ferdig og pushet. Dette er det som
+krever *deg* – kontoer, nøkler, beslutninger og verifisering.
+Prioritet: 🔴 gjør nå · 🟡 før ekte brukere · 🟢 senere/vekst.
 
 ---
 
-## ✅ Nylig utført i koden (etter sikkerhets-/juridisk gjennomgang)
+## ✅ Gjort (kode + dine handlinger)
 
-- **AI-endepunktene er lukket bak innlogging.** Ingen kan lenger bruke AI-
-  funksjonene (og dermed Anthropic-regningen din) uten å være innlogget.
-- **Per-bruker takst på AI-kall** (mot kostnadssprekk hvis én konto spammer).
-  Kan justeres med `AI_RATE_LIMIT_MAX` (standard 30) og `AI_RATE_LIMIT_WINDOW_MIN`
-  (standard 5) i Railway hvis du vil ha strammere/løsere grense.
-- **`/docs`, `/redoc` og `/openapi.json` er slått av i produksjon** (var åpne API-
-  kart før). Krever `ENVIRONMENT=production` i Railway.
-- **«Zero-knowledge»-påstanden er fjernet** – personvern og API beskriver nå ærlig
-  server-side-kryptering.
-- **Rettssak-simulatoren er fjernet** (kunne gi falskt inntrykk av domsutfall).
-- **Ærlighet bygget inn i AI-en:** den skal si ifra når saken er svak, fristen
-  trolig er ute, eller klageveien er uttømt – i stedet for å love seier.
-- **Personvern oppdatert:** egen seksjon om art. 9/10-data og om USA-overføring
-  til Anthropic (SCC/DPA). Se de to advokat-/DPA-punktene under 🟡.
+**Sikkerhet & drift**
+- AI-endepunktene krever innlogging + per-bruker rate limit (mot misbruk/kostnad).
+- `/docs`, `/redoc`, `/openapi.json` av i produksjon.
+- Én web-worker pinnet (in-memory rate limit virker korrekt).
+- Logg-gjennomgang: saksinnhold og e-post fjernet fra logger; reset-token logges aldri i prod.
+- Anthropic-nøkkel, `JWT_SECRET`, `ENCRYPTION_KEY`, `ENVIRONMENT=production`, PostgreSQL og domenet rettbot.com er på plass (bekreftet via `/api/health`).
 
----
+**Juridisk & personvern**
+- Eksplisitt AI-samtykke (art. 9 nr. 2 a) før første AI-kall, registrert server-side.
+- Personvern: art. 9/10-grunnlag, USA-overføring (SCC/DPA), ingen AI-trening, logging, lagringstid, aldersgrense.
+- Behandlingsansvarlig satt: **Grønberg Tech Solutions** (ENK). Kontakt-e-post inne.
+- Brukervilkår med lovvalg/verneting.
+- DPIA-utkast (`DPIA_UTKAST.md`) + varslingsrutine ved brudd (`VARSLINGSRUTINE_BRUDD.md`).
+- DPA: Anthropic (auto-innbakt) + Railway (signert). ✅
+- «Zero-knowledge»-påstand fjernet; ærlig server-side-kryptering beskrevet.
 
-## 🔴 Gjør nå (ellers fungerer ikke live-appen riktig)
+**Produkt & innhold**
+- Rettssak-simulator fjernet. «Ærlighet» + «AI-generert, sjekk kilden»-banner + «dette kan verktøyet ikke»-liste.
+- Nye funksjoner: eksempler, guidede veivisere, nytte-måling, PDF-saksmappe.
+- Juridisk eval-suite (`backend/evals/`) for frister/paragrafer.
 
-- [ ] **Ny Anthropic-nøkkel i Railway.** Du roterte nøkkelen (bra!) – den gamle
-  er ugyldig. Railway → tjenesten → **Variables** → sett
-  `ANTHROPIC_API_KEY = sk-ant-...` (den nye).
-  **Verifiser:** åpne `https://<din-app>/api/health` → skal vise `"claude": true`.
-
-- [ ] **Bekreft sikkerhetsnøklene i Railway:** `JWT_SECRET`, `ENCRYPTION_KEY`,
-  `ENVIRONMENT=production`. ⚠️ **Endre aldri `ENCRYPTION_KEY`** etterpå – da blir
-  krypterte saker uleselige.
-
-- [ ] **PostgreSQL:** Railway → **New → Database → PostgreSQL**. Så i app-tjenesten:
-  Variables → `DATABASE_URL = ${{Postgres.DATABASE_URL}}` (bytt `Postgres` med
-  tjenestenavnet). **Verifiser:** `/api/health` → `"database": true`.
-
-- [ ] **Deploy-sjekk:** Railway → Deployments → siste → Logs skal vise
-  `Claude engine initialized` og `RettBot+ API ready!` (ikke feil om manglende
-  nøkler). Åpne siden med **hard refresh** (Ctrl+Shift+R) pga. PWA-cache.
-
-- [ ] **Drep den gamle OpenAI-nøkkelen.** Den lå offentlig i repoet tidligere.
-  Gå til platform.openai.com → API keys → slett den. Slett også
-  `OPENAI_API_KEY`-variabelen i Railway (ubrukt nå).
+**SEO**
+- Server-side per-rute title/meta/OG/canonical + JSON-LD, sitemap, Google Search Console verifisert.
 
 ---
 
-## 🟡 Før du slipper inn ekte brukere
+## 🔴 Gjør nå
 
-- [ ] **E-post for passord-reset.** Uten dette sendes ingen reset-e-post.
-  Sett i Railway:
-  - `SMTP_USERNAME` og `SMTP_PASSWORD` (for Gmail: lag et **app-passord**, ikke
-    vanlig passord)
-  - `SMTP_SERVER` / `SMTP_PORT` hvis du ikke bruker Gmail (standard:
-    `smtp.gmail.com` / `587`)
-  - `FRONTEND_URL = https://rettbot.com` (så reset-lenken peker riktig)
-  **Test:** «Glemt passord» på login → sjekk at e-post kommer.
-  *(Vil du heller bruke en e-posttjeneste som Postmark/SendGrid? Si ifra, så
-  kobler jeg det opp.)*
+- [ ] **Test passord-reset (Brevo).** Sjekk Railway-variablene (se tabell under) og
+  legg til `FRONTEND_URL = https://rettbot.com`. Deretter: «Glemt passord» på login
+  → sjekk at e-post kommer. Vanlige feil: `MAIL_PASSWORD` må være Brevos **SMTP-nøkkel**
+  (ikke API-nøkkel/kontopassord), og `MAIL_DEFAULT_SENDER` må være en **verifisert avsender** i Brevo.
 
-- [ ] **Koble domenet rettbot.com.** Railway → tjenesten → Settings → Domains →
-  legg til `rettbot.com` og `www.rettbot.com`. Oppdater DNS hos registraren din
-  (Domeneshop e.l.) med postene Railway viser.
+  | Variabel | Verdi |
+  |---|---|
+  | `MAIL_SERVER` | `smtp-relay.brevo.com` |
+  | `MAIL_PORT` | `587` |
+  | `MAIL_USE_TLS` | `true` |
+  | `MAIL_USERNAME` | Brevo SMTP-login |
+  | `MAIL_PASSWORD` | Brevo SMTP-nøkkel |
+  | `MAIL_DEFAULT_SENDER` | verifisert avsender-e-post |
+  | `FRONTEND_URL` | `https://rettbot.com` |
 
-- [ ] **Fyll inn kontakt i personvernerklæringen.** Siden `/personvern` har
-  `[sett inn kontakt-e-post]`. Bestem også **hvem som er behandlingsansvarlig**
-  (deg privat / enkeltpersonforetak / AS) og skriv det inn. *(Jeg kan oppdatere
-  teksten når du gir meg verdiene.)*
+- [ ] **Kostnadstak i Anthropic.** `platform.claude.com/usage/limits` → sett spend-tak
+  (~$25/mnd til å begynne med) + spend-alert på ~80 %.
 
-- [ ] **Databehandleravtale (DPA) med Anthropic – signer den.** Sakstekst sendes til
-  Anthropic for AI-behandling, og overføres til USA. Anthropic tilbyr en DPA med
-  EU Standard Contractual Clauses (SCC). Gå til Anthropic-konsollen → **Privacy /
-  Data Processing Agreement**, aksepter/signer, og ta vare på PDF-en. Personvern-
-  siden viser allerede at overføringen skjer til USA og at grunnlaget er SCC/DPA –
-  men teksten stemmer først når avtalen faktisk er signert.
+- [ ] **Slett den gamle OpenAI-nøkkelen** (lå i repoet før) på platform.openai.com,
+  og fjern `OPENAI_API_KEY` i Railway hvis den fortsatt står.
 
-- [ ] **DPIA (personvernkonsekvensvurdering).** Fordi appen behandler straffedoms-
-  opplysninger (GDPR art. 10) og særlige kategorier (art. 9) i stor skala, kreves
-  normalt en DPIA før lansering (art. 35). Datatilsynet har mal. *(Jeg kan lage et
-  førsteutkast basert på hvordan appen faktisk behandler data – si ifra.)*
+---
 
-- [ ] **Advokatsjekk av rettslig grunnlag for art. 9/10-data.** Personvern-siden
-  angir samtykke (art. 9 nr. 2 a), rettskrav (art. 9 nr. 2 f) og
-  personopplysningsloven § 11 for straffedomsopplysninger. Få en advokat/personvern-
-  rådgiver til å bekrefte at dette holder for din konkrete modell, og la samme
-  advokat se over AI-svarene og «ikke juridisk rådgivning»-linjen.
+## 🟡 Før du slipper inn mange ekte brukere
 
-- [ ] **Brukervilkår.** Bør på plass før lansering. *(Jeg kan lage et utkast –
-  du eier og godkjenner det.)*
+- [ ] **Advokat/personvernrådgiver bekrefter art. 9/10-grunnlaget** og ser over
+  «ikke juridisk rådgivning»-linjen. Dette er den siste juridiske ryggdekningen
+  som *må* være menneske.
 
-- [ ] **Kostnadstak.** Sett en usage-grense i Anthropic-konsollen (og OpenAI hvis
-  kontoen er åpen), så du ikke får en overraskelsesregning. Appen har nå både
-  innlogging og per-bruker takst på AI-kall, men et hardt tak i konsollen er
-  siste skanse.
+- [ ] **Ferdigstill DPIA.** Fyll inn resterende klammefelt i `DPIA_UTKAST.md`
+  (org.nr, konklusjon om restrisiko) og la fagpersonen over kvalitetssikre den.
+
+- [ ] **Send meg org.nr** til Grønberg Tech Solutions, så føyer jeg det inn i personvern (styrker identiteten).
+
+- [ ] **(Valgfritt) Be Anthropic om Zero Data Retention (ZDR)** for ekstra trygghet
+  rundt at input ikke lagres hos dem.
+
+- [ ] **Backup-strategi for PostgreSQL** på Railway (slå på automatiske backups /
+  point-in-time recovery). *(Jeg kan dokumentere en rutine.)*
 
 ---
 
 ## 🟢 Senere / vekst
 
-- [ ] **Google Search Console (SEO – gjør gjerne snart).** Dette er det som får
-  Google til å begynne å indeksere sidene. Appen leverer nå riktig tittel,
-  beskrivelse og sitemap per side, men Google må «inviteres» inn. Steg:
-  1. Gå til `search.google.com/search-console` og logg inn med Google-kontoen din.
-  2. Legg til eiendom → velg **URL-prefiks** → skriv `https://rettbot.com`.
-  3. Verifiser eierskap. Enklest: last ned HTML-verifiseringsfila Google gir deg
-     og send den til meg – så legger jeg den inn så den ligger på
-     `rettbot.com/google<...>.html`. (Alternativt: verifiser via DNS hos
-     domeneleverandøren.)
-  4. Når du er verifisert: **Sitemaps** → lim inn `sitemap.xml` → Send inn.
-  5. Bruk **URL-inspeksjon** på forsiden og be om indeksering for å komme raskt i gang.
-  Indeksering tar gjerne noen dager til uker – ikke bli urolig om det ikke skjer
-  med en gang.
-
-- [ ] **Lovdata Pro-lisens for rettspraksis (dommer).** Kontakt Lovdata om API-
-  tilgang. Når du har det: send meg **API-dokumentasjonen**, så fyller jeg inn
-  `lovdata_case_law_search` og du setter `LOVDATA_API_KEY` + `LOVDATA_API_BASE`
-  i Railway. (Lovtekst er allerede koblet inn – dette gjelder kun dommer.)
-
-- [ ] **Feilovervåking (Sentry).** Lag konto → gi meg DSN, så kobler jeg det opp.
-
-- [ ] **Personvernvennlig analyse** for å lære hva brukerne trenger (uten
-  sporing). Jeg kan sette opp når du vil.
+- [ ] **Lovdata Pro-lisens for rettspraksis (dommer).** Send meg API-dok, så kobler jeg
+  inn `lovdata_case_law_search` (lovtekst er allerede inne).
+- [ ] **Feilovervåking (Sentry).** Lag konto → gi meg DSN.
+- [ ] **Personvernvennlig analyse** (uten sporing).
+- [ ] **Kjør/utvid eval-suiten.** `python -m backend.evals.run_evals` (frivillig; koster litt API).
 
 ---
 
 ## Ting jeg (Claude) tar når du gir grønt lys
-- Legge inn Google-verifiseringsfila når du har lastet den ned.
-- Wire opp e-posttjeneste / Sentry / personvernvennlig analyse.
-- Utkast til brukervilkår.
-- Fullføre Lovdata-integrasjonen når du har API-dok.
-- Full SSR/prerendering av innholdssidene hvis vi vil presse SEO enda lenger.
+
+**Fase 3 fra ekspertgjennomgangen (større, bevisste valg):**
+- CI/CD (GitHub Actions: tsc, build, py_compile, pip-audit, npm audit). *(Startet.)*
+- Fødselsnummer-scrubbing før tekst sendes til Anthropic. *(Startet.)*
+- `db.py` → SQLAlchemy 2.0 + Alembic (større, egen fokusert jobb).
+- Splitte `main.py` i APIRouter-moduler.
+- pgvector/RAG for semantisk søk i Lovdata/rettspraksis.
+- Full SSR/prerendering for enda bedre SEO.
+
+**Annet:**
+- Utvide eval-fasiten mot 50+ saker.
+- Wire opp Sentry / analyse / Lovdata når du har kontoene.
+- Dokumentere Railway-backup-rutine.

@@ -88,6 +88,7 @@ export default function Personvern() {
               Når du bruker en AI-funksjon, sendes teksten du har lagt inn (for eksempel saksfakta,
               spørsmål eller bevisbeskrivelser) til Anthropic for behandling, og svaret sendes tilbake.
               Anthropic er databehandler for dette, regulert av en databehandleravtale (DPA).
+              Fødselsnummer og telefonnummer fjernes automatisk fra teksten før den sendes til Anthropic.
             </p>
             <p>
               <strong>Overføring til USA:</strong> Anthropic er etablert i USA, og opplysningene du sender

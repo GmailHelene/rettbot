@@ -1,20 +1,15 @@
 import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { 
-  Scale, 
-  FileSearch, 
-  Shield, 
-  FileText, 
-  AlertTriangle, 
+import {
+  Scale,
+  FileSearch,
+  Shield,
+  FileText,
+  AlertTriangle,
   Upload,
   Gavel,
   ShieldAlert,
   Briefcase,
   MessageSquare,
-  User,
-  LogOut,
-  LogIn,
-  FolderOpen,
   ChevronRight
 } from 'lucide-react';
 
@@ -28,8 +23,6 @@ interface Feature {
 }
 
 export default function Dashboard() {
-  const { user, isAuthenticated, logout } = useAuth();
-
   const features: Feature[] = [
     {
       id: 'evidence',
@@ -115,63 +108,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <header className="header-professional">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="header-title">
-                RettBot+ Dashboard
-              </h1>
-              <p className="header-subtitle">
-                Profesjonell AI-drevet juridisk assistent
-              </p>
-            </div>
-            <div className="flex items-center space-x-3">
-              {isAuthenticated ? (
-                <>
-                  <div className="flex items-center space-x-2 text-sm text-slate-700 px-3 py-2 bg-slate-100 rounded-md">
-                    <User className="icon-sm" />
-                    <span>{user?.full_name}</span>
-                  </div>
-                  <Link
-                    to="/my-cases"
-                    className="btn-secondary flex items-center space-x-2"
-                  >
-                    <FolderOpen className="icon-sm" />
-                    <span>Mine Saker</span>
-                  </Link>
-                  <button
-                    onClick={logout}
-                    className="flex items-center space-x-2 px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors text-slate-700"
-                  >
-                    <LogOut className="icon-sm" />
-                    <span>Logg ut</span>
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link
-                    to="/login"
-                    className="btn-secondary flex items-center space-x-2"
-                  >
-                    <LogIn className="icon-sm" />
-                    <span>Logg inn</span>
-                  </Link>
-                  <Link
-                    to="/register"
-                    className="btn-primary flex items-center space-x-2"
-                  >
-                    <User className="icon-sm" />
-                    <span>Opprett konto</span>
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* Welcome Message */}

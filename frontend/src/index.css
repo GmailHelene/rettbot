@@ -127,6 +127,13 @@
   color: white;
 }
 
+/* Tydelig tastatur-fokus (WCAG 2.2) */
+:focus-visible {
+  outline: 2px solid #1e4d86;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 /* Responsive breakpoints */
 @media (max-width: 640px) {
   .header-title {

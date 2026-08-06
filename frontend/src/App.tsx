@@ -21,12 +21,21 @@ import CookieConsent from './components/CookieConsent';
 import ProtectedRoute from './components/ProtectedRoute';
 import SiteFooter from './components/SiteFooter';
 import TitleManager from './components/TitleManager';
+import TopNav from './components/TopNav';
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <TitleManager />
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:bg-white focus:px-4 focus:py-2 focus:rounded focus:shadow focus:text-primary-700"
+        >
+          Hopp til innhold
+        </a>
+        <TopNav />
+        <div id="main-content">
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Dashboard />} />
@@ -64,6 +73,7 @@ function App() {
           {/* Redirect unknown routes to dashboard */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </div>
         <SiteFooter />
         <CookieConsent />
       </AuthProvider>

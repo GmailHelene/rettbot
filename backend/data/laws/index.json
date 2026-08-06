@@ -1,0 +1,72 @@
+[
+  {
+    "id": "1814-05-17",
+    "name": "Grunnloven",
+    "title": "Kongeriket Norges Grunnlov",
+    "last_changed": "2024-05-21",
+    "chars": 65743
+  },
+  {
+    "id": "1999-05-21-30",
+    "name": "Menneskerettsloven (inkorporerer EMK)",
+    "title": "Lov om styrking av menneskerettighetenes stilling i norsk rett (menneskerettsloven)",
+    "last_changed": "2026-01-01",
+    "chars": 667606
+  },
+  {
+    "id": "1967-02-10",
+    "name": "Forvaltningsloven",
+    "title": "Lov om behandlingsmåten i forvaltningssaker (forvaltningsloven)",
+    "last_changed": "2026-01-01",
+    "chars": 77821
+  },
+  {
+    "id": "2006-05-19-16",
+    "name": "Offentleglova",
+    "title": "Lov om rett til innsyn i dokument i offentleg verksemd (offentleglova)",
+    "last_changed": "2026-07-01",
+    "chars": 34368
+  },
+  {
+    "id": "1995-08-04-53",
+    "name": "Politiloven",
+    "title": "Lov om politiet (politiloven)",
+    "last_changed": "2026-07-01",
+    "chars": 69216
+  },
+  {
+    "id": "1981-05-22-25",
+    "name": "Straffeprosessloven",
+    "title": "Lov om rettergangsmåten i straffesaker (Straffeprosessloven)",
+    "last_changed": "2026-07-01",
+    "chars": 482071
+  },
+  {
+    "id": "2005-05-20-28",
+    "name": "Straffeloven",
+    "title": "Lov om straff (straffeloven)",
+    "last_changed": "2026-07-01",
+    "chars": 266092
+  },
+  {
+    "id": "2018-06-15-38",
+    "name": "Personopplysningsloven (GDPR)",
+    "title": "Lov om behandling av personopplysninger (personopplysningsloven)",
+    "last_changed": "2022-01-01",
+    "chars": 382199
+  },
+  {
+    "id": "2005-06-17-62",
+    "name": "Arbeidsmiljøloven (varsling, kap. 2 A)",
+    "title": "Lov om arbeidsmiljø, arbeidstid og stillingsvern mv. (arbeidsmiljøloven)",
+    "last_changed": "2026-07-01",
+    "chars": 215182
+  },
+  {
+    "id": "1999-07-02-63",
+    "name": "Pasient- og brukerrettighetsloven",
+    "title": "Lov om pasient- og brukerrettigheter (pasient- og brukerrettighetsloven)",
+    "last_changed": "2026-07-01",
+    "chars": 81007
+  }
+]

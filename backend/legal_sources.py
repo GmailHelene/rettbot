@@ -12,9 +12,60 @@ To ting:
 """
 
 import os
+import json
 import logging
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
+# Lokalt cachet, oppdatert lovtekst fra Lovdatas gratis API (se lovdata_sync.py).
+_LAW_DATA_DIR = Path(__file__).parent / "data" / "laws"
+
+
+def _load_law_index() -> dict:
+    try:
+        data = json.loads((_LAW_DATA_DIR / "index.json").read_text(encoding="utf-8"))
+        return {e["id"]: e for e in data}
+    except Exception:
+        return {}
+
+
+_LAW_INDEX = _load_law_index()
+
+
+def _law_id(law: dict) -> str:
+    return law["url"].rstrip("/").split("/lov/")[-1]
+
+
+def cached_law_meta(law: dict):
+    """Metadata (tittel, sist_endret) for en lov hvis den er cachet lokalt."""
+    return _LAW_INDEX.get(_law_id(law))
+
+
+def law_excerpt(law: dict, max_chars: int = 900) -> str:
+    """Utdrag av gjeldende lovtekst fra lokal cache (tom streng hvis ikke cachet)."""
+    if not cached_law_meta(law):
+        return ""
+    try:
+        text = (_LAW_DATA_DIR / f"{_law_id(law)}.txt").read_text(encoding="utf-8")
+    except Exception:
+        return ""
+    return text[:max_chars].strip()
+
+
+def law_excerpts_for_ai(laws, per_law_chars: int = 900, max_laws: int = 3) -> str:
+    """Bygg et grunnlagsavsnitt med utdrag fra faktisk gjeldende lovtekst."""
+    parts = []
+    for law in (laws or [])[:max_laws]:
+        ex = law_excerpt(law, per_law_chars)
+        if ex:
+            parts.append(f"[{law['name']} - utdrag fra gjeldende lovtekst]\n{ex}")
+    if not parts:
+        return ""
+    return (
+        "GJELDENDE LOVTEKST (hentet fra Lovdata - bruk som grunnlag, ikke gjengi lange sitater):\n"
+        + "\n\n".join(parts)
+    )
 
 # --- Kuratert lovoversikt (autoritative lenker) --------------------------------
 

@@ -35,6 +35,7 @@ from .norwegian_law_db import get_relevant_law_sections, format_law_for_ai
 from backend.legal_sources import (
     authoritative_laws_for,
     format_sources_for_ai,
+    law_excerpts_for_ai,
     lovdata_case_law_search,
 )
 
@@ -290,7 +291,11 @@ Svar i JSON format:
         keywords = question.split() + case_context.split()
         relevant_laws = get_relevant_law_sections(case_type, keywords)
         law_text = format_law_for_ai(relevant_laws)
-        sources_text = format_sources_for_ai(authoritative_laws_for(keywords))
+        matched_laws = authoritative_laws_for(keywords)
+        sources_text = format_sources_for_ai(matched_laws)
+        # Faktisk gjeldende lovtekst (fra Lovdatas gratis API, cachet lokalt) som
+        # grunnlag – reduserer risikoen for at modellen dikter opp paragrafer.
+        law_excerpts = law_excerpts_for_ai(matched_laws)
 
         case_law = lovdata_case_law_search(question)
         case_law_text = ""
@@ -314,6 +319,8 @@ NORSK LOVDATABASE (utdrag):
 {law_text}
 
 {sources_text}
+
+{law_excerpts}
 
 {case_law_text}
 

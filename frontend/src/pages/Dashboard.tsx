@@ -11,6 +11,7 @@ import {
   Briefcase,
   MessageSquare,
   Compass,
+  ClipboardList,
   ChevronRight,
 } from 'lucide-react';
 
@@ -106,6 +107,13 @@ const groups: Group[] = [
         description: 'Lag klage, anke eller brev til rett instans – ferdig formulert.',
         icon: <FileText className="icon-md" />,
         path: '/document-generator',
+      },
+      {
+        id: 'templates',
+        title: 'Maler',
+        description: 'Ferdige skjeletter for klage, anke, anmeldelse og innsyn – fyll ut og last ned.',
+        icon: <ClipboardList className="icon-md" />,
+        path: '/maler',
       },
     ],
   },

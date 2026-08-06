@@ -24,6 +24,7 @@ import TitleManager from './components/TitleManager';
 import TopNav from './components/TopNav';
 import NotFound from './pages/NotFound';
 import Eskalering from './pages/Eskalering';
+import Maler from './pages/Maler';
 
 function App() {
   return (
@@ -74,6 +75,9 @@ function App() {
 
           {/* Eskaleringsguide */}
           <Route path="/hvor-klager-du" element={<Eskalering />} />
+
+          {/* Dokumentmaler */}
+          <Route path="/maler" element={<Maler />} />
 
           {/* Ekte 404-side for ukjente adresser */}
           <Route path="*" element={<NotFound />} />

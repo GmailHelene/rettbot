@@ -12,6 +12,7 @@ import {
   MessageSquare,
   Compass,
   ClipboardList,
+  CalendarClock,
   ChevronRight,
 } from 'lucide-react';
 
@@ -47,6 +48,13 @@ const groups: Group[] = [
         description: 'Kjenn rettighetene dine, og få hjelp til å skrive en klage når de brytes.',
         icon: <ShieldAlert className="icon-md" />,
         path: '/rights-protection',
+      },
+      {
+        id: 'deadline',
+        title: 'Fristkalkulator',
+        description: 'Regn ut når klage- eller ankefristen din går ut – ikke gå glipp av fristen.',
+        icon: <CalendarClock className="icon-md" />,
+        path: '/fristkalkulator',
       },
       {
         id: 'penalties',

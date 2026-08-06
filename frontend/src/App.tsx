@@ -25,6 +25,7 @@ import TopNav from './components/TopNav';
 import NotFound from './pages/NotFound';
 import Eskalering from './pages/Eskalering';
 import Maler from './pages/Maler';
+import Fristkalkulator from './pages/Fristkalkulator';
 
 function App() {
   return (
@@ -78,6 +79,9 @@ function App() {
 
           {/* Dokumentmaler */}
           <Route path="/maler" element={<Maler />} />
+
+          {/* Fristkalkulator */}
+          <Route path="/fristkalkulator" element={<Fristkalkulator />} />
 
           {/* Ekte 404-side for ukjente adresser */}
           <Route path="*" element={<NotFound />} />

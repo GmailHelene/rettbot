@@ -28,6 +28,8 @@ import Fristkalkulator from './pages/Fristkalkulator';
 import Innsynskrav from './pages/Innsynskrav';
 import KomIGang from './pages/KomIGang';
 import Eksempler from './pages/Eksempler';
+import Veivisere from './pages/Veivisere';
+import Veiviser from './pages/Veiviser';
 import MinKonto from './pages/MinKonto';
 import Vilkar from './pages/Vilkar';
 import Tidslinje from './pages/Tidslinje';
@@ -116,6 +118,10 @@ function App() {
 
           {/* Eksempler */}
           <Route path="/eksempler" element={<Eksempler />} />
+
+          {/* Guidede veivisere */}
+          <Route path="/veivisere" element={<Veivisere />} />
+          <Route path="/veivisere/:id" element={<Veiviser />} />
 
           {/* Ekte 404-side for ukjente adresser */}
           <Route path="*" element={<NotFound />} />

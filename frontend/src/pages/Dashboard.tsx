@@ -10,6 +10,7 @@ import {
   ShieldAlert,
   MessageSquare,
   BookOpen,
+  Footprints,
   Compass,
   ClipboardList,
   CalendarClock,
@@ -37,6 +38,13 @@ const groups: Group[] = [
     title: 'Rettighetene dine',
     intro: 'Forstå hva politiet og myndighetene faktisk har lov til – og hva du kan gjøre.',
     features: [
+      {
+        id: 'veivisere',
+        title: 'Veivisere',
+        description: 'Steg for steg gjennom en situasjon: klage på politiet, anke vedtak, dokumentér, varsling.',
+        icon: <Footprints className="icon-md" />,
+        path: '/veivisere',
+      },
       {
         id: 'escalation',
         title: 'Hvor klager du?',

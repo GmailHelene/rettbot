@@ -8,6 +8,11 @@
   <url><loc>https://rettbot.com/hvor-klager-du</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
   <url><loc>https://rettbot.com/maler</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://rettbot.com/eksempler</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://rettbot.com/veivisere</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://rettbot.com/veivisere/klage-paa-politiet</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://rettbot.com/veivisere/anke-vedtak</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://rettbot.com/veivisere/dokumenter-hendelse</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://rettbot.com/veivisere/varsling</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://rettbot.com/fristkalkulator</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://rettbot.com/innsynskrav</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://rettbot.com/defense-strategy</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>

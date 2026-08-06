@@ -26,6 +26,7 @@ const TITLES: Record<string, string> = {
   '/innsynskrav': 'Innsynskrav – be om innsyn i egne data – RettBot+',
   '/kom-i-gang': 'Kom i gang – RettBot+',
   '/eksempler': 'Eksempler: gode klager og vanlige feil – RettBot+',
+  '/veivisere': 'Veivisere: steg for steg – RettBot+',
   '/personvern': 'Personvernerklæring – RettBot+',
   '/vilkar': 'Brukervilkår – RettBot+',
 };

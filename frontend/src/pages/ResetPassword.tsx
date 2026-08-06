@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Scale, Lock, AlertCircle, Loader, CheckCircle, Eye, EyeOff, ShieldCheck } from 'lucide-react';
@@ -27,7 +28,7 @@ export default function ResetPassword() {
 
   const validateToken = async () => {
     try {
-      const response = await fetch('/api/auth/validate-reset-token', {
+      const response = await apiFetch('/api/auth/validate-reset-token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -64,7 +65,7 @@ export default function ResetPassword() {
     }
 
     try {
-      const response = await fetch('/api/auth/reset-password', {
+      const response = await apiFetch('/api/auth/reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

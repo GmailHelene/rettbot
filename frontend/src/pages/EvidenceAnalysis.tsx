@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload, FileText, Brain, CheckCircle, AlertCircle, Scale } from 'lucide-react';
@@ -40,7 +41,7 @@ export default function EvidenceAnalysis() {
     setResult(null);
 
     try {
-      const response = await fetch('/api/evidence/analyze', {
+      const response = await apiFetch('/api/evidence/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({

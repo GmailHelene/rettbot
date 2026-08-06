@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Scale, Mail, ArrowLeft, AlertCircle, Loader, CheckCircle, ShieldCheck } from 'lucide-react';
@@ -14,7 +15,7 @@ export default function ForgotPassword() {
     setError('');
 
     try {
-      const response = await fetch('/api/auth/forgot-password', {
+      const response = await apiFetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

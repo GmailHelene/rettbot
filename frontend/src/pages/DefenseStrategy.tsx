@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Shield, AlertCircle, FileText, Target, AlertTriangle } from 'lucide-react';
@@ -49,7 +50,7 @@ export default function DefenseStrategy() {
     try {
       const evidenceList = evidence.trim() ? evidence.split('\n').filter(e => e.trim()) : [];
       
-      const response = await fetch('/api/defense/strategy', {
+      const response = await apiFetch('/api/defense/strategy', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

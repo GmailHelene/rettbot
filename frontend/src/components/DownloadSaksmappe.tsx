@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import { useState } from 'react';
 import { Download, Loader } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -22,7 +23,7 @@ export default function DownloadSaksmappe({ caseRef, className = '' }: Props) {
       const url = caseRef
         ? `/api/saksmappe/pdf?case_ref=${encodeURIComponent(caseRef)}`
         : '/api/saksmappe/pdf';
-      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await apiFetch(url, { headers: { Authorization: `Bearer ${token}` } });
       if (!res.ok) throw new Error('nedlasting feilet');
       const blob = await res.blob();
       const objUrl = URL.createObjectURL(blob);

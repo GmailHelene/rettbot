@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Upload, AlertCircle, FileText, Check, X } from 'lucide-react';
@@ -23,7 +24,7 @@ export default function EvidenceUpload() {
 
   useEffect(() => {
     if (!token) return;
-    fetch('/api/cases', { headers: { Authorization: `Bearer ${token}` } })
+    apiFetch('/api/cases', { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => (r.ok ? r.json() : { cases: [] }))
       .then((d) => setCases((d.cases || []).map((c: any) => ({ case_number: c.case_number, title: c.title }))))
       .catch(() => {});
@@ -80,7 +81,7 @@ export default function EvidenceUpload() {
         if (description) formData.append('description', description);
         if (caseId) formData.append('case_ref', caseId);
 
-        const response = await fetch('/api/evidence/upload', {
+        const response = await apiFetch('/api/evidence/upload', {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           body: formData,

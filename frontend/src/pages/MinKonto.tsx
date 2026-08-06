@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, UserCog, Download, Trash2, Loader } from 'lucide-react';
@@ -13,7 +14,7 @@ export default function MinKonto() {
     setBusy('export');
     setError('');
     try {
-      const res = await fetch('/api/user/export', { headers: { Authorization: `Bearer ${token}` } });
+      const res = await apiFetch('/api/user/export', { headers: { Authorization: `Bearer ${token}` } });
       if (!res.ok) throw new Error('Kunne ikke laste ned data');
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -39,7 +40,7 @@ export default function MinKonto() {
     setBusy('delete');
     setError('');
     try {
-      const res = await fetch('/api/user/me', {
+      const res = await apiFetch('/api/user/me', {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });

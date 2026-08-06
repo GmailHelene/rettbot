@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ListOrdered, Plus, Trash2, Loader } from 'lucide-react';
@@ -27,7 +28,7 @@ export default function Tidslinje() {
 
   const load = async () => {
     try {
-      const res = await fetch('/api/timeline', { headers: { Authorization: `Bearer ${token}` } });
+      const res = await apiFetch('/api/timeline', { headers: { Authorization: `Bearer ${token}` } });
       if (!res.ok) throw new Error('Kunne ikke hente tidslinjen');
       const data = await res.json();
       setEvents(data.events || []);
@@ -40,7 +41,7 @@ export default function Tidslinje() {
 
   useEffect(() => {
     load();
-    fetch('/api/cases', { headers: { Authorization: `Bearer ${token}` } })
+    apiFetch('/api/cases', { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => (r.ok ? r.json() : { cases: [] }))
       .then((d) => setCases((d.cases || []).map((c: any) => ({ case_number: c.case_number, title: c.title }))))
       .catch(() => {});
@@ -55,7 +56,7 @@ export default function Tidslinje() {
     setSaving(true);
     setError('');
     try {
-      const res = await fetch('/api/timeline', {
+      const res = await apiFetch('/api/timeline', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ event_date: date, title, details, case_ref: caseRef || null }),
@@ -76,7 +77,7 @@ export default function Tidslinje() {
   const remove = async (id: number) => {
     if (!confirm('Slette denne hendelsen?')) return;
     try {
-      await fetch(`/api/timeline/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      await apiFetch(`/api/timeline/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
       setEvents((prev) => prev.filter((e) => e.id !== id));
     } catch {
       /* ignore */

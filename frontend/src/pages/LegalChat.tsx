@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, MessageCircle, Send, AlertCircle, Loader } from 'lucide-react';
@@ -51,7 +52,7 @@ export default function LegalChat() {
     setError('');
 
     try {
-      const response = await fetch('/api/legal/chat', {
+      const response = await apiFetch('/api/legal/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Scale, AlertCircle, BookOpen, Info } from 'lucide-react';
@@ -39,7 +40,7 @@ export default function PenaltiesLookup() {
     setResult(null);
 
     try {
-      const response = await fetch('/api/legal/penalties', {
+      const response = await apiFetch('/api/legal/penalties', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

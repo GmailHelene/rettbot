@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, FileText, AlertCircle, Download, Copy, Check, Printer } from 'lucide-react';
@@ -51,7 +52,7 @@ export default function DocumentGenerator() {
     setResult(null);
 
     try {
-      const response = await fetch('/api/legal/document', {
+      const response = await apiFetch('/api/legal/document', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

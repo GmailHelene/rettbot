@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, AlertTriangle, AlertCircle, Building2, FileText, TrendingUp } from 'lucide-react';
@@ -47,7 +48,7 @@ export default function CorruptionAssessment() {
       const evidenceList = evidence.split('\n').filter(e => e.trim());
       const institutionsList = institutions.split('\n').filter(i => i.trim());
       
-      const response = await fetch('/api/corruption/assess', {
+      const response = await apiFetch('/api/corruption/assess', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -5,11 +6,12 @@ interface User {
   id: number;
   email: string;
   full_name: string;
-  created_at: string;
+  created_at?: string;
 }
 
 interface AuthContextType {
   user: User | null;
+  /** @deprecated Auth ligger nå i en HttpOnly-cookie (ikke lesbar fra JS). Alltid null. */
   token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
@@ -22,87 +24,79 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Load user from localStorage on mount
+  // Auth ligger i en HttpOnly-cookie (sendes automatisk med hvert kall). Vi lagrer
+  // kun brukerinfo lokalt for å vise innlogget tilstand i grensesnittet.
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) setUser(JSON.parse(storedUser));
+    } catch {
+      /* ignore */
     }
-
     setLoading(false);
   }, []);
 
   const login = async (email: string, password: string) => {
-    const response = await fetch('/api/auth/login', {
+    const response = await apiFetch('/api/auth/login', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
-
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.detail || 'Login failed');
     }
-
     const data = await response.json();
-    
-    setToken(data.access_token);
     setUser(data.user);
-    localStorage.setItem('token', data.access_token);
-    localStorage.setItem('user', JSON.stringify(data.user));
+    try {
+      localStorage.setItem('user', JSON.stringify(data.user));
+    } catch {
+      /* ignore */
+    }
   };
 
   const register = async (email: string, password: string, fullName: string) => {
-    const response = await fetch('/api/auth/register', {
+    const response = await apiFetch('/api/auth/register', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ 
-        email, 
-        password, 
-        full_name: fullName 
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, full_name: fullName }),
     });
-
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.detail || 'Registration failed');
     }
-
     const data = await response.json();
-    
-    setToken(data.access_token);
     setUser(data.user);
-    localStorage.setItem('token', data.access_token);
-    localStorage.setItem('user', JSON.stringify(data.user));
+    try {
+      localStorage.setItem('user', JSON.stringify(data.user));
+    } catch {
+      /* ignore */
+    }
   };
 
   const logout = () => {
-    setToken(null);
+    apiFetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
     setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    try {
+      localStorage.removeItem('user');
+      localStorage.removeItem('token'); // rydd bort gammelt token fra tidligere versjon
+    } catch {
+      /* ignore */
+    }
     navigate('/');
   };
 
-  const value = {
+  const value: AuthContextType = {
     user,
-    token,
+    token: null,
     loading,
     login,
     register,
     logout,
-    isAuthenticated: !!token && !!user,
+    isAuthenticated: !!user,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

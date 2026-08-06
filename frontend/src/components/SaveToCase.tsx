@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Save, Check } from 'lucide-react';
@@ -23,7 +24,7 @@ export default function SaveToCase({
 
   useEffect(() => {
     if (!token) return;
-    fetch('/api/cases', { headers: { Authorization: `Bearer ${token}` } })
+    apiFetch('/api/cases', { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => (r.ok ? r.json() : { cases: [] }))
       .then((d) => setCases((d.cases || []).map((c: any) => ({ case_number: c.case_number, title: c.title }))))
       .catch(() => {});
@@ -41,7 +42,7 @@ export default function SaveToCase({
   const save = async () => {
     setError('');
     try {
-      const res = await fetch('/api/documents', {
+      const res = await apiFetch('/api/documents', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: title || defaultTitle, content: getContent(), case_ref: caseRef || null }),

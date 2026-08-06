@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -45,7 +46,7 @@ export default function MyCases() {
   const loadCases = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/cases', {
+      const response = await apiFetch('/api/cases', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -66,7 +67,7 @@ export default function MyCases() {
 
   const loadCaseDetails = async (caseId: number) => {
     try {
-      const response = await fetch(`/api/cases/${caseId}`, {
+      const response = await apiFetch(`/api/cases/${caseId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -83,9 +84,9 @@ export default function MyCases() {
       // Hent tidslinje + bevis knyttet til denne saken (via saksnummer)
       const ref = c.case_number;
       const [tlRes, evRes, docRes] = await Promise.all([
-        fetch('/api/timeline', { headers: { Authorization: `Bearer ${token}` } }),
-        fetch('/api/evidence', { headers: { Authorization: `Bearer ${token}` } }),
-        fetch('/api/documents', { headers: { Authorization: `Bearer ${token}` } }),
+        apiFetch('/api/timeline', { headers: { Authorization: `Bearer ${token}` } }),
+        apiFetch('/api/evidence', { headers: { Authorization: `Bearer ${token}` } }),
+        apiFetch('/api/documents', { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       const tl = tlRes.ok ? (await tlRes.json()).events || [] : [];
       const ev = evRes.ok ? (await evRes.json()).evidence || [] : [];
@@ -118,7 +119,7 @@ export default function MyCases() {
         .map(e => e.trim())
         .filter(e => e.length > 0);
 
-      const response = await fetch('/api/cases', {
+      const response = await apiFetch('/api/cases', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -158,7 +159,7 @@ export default function MyCases() {
     }
 
     try {
-      const response = await fetch(`/api/cases/${caseId}`, {
+      const response = await apiFetch(`/api/cases/${caseId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

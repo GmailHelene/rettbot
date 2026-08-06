@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import { useEffect, useState, ReactNode } from 'react';
 import { ShieldCheck, Loader } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -25,7 +26,7 @@ export default function AiConsentGate({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (status === 'ok') return;
     let cancelled = false;
-    fetch('/api/consent/ai', { headers: { Authorization: `Bearer ${token}` } })
+    apiFetch('/api/consent/ai', { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => (r.ok ? r.json() : { consented: false }))
       .then((d) => {
         if (cancelled) return;
@@ -52,7 +53,7 @@ export default function AiConsentGate({ children }: { children: ReactNode }) {
   const give = async () => {
     setSaving(true);
     try {
-      await fetch('/api/consent/ai', {
+      await apiFetch('/api/consent/ai', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });

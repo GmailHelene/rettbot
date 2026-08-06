@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Shield, FileText, Send, AlertTriangle } from 'lucide-react';
@@ -45,7 +46,7 @@ export default function RightsProtection() {
     setResult(null);
 
     try {
-      const response = await fetch('/api/rights/violations', {
+      const response = await apiFetch('/api/rights/violations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -72,7 +73,7 @@ export default function RightsProtection() {
     setComplaint('');
 
     try {
-      const response = await fetch('/api/rights/appeal', {
+      const response = await apiFetch('/api/rights/appeal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({

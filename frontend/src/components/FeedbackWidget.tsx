@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import { useState } from 'react';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
 
@@ -32,7 +33,7 @@ export default function FeedbackWidget({ tool, className = '' }: Props) {
     if (helpful === null) return;
     setSending(true);
     try {
-      await fetch('/api/feedback', {
+      await apiFetch('/api/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

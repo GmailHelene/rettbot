@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Search, BookOpen, AlertCircle, FileText, Scale, Globe } from 'lucide-react';
@@ -47,7 +48,7 @@ export default function LegalResearch() {
     setResult(null);
 
     try {
-      const response = await fetch('/api/legal/research', {
+      const response = await apiFetch('/api/legal/research', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

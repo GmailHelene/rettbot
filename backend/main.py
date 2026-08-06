@@ -1519,6 +1519,177 @@ async def list_documents(current_user: Dict = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail="Kunne ikke hente dokumenter")
 
 
+@app.get("/api/saksmappe/pdf")
+async def download_saksmappe_pdf(
+    case_ref: Optional[str] = None,
+    current_user: Dict = Depends(get_current_user),
+):
+    """Samle brukerens tidslinje, bevis og lagrede dokumenter i én PDF-saksmappe.
+
+    Valgfri `case_ref` avgrenser til én sak; uten den tas alt brukeren har lagret.
+    """
+    from io import BytesIO
+    from xml.sax.saxutils import escape
+    from fastapi import Response
+
+    try:
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import cm
+        from reportlab.lib import colors
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+    except ImportError:
+        logger.error("reportlab mangler – kan ikke generere PDF")
+        raise HTTPException(status_code=500, detail="PDF-generering er ikke tilgjengelig på serveren.")
+
+    def esc(value) -> str:
+        return escape(str(value if value is not None else "")).replace("\n", "<br/>")
+
+    try:
+        uid = current_user["id"]
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        if case_ref:
+            cursor.execute(
+                "SELECT event_date, encrypted_data FROM timeline_events "
+                "WHERE user_id = ? AND case_ref = ? ORDER BY event_date ASC, id ASC",
+                (uid, case_ref),
+            )
+        else:
+            cursor.execute(
+                "SELECT event_date, encrypted_data FROM timeline_events "
+                "WHERE user_id = ? ORDER BY event_date ASC, id ASC",
+                (uid,),
+            )
+        timeline_rows = cursor.fetchall()
+
+        if case_ref:
+            cursor.execute(
+                "SELECT filename, file_type, size, description, uploaded_at FROM evidence "
+                "WHERE user_id = ? AND case_ref = ? ORDER BY uploaded_at ASC",
+                (uid, case_ref),
+            )
+        else:
+            cursor.execute(
+                "SELECT filename, file_type, size, description, uploaded_at FROM evidence "
+                "WHERE user_id = ? ORDER BY uploaded_at ASC",
+                (uid,),
+            )
+        evidence_rows = cursor.fetchall()
+
+        if case_ref:
+            cursor.execute(
+                "SELECT title, encrypted_content, created_at FROM saved_documents "
+                "WHERE user_id = ? AND case_ref = ? ORDER BY created_at ASC",
+                (uid, case_ref),
+            )
+        else:
+            cursor.execute(
+                "SELECT title, encrypted_content, created_at FROM saved_documents "
+                "WHERE user_id = ? ORDER BY created_at ASC",
+                (uid,),
+            )
+        document_rows = cursor.fetchall()
+        conn.close()
+
+        styles = getSampleStyleSheet()
+        h1 = ParagraphStyle("rb_h1", parent=styles["Heading1"], fontSize=18, spaceAfter=4)
+        h2 = ParagraphStyle(
+            "rb_h2", parent=styles["Heading2"], fontSize=13, spaceBefore=16, spaceAfter=6,
+            textColor=colors.HexColor("#1e4d86"),
+        )
+        meta = ParagraphStyle("rb_meta", parent=styles["Normal"], fontSize=9, textColor=colors.grey)
+        body = ParagraphStyle("rb_body", parent=styles["Normal"], fontSize=10, leading=14)
+        small = ParagraphStyle("rb_small", parent=styles["Normal"], fontSize=8, textColor=colors.grey)
+
+        story = []
+        story.append(Paragraph("Saksmappe", h1))
+        story.append(Paragraph(f"Sak: {esc(case_ref)}" if case_ref else "Alle registrerte opplysninger", meta))
+        story.append(Paragraph(f"Eier: {esc(current_user.get('full_name') or current_user.get('email'))}", meta))
+        story.append(Paragraph(f"Generert: {datetime.utcnow().strftime('%d.%m.%Y %H:%M')} UTC", meta))
+        story.append(Spacer(1, 0.4 * cm))
+
+        # Tidslinje
+        story.append(Paragraph("Tidslinje", h2))
+        if timeline_rows:
+            for edate, enc in timeline_rows:
+                try:
+                    d = decrypt_data(enc)
+                except Exception:
+                    d = {}
+                story.append(Paragraph(f"<b>{esc(edate)}</b> &ndash; {esc(d.get('title', ''))}", body))
+                if d.get("details"):
+                    story.append(Paragraph(esc(d.get("details")), body))
+                story.append(Spacer(1, 0.15 * cm))
+        else:
+            story.append(Paragraph("Ingen registrerte hendelser.", small))
+
+        # Bevis
+        story.append(Paragraph("Bevis", h2))
+        if evidence_rows:
+            for fn, ftype, size, desc, up in evidence_rows:
+                size_txt = f" · {round((size or 0) / 1024)} kB" if size else ""
+                story.append(
+                    Paragraph(
+                        f"<b>{esc(fn)}</b> <font size=8 color='grey'>{esc(ftype)}{size_txt} · {esc(str(up)[:19])}</font>",
+                        body,
+                    )
+                )
+                if desc:
+                    story.append(Paragraph(esc(desc), body))
+                story.append(Spacer(1, 0.15 * cm))
+        else:
+            story.append(Paragraph("Ingen registrerte bevis.", small))
+
+        # Dokumenter
+        story.append(Paragraph("Dokumenter og brev", h2))
+        if document_rows:
+            for title, enc, created in document_rows:
+                try:
+                    content = fernet.decrypt(enc.encode()).decode()
+                except Exception:
+                    content = ""
+                story.append(
+                    Paragraph(f"<b>{esc(title)}</b> <font size=8 color='grey'>({esc(str(created)[:19])})</font>", body)
+                )
+                if content:
+                    story.append(Paragraph(esc(content), body))
+                story.append(Spacer(1, 0.3 * cm))
+        else:
+            story.append(Paragraph("Ingen lagrede dokumenter.", small))
+
+        story.append(Spacer(1, 0.6 * cm))
+        story.append(
+            Paragraph(
+                "Generert av RettBot+. Dette er dine egne registrerte opplysninger og utgjør ikke "
+                "juridisk rådgivning.",
+                small,
+            )
+        )
+
+        buf = BytesIO()
+        SimpleDocTemplate(
+            buf, pagesize=A4, leftMargin=2 * cm, rightMargin=2 * cm,
+            topMargin=2 * cm, bottomMargin=2 * cm, title="Saksmappe",
+        ).build(story)
+        pdf_bytes = buf.getvalue()
+        buf.close()
+
+        safe_ref = "".join(c for c in (case_ref or "alle") if c.isalnum() or c in ("-", "_"))[:40] or "alle"
+        filename = f"saksmappe_{safe_ref}.pdf"
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Saksmappe PDF error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Kunne ikke lage saksmappe-PDF")
+
+
 @app.delete("/api/documents/{doc_id}")
 async def delete_document(doc_id: int, current_user: Dict = Depends(get_current_user)):
     try:

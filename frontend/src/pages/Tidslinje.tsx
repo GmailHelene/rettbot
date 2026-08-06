@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ListOrdered, Plus, Trash2, Loader } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import DownloadSaksmappe from '../components/DownloadSaksmappe';
 
 interface TimelineEvent {
   id: number;
@@ -105,6 +106,13 @@ export default function Tidslinje() {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <p className="text-sm text-slate-600">
+            Samle tidslinje, bevis og dokumenter i én PDF du kan skrive ut eller ta med til advokat.
+          </p>
+          <DownloadSaksmappe />
+        </div>
+
         {/* Legg til */}
         <div className="card-professional mb-8">
           <h2 className="text-lg font-semibold text-slate-900 mb-4">Ny hendelse</h2>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, UserCog, Download, Trash2, Loader } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import DownloadSaksmappe from '../components/DownloadSaksmappe';
 
 export default function MinKonto() {
   const { user, token, logout } = useAuth();
@@ -92,6 +93,13 @@ export default function MinKonto() {
             {busy === 'export' ? <Loader className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
             Last ned mine data (JSON)
           </button>
+          <div className="mt-3">
+            <DownloadSaksmappe />
+          </div>
+          <p className="mt-2 text-xs text-slate-500">
+            JSON er for dataportabilitet. Saksmappen (PDF) er en lesbar oppsummering av tidslinje,
+            bevis og dokumenter – grei å skrive ut eller ta med til en advokat.
+          </p>
         </div>
 
         <div className="rounded-xl border border-red-200 bg-red-50 p-5">

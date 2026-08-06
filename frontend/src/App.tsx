@@ -27,6 +27,7 @@ import Eskalering from './pages/Eskalering';
 import Maler from './pages/Maler';
 import Fristkalkulator from './pages/Fristkalkulator';
 import MinKonto from './pages/MinKonto';
+import Vilkar from './pages/Vilkar';
 
 function App() {
   return (
@@ -82,6 +83,9 @@ function App() {
 
           {/* Personvern */}
           <Route path="/personvern" element={<Personvern />} />
+
+          {/* Brukervilkår */}
+          <Route path="/vilkar" element={<Vilkar />} />
 
           {/* Eskaleringsguide */}
           <Route path="/hvor-klager-du" element={<Eskalering />} />

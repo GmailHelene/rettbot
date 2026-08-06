@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, FileText, Copy, Download, Check, Lightbulb } from 'lucide-react';
+import { ArrowLeft, FileText, Copy, Download, Check, Lightbulb, Printer } from 'lucide-react';
 import { templates } from '../data/templates';
 
 export default function Maler() {
@@ -35,6 +35,24 @@ export default function Maler() {
     a.download = `${active.id}.txt`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const printDoc = () => {
+    const w = window.open('', '_blank');
+    if (!w) {
+      alert('Kunne ikke åpne utskriftsvindu. Tillat popup for denne siden.');
+      return;
+    }
+    const esc = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    w.document.write(
+      `<!doctype html><html lang="nb"><head><meta charset="utf-8"><title>${active.title}</title>` +
+        `<style>body{font-family:Georgia,'Times New Roman',serif;white-space:pre-wrap;` +
+        `line-height:1.6;font-size:12pt;color:#111;padding:2.5cm;}` +
+        `@media print{body{padding:2cm;}}</style></head><body>${esc}</body></html>`
+    );
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 300);
   };
 
   return (
@@ -100,6 +118,13 @@ export default function Maler() {
               >
                 {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
                 {copied ? 'Kopiert' : 'Kopier'}
+              </button>
+              <button
+                onClick={printDoc}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-300 text-slate-700 hover:bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                <Printer className="w-4 h-4" />
+                Skriv ut / PDF
               </button>
               <button
                 onClick={download}

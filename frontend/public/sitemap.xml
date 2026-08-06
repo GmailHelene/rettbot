@@ -14,6 +14,7 @@
   <url><loc>https://rettbot.com/corruption-assessment</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://rettbot.com/legal-chat</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://rettbot.com/personvern</loc><changefreq>yearly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://rettbot.com/vilkar</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
   <url><loc>https://rettbot.com/login</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
   <url><loc>https://rettbot.com/register</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
 </urlset>

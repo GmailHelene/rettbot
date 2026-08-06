@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Shield, FileText, Send, AlertTriangle } from 'lucide-react';
+import NesteSteg from '../components/NesteSteg';
 
 interface ViolationResponse {
   violation_type: string;
@@ -283,6 +284,13 @@ export default function RightsProtection() {
                     </button>
                   </div>
                 )}
+              <NesteSteg
+                items={[
+                  { label: 'Skriv klagen', to: '/maler' },
+                  { label: 'Hvor klager du?', to: '/hvor-klager-du' },
+                  { label: 'Regn ut fristen', to: '/fristkalkulator' },
+                ]}
+              />
               </>
             )}
 

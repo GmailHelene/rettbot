@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Search, BookOpen, AlertCircle, FileText, Scale, Globe } from 'lucide-react';
+import NesteSteg from '../components/NesteSteg';
 
 interface ResearchResult {
   success: boolean;
@@ -294,6 +295,15 @@ export default function LegalResearch() {
             </div>
           )}
         </div>
+        {result && (
+          <NesteSteg
+            items={[
+              { label: 'Regn ut fristen', to: '/fristkalkulator' },
+              { label: 'Skriv en klage', to: '/maler' },
+              { label: 'Hvor klager du?', to: '/hvor-klager-du' },
+            ]}
+          />
+        )}
       </main>
     </div>
   );

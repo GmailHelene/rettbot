@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, AlertTriangle, AlertCircle, Building2, FileText, TrendingUp } from 'lucide-react';
+import NesteSteg from '../components/NesteSteg';
 
 interface AssessmentResult {
   success: boolean;
@@ -338,6 +339,15 @@ export default function CorruptionAssessment() {
             </div>
           )}
         </div>
+        {result && (
+          <NesteSteg
+            items={[
+              { label: 'Hvor klager du?', to: '/hvor-klager-du' },
+              { label: 'Lag et innsynskrav', to: '/innsynskrav' },
+              { label: 'Dokumentér i tidslinje', to: '/tidslinje' },
+            ]}
+          />
+        )}
       </main>
     </div>
   );

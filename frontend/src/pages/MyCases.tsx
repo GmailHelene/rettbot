@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Plus, Folder, Trash2, Edit, Eye, AlertCircle, Loader, CheckCircle } from 'lucide-react';
 
@@ -22,6 +23,8 @@ export default function MyCases() {
   const { token } = useAuth();
   const [cases, setCases] = useState<Case[]>([]);
   const [selectedCase, setSelectedCase] = useState<CaseDetails | null>(null);
+  const [linkedTimeline, setLinkedTimeline] = useState<any[]>([]);
+  const [linkedEvidence, setLinkedEvidence] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -73,7 +76,19 @@ export default function MyCases() {
       }
 
       const data = await response.json();
-      setSelectedCase(data.case ?? data);
+      const c = data.case ?? data;
+      setSelectedCase(c);
+
+      // Hent tidslinje + bevis knyttet til denne saken (via saksnummer)
+      const ref = c.case_number;
+      const [tlRes, evRes] = await Promise.all([
+        fetch('/api/timeline', { headers: { Authorization: `Bearer ${token}` } }),
+        fetch('/api/evidence', { headers: { Authorization: `Bearer ${token}` } }),
+      ]);
+      const tl = tlRes.ok ? (await tlRes.json()).events || [] : [];
+      const ev = evRes.ok ? (await evRes.json()).evidence || [] : [];
+      setLinkedTimeline(tl.filter((e: any) => e.case_ref === ref));
+      setLinkedEvidence(ev.filter((e: any) => e.case_ref === ref));
     } catch (err: any) {
       setError(err.message);
     }
@@ -290,6 +305,53 @@ export default function MyCases() {
                         </ul>
                       </div>
                     )}
+
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-gray-900 dark:text-white">Tidslinje for saken</h3>
+                        <Link to="/tidslinje" className="text-sm text-primary-700 hover:text-primary-800 underline">
+                          Legg til →
+                        </Link>
+                      </div>
+                      {linkedTimeline.length === 0 ? (
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Ingen hendelser knyttet til denne saken ennå.</p>
+                      ) : (
+                        <ol className="border-l-2 border-gray-200 dark:border-gray-700 ml-2 space-y-3">
+                          {linkedTimeline.map((ev) => (
+                            <li key={ev.id} className="ml-4">
+                              <p className="text-xs font-medium text-primary-700 capitalize">
+                                {new Date(ev.event_date + 'T00:00:00').toLocaleDateString('nb-NO', { day: 'numeric', month: 'long', year: 'numeric' })}
+                              </p>
+                              <p className="text-sm font-semibold text-gray-900 dark:text-white">{ev.title}</p>
+                              {ev.details && (
+                                <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">{ev.details}</p>
+                              )}
+                            </li>
+                          ))}
+                        </ol>
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-gray-900 dark:text-white">Bevis lastet opp</h3>
+                        <Link to="/evidence-upload" className="text-sm text-primary-700 hover:text-primary-800 underline">
+                          Last opp →
+                        </Link>
+                      </div>
+                      {linkedEvidence.length === 0 ? (
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Ingen bevisfiler knyttet til denne saken ennå.</p>
+                      ) : (
+                        <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300 list-disc list-inside">
+                          {linkedEvidence.map((ev) => (
+                            <li key={ev.id}>
+                              {ev.filename}
+                              {ev.description ? ` – ${ev.description}` : ''}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
 
                     <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                       <p className="text-sm text-gray-500 dark:text-gray-400">

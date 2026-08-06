@@ -1451,6 +1451,37 @@ async def delete_timeline_event(event_id: int, current_user: Dict = Depends(get_
         logger.error(f"Timeline delete error: {str(e)}")
         raise HTTPException(status_code=500, detail="Kunne ikke slette hendelsen")
 
+
+@app.get("/api/evidence")
+async def list_evidence(current_user: Dict = Depends(get_current_user)):
+    """List brukerens bevis (metadata, ikke selve filinnholdet)."""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, case_ref, filename, file_type, size, description, uploaded_at "
+            "FROM evidence WHERE user_id = ? ORDER BY uploaded_at DESC",
+            (current_user["id"],),
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        evidence = [
+            {
+                "id": r[0],
+                "case_ref": r[1],
+                "filename": r[2],
+                "file_type": r[3],
+                "size": r[4],
+                "description": r[5],
+                "uploaded_at": str(r[6]),
+            }
+            for r in rows
+        ]
+        return {"success": True, "evidence": evidence}
+    except Exception as e:
+        logger.error(f"Evidence list error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Kunne ikke hente bevis")
+
 @app.post("/api/auth/forgot-password")
 async def forgot_password(request: PasswordResetRequest, req: Request):
     """Send password reset email"""

@@ -199,6 +199,13 @@ export default function Dashboard() {
             <p className="mt-3 text-primary-200 text-sm">
               Ikke en advokat. Et verktøy som gjør deg tryggere på din egen sak.
             </p>
+            <Link
+              to="/kom-i-gang"
+              className="mt-6 inline-flex items-center gap-2 rounded-lg bg-white text-primary-700 font-semibold px-5 py-3 hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-white"
+            >
+              Kom i gang
+              <ChevronRight className="w-4 h-4" aria-hidden="true" />
+            </Link>
           </div>
         </section>
 

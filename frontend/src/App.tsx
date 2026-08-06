@@ -27,6 +27,7 @@ import Eskalering from './pages/Eskalering';
 import Maler from './pages/Maler';
 import Fristkalkulator from './pages/Fristkalkulator';
 import Innsynskrav from './pages/Innsynskrav';
+import KomIGang from './pages/KomIGang';
 import MinKonto from './pages/MinKonto';
 import Vilkar from './pages/Vilkar';
 import Tidslinje from './pages/Tidslinje';
@@ -108,6 +109,9 @@ function App() {
 
           {/* Innsynskrav-veiviser */}
           <Route path="/innsynskrav" element={<Innsynskrav />} />
+
+          {/* Kom i gang */}
+          <Route path="/kom-i-gang" element={<KomIGang />} />
 
           {/* Ekte 404-side for ukjente adresser */}
           <Route path="*" element={<NotFound />} />

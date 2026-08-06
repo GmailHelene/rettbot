@@ -130,6 +130,20 @@ async def enforce_https_redirect(request: Request, call_next):
     return await call_next(request)
 
 
+# CSRF-vern for cookie-basert auth: på muterende kall (POST/PUT/DELETE/PATCH) mot
+# /api/ må X-CSRF-Token-headeren matche csrf_token-cookien. Gjelder kun når
+# access_token-cookien finnes; Bearer-header-klienter er ikke utsatt for CSRF.
+@app.middleware("http")
+async def csrf_protect(request: Request, call_next):
+    if request.method in ("POST", "PUT", "DELETE", "PATCH") and request.url.path.startswith("/api/"):
+        if request.cookies.get("access_token"):
+            csrf_cookie = request.cookies.get("csrf_token")
+            csrf_header = request.headers.get("X-CSRF-Token")
+            if not csrf_cookie or csrf_header != csrf_cookie:
+                return JSONResponse(status_code=403, content={"detail": "CSRF-validering feilet"})
+    return await call_next(request)
+
+
 
 # Database - SQLite lokalt, PostgreSQL i produksjon (via DATABASE_URL). Se backend/db.py.
 from backend.db import get_connection, ID_COLUMN, SQLITE_PATH, database_ok

@@ -16,7 +16,7 @@ from typing import Dict, Any, Optional
 import jwt
 import bcrypt
 from cryptography.fernet import Fernet
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from backend.db import get_connection
@@ -96,10 +96,24 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict[str, Any]:
-    """Hent innlogget bruker fra JWT-token."""
+def _extract_token(request: Request):
+    """Hent JWT fra HttpOnly-cookie (foretrukket) eller Bearer-header (API-klienter)."""
+    token = request.cookies.get("access_token")
+    if token:
+        return token
+    auth = request.headers.get("Authorization", "")
+    if auth.startswith("Bearer "):
+        return auth[7:]
+    return None
+
+
+def get_current_user(request: Request) -> Dict[str, Any]:
+    """Hent innlogget bruker fra JWT-token (HttpOnly-cookie eller Bearer-header)."""
+    token = _extract_token(request)
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
     try:
-        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email = payload.get("sub")
         if email is None:
             raise HTTPException(status_code=401, detail="Invalid authentication credentials")

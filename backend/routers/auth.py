@@ -11,7 +11,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import Optional, Dict, Any
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, EmailStr, Field
 
 from backend.db import get_connection
@@ -20,6 +20,36 @@ from backend.security_enhancements import validate_password_strength, check_rate
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+_IS_PROD = os.getenv("ENVIRONMENT", "development").lower() == "production"
+_TOKEN_MAX_AGE = 60 * 60 * 24 * 7  # 7 dager
+
+
+def _set_auth_cookies(response: Response, token: str) -> None:
+    """Sett HttpOnly access-token-cookie + lesbar CSRF-cookie (double-submit).
+
+    HttpOnly gjør at JavaScript (og dermed XSS) ikke kan lese tokenet. CSRF-cookien
+    er lesbar og speiles i X-CSRF-Token-headeren på muterende kall (se CSRF-middleware)."""
+    response.set_cookie(
+        "access_token", token, max_age=_TOKEN_MAX_AGE, httponly=True,
+        secure=_IS_PROD, samesite="lax", path="/",
+    )
+    response.set_cookie(
+        "csrf_token", secrets.token_urlsafe(32), max_age=_TOKEN_MAX_AGE, httponly=False,
+        secure=_IS_PROD, samesite="lax", path="/",
+    )
+
+
+def _clear_auth_cookies(response: Response) -> None:
+    response.delete_cookie("access_token", path="/")
+    response.delete_cookie("csrf_token", path="/")
+
+
+@router.post("/api/auth/logout")
+async def logout(response: Response):
+    """Logg ut: fjern auth-cookies."""
+    _clear_auth_cookies(response)
+    return {"success": True}
 
 # E-postkonfig (Brevo/SMTP) - MAIL_*-variabler med fallback til SMTP_*.
 SMTP_SERVER = os.getenv("MAIL_SERVER") or os.getenv("SMTP_SERVER", "smtp.gmail.com")
@@ -147,7 +177,7 @@ Denne e-posten er automatisk generert. Ikke svar på denne e-posten.
         return False
 
 @router.post("/api/auth/register", response_model=TokenResponse)
-async def register(user: UserRegister, req: Request):
+async def register(user: UserRegister, req: Request, response: Response):
     """Register new user"""
     # Rate limiting for registration attempts
     check_rate_limit(req, max_requests=3, window_minutes=60)
@@ -179,6 +209,7 @@ async def register(user: UserRegister, req: Request):
         
         # Create access token
         access_token = create_access_token(data={"sub": user.email})
+        _set_auth_cookies(response, access_token)
         
         return {
             "access_token": access_token,
@@ -194,7 +225,7 @@ async def register(user: UserRegister, req: Request):
         raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
 
 @router.post("/api/auth/login", response_model=TokenResponse)
-async def login(credentials: UserLogin, req: Request):
+async def login(credentials: UserLogin, req: Request, response: Response):
     """Login user"""
     # Rate limiting for login attempts (more restrictive)
     check_rate_limit(req, max_requests=5, window_minutes=15)
@@ -217,6 +248,7 @@ async def login(credentials: UserLogin, req: Request):
         
         # Create access token
         access_token = create_access_token(data={"sub": credentials.email})
+        _set_auth_cookies(response, access_token)
         
         return {
             "access_token": access_token,

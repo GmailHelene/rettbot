@@ -12,6 +12,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import SiteFooter from './components/SiteFooter';
 import TitleManager from './components/TitleManager';
 import TopNav from './components/TopNav';
+import AiConsentGate from './components/AiConsentGate';
 
 // Rute-basert code splitting: tunge sider lastes først når de faktisk besøkes.
 // Dette holder den første JS-pakken (forside + innlogging) liten og rask.
@@ -76,15 +77,15 @@ function App() {
           <Route path="/app" element={<Dashboard />} />
 
           {/* AI-verktøy - krever innlogging (beskytter mot misbruk av Anthropic-API-et) */}
-          <Route path="/evidence-analysis" element={<ProtectedRoute><EvidenceAnalysis /></ProtectedRoute>} />
-          <Route path="/legal-research" element={<ProtectedRoute><LegalResearch /></ProtectedRoute>} />
-          <Route path="/defense-strategy" element={<ProtectedRoute><DefenseStrategy /></ProtectedRoute>} />
-          <Route path="/document-generator" element={<ProtectedRoute><DocumentGenerator /></ProtectedRoute>} />
+          <Route path="/evidence-analysis" element={<ProtectedRoute><AiConsentGate><EvidenceAnalysis /></AiConsentGate></ProtectedRoute>} />
+          <Route path="/legal-research" element={<ProtectedRoute><AiConsentGate><LegalResearch /></AiConsentGate></ProtectedRoute>} />
+          <Route path="/defense-strategy" element={<ProtectedRoute><AiConsentGate><DefenseStrategy /></AiConsentGate></ProtectedRoute>} />
+          <Route path="/document-generator" element={<ProtectedRoute><AiConsentGate><DocumentGenerator /></AiConsentGate></ProtectedRoute>} />
           <Route path="/penalties" element={<ProtectedRoute><PenaltiesLookup /></ProtectedRoute>} />
-          <Route path="/rights-protection" element={<ProtectedRoute><RightsProtection /></ProtectedRoute>} />
-          <Route path="/corruption-assessment" element={<ProtectedRoute><CorruptionAssessment /></ProtectedRoute>} />
+          <Route path="/rights-protection" element={<ProtectedRoute><AiConsentGate><RightsProtection /></AiConsentGate></ProtectedRoute>} />
+          <Route path="/corruption-assessment" element={<ProtectedRoute><AiConsentGate><CorruptionAssessment /></AiConsentGate></ProtectedRoute>} />
           <Route path="/evidence-upload" element={<ProtectedRoute><EvidenceUpload /></ProtectedRoute>} />
-          <Route path="/legal-chat" element={<ProtectedRoute><LegalChat /></ProtectedRoute>} />
+          <Route path="/legal-chat" element={<ProtectedRoute><AiConsentGate><LegalChat /></AiConsentGate></ProtectedRoute>} />
 
           {/* Auth-required routes */}
           <Route

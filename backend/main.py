@@ -266,6 +266,16 @@ def init_database():
         )
     """)
 
+    # Samtykker (f.eks. eksplisitt samtykke til AI-behandling, GDPR art. 9 nr. 2 a).
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS consents (
+            id {ID_COLUMN},
+            user_id INTEGER NOT NULL,
+            kind TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
     conn.commit()
     conn.close()
     logger.info("Database initialized successfully")
@@ -1078,8 +1088,24 @@ AI_RATE_LIMIT_MAX = int(os.getenv("AI_RATE_LIMIT_MAX", "30"))
 AI_RATE_LIMIT_WINDOW_MIN = int(os.getenv("AI_RATE_LIMIT_WINDOW_MIN", "5"))
 
 
+def _has_ai_consent(user_id: int) -> bool:
+    """Har brukeren gitt eksplisitt samtykke til AI-behandling (GDPR art. 9 nr. 2 a)?"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT 1 FROM consents WHERE user_id = ? AND kind = ? LIMIT 1", (user_id, "ai"))
+    row = cursor.fetchone()
+    conn.close()
+    return bool(row)
+
+
 def ai_rate_limit(current_user: Dict = Depends(get_current_user)) -> Dict:
-    """Auth + per-bruker takst på AI-kall. Brukes som route-dependency."""
+    """Auth + eksplisitt AI-samtykke + per-bruker takst på AI-kall. Route-dependency."""
+    # Eksplisitt samtykke må foreligge før sensitiv tekst sendes til Anthropic.
+    if not _has_ai_consent(current_user["id"]):
+        raise HTTPException(
+            status_code=403,
+            detail="AI-samtykke kreves før du kan bruke AI-funksjonene.",
+        )
     key = f"ai-user:{current_user['id']}"
     if not rate_limiter.is_allowed(key, max_requests=AI_RATE_LIMIT_MAX, window_minutes=AI_RATE_LIMIT_WINDOW_MIN):
         raise HTTPException(
@@ -1087,6 +1113,39 @@ def ai_rate_limit(current_user: Dict = Depends(get_current_user)) -> Dict:
             detail="For mange forespørsler på kort tid. Vent noen minutter før du prøver igjen.",
         )
     return current_user
+
+
+def user_rate_limit(current_user: Dict = Depends(get_current_user)) -> Dict:
+    """Auth + per-bruker takst, UTEN AI-samtykke. For deterministiske endepunkter
+    (f.eks. strafferammer-oppslag) som ikke sender tekst til Anthropic."""
+    key = f"ai-user:{current_user['id']}"
+    if not rate_limiter.is_allowed(key, max_requests=AI_RATE_LIMIT_MAX, window_minutes=AI_RATE_LIMIT_WINDOW_MIN):
+        raise HTTPException(
+            status_code=429,
+            detail="For mange forespørsler på kort tid. Vent noen minutter før du prøver igjen.",
+        )
+    return current_user
+
+
+@app.get("/api/consent/ai")
+async def get_ai_consent(current_user: Dict = Depends(get_current_user)):
+    """Returner om brukeren har samtykket til AI-behandling."""
+    return {"consented": _has_ai_consent(current_user["id"])}
+
+
+@app.post("/api/consent/ai")
+async def set_ai_consent(current_user: Dict = Depends(get_current_user)):
+    """Registrer eksplisitt AI-samtykke (art. 9 nr. 2 a) med tidsstempel."""
+    if not _has_ai_consent(current_user["id"]):
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO consents (user_id, kind) VALUES (?, ?)",
+            (current_user["id"], "ai"),
+        )
+        conn.commit()
+        conn.close()
+    return {"consented": True}
 
 
 def encrypt_data(data: dict) -> str:
@@ -2301,7 +2360,7 @@ async def assess_corruption_case(request: CorruptionAssessmentRequest, current_u
         raise HTTPException(status_code=500, detail=f"Corruption assessment failed: {str(e)}")
 
 
-@app.post("/api/legal/penalties", dependencies=[Depends(ai_rate_limit)])
+@app.post("/api/legal/penalties", dependencies=[Depends(user_rate_limit)])
 async def legal_penalties(request: PenaltyQuery, current_user: Dict = Depends(get_current_user)):
     """
     Return likely statutes and penalty ranges for a given offense (heuristic).
@@ -2384,7 +2443,7 @@ async def legal_penalties(request: PenaltyQuery, current_user: Dict = Depends(ge
         raise HTTPException(status_code=500, detail=f"Penalty lookup failed: {str(e)}")
 
 
-@app.get("/api/penalties/lookup", dependencies=[Depends(ai_rate_limit)])
+@app.get("/api/penalties/lookup", dependencies=[Depends(user_rate_limit)])
 async def penalties_lookup_get(offense: str, context: Optional[str] = None, current_user: Dict = Depends(get_current_user)):
     """
     GET endpoint for penalty lookup (compatibility with frontend)

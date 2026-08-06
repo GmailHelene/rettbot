@@ -83,8 +83,22 @@ export default function Vilkar() {
           </section>
 
           <section>
+            <h2 className="text-lg font-semibold text-slate-900">Lovvalg og verneting</h2>
+            <p>
+              Vilkårene reguleres av norsk rett. Vi prøver å løse en eventuell uenighet i minnelighet
+              først. Lykkes ikke det, kan saken bringes inn for norske domstoler.
+            </p>
+          </section>
+
+          <section>
             <h2 className="text-lg font-semibold text-slate-900">Kontakt</h2>
-            <p>Spørsmål om vilkårene? Kontakt: <strong>[sett inn kontakt-e-post]</strong>.</p>
+            <p>
+              RettBot+ leveres av <strong>Grønberg Tech Solutions</strong>. Spørsmål om vilkårene?
+              Kontakt{' '}
+              <a href="mailto:helene721@gmail.com" className="text-primary-700 underline hover:text-primary-800">
+                helene721@gmail.com
+              </a>.
+            </p>
           </section>
         </div>
 

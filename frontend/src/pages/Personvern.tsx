@@ -31,8 +31,8 @@ export default function Personvern() {
           <section>
             <h2 className="text-lg font-semibold text-slate-900">Behandlingsansvarlig</h2>
             <p>
-              RettBot+ er behandlingsansvarlig for personopplysningene som behandles gjennom tjenesten.
-              Kontakt for personvernspørsmål:{' '}
+              Grønberg Tech Solutions er behandlingsansvarlig for personopplysningene som behandles
+              gjennom RettBot+. Kontakt for personvernspørsmål:{' '}
               <a href="mailto:helene721@gmail.com" className="text-primary-700 underline hover:text-primary-800">
                 helene721@gmail.com
               </a>.

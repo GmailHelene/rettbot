@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
 const TITLES: Record<string, string> = {
-  '/': 'RettBot+ – AI-assistert juridisk plattform for norske borgere',
+  '/': 'RettBot+ – Kjenn rettighetene dine mot politi og myndigheter',
   '/app': 'RettBot+ – Dashboard',
   '/login': 'Logg inn – RettBot+',
   '/register': 'Opprett konto – RettBot+',

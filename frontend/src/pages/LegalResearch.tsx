@@ -94,7 +94,7 @@ export default function LegalResearch() {
                 Juridisk Research
               </h1>
               <p className="header-subtitle">
-                Søk i norsk lov, EMD-praksis og rettspraksis
+                Forankret i gjeldende norsk lov og forskrifter (Lovdata)
               </p>
             </div>
           </div>
@@ -226,8 +226,11 @@ export default function LegalResearch() {
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                     <Globe className="w-5 h-5 mr-2 text-purple-600" />
-                    EMD-praksis
+                    EMD-praksis (AI-forslag)
                   </h2>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                    Forslag fra AI-en, ikke fra en live domsdatabase. Kontroller hver henvisning mot Lovdata før du bruker den.
+                  </p>
                   <div className="space-y-3">
                     {result.research.echr_cases.map((echrCase, index) => (
                       <div key={index} className="border-l-4 border-purple-500 pl-4 py-3 bg-purple-50 dark:bg-purple-900/20 rounded-r">
@@ -243,8 +246,11 @@ export default function LegalResearch() {
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                     <Scale className="w-5 h-5 mr-2 text-green-600" />
-                    Rettspraksis
+                    Rettspraksis (AI-forslag)
                   </h2>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                    Forslag fra AI-en, ikke fra en live domsdatabase. Kontroller hver henvisning mot Lovdata før du bruker den.
+                  </p>
                   <div className="space-y-3">
                     {result.research.precedents.map((precedent, index) => (
                       <div key={index} className="border-l-4 border-green-500 pl-4 py-3 bg-green-50 dark:bg-green-900/20 rounded-r">
@@ -297,8 +303,8 @@ export default function LegalResearch() {
             <div className="flex items-center justify-center bg-white dark:bg-gray-800 rounded-lg shadow-lg p-12">
               <div className="text-center text-gray-500 dark:text-gray-600">
                 <BookOpen className="w-16 h-16 mx-auto mb-4" />
-                <p className="text-lg">Skriv inn spørsmål for å søke</p>
-                <p className="text-sm mt-2">AI vil søke i norsk lov, EMD og rettspraksis</p>
+                <p className="text-lg">Skriv inn spørsmål for å komme i gang</p>
+                <p className="text-sm mt-2">Svaret forankres i gjeldende norsk lovtekst fra Lovdata. Eventuelle domshenvisninger er AI-forslag du må sjekke mot kilden.</p>
               </div>
             </div>
           )}

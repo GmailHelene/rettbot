@@ -89,6 +89,41 @@ else:
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), handlers=[_log_handler], force=True)
 logger = logging.getLogger(__name__)
 
+# Feilovervåking (Sentry) - dormant til SENTRY_DSN settes i miljøet (Railway).
+# Personvern er kritisk her: send_default_pii=False + en before_send som dropper
+# request-body, cookies og auth-headere, så saksinnlagt tekst/PII aldri havner i
+# Sentry. Uten DSN importeres ikke sentry_sdk i det hele tatt.
+_SENTRY_DSN = os.getenv("SENTRY_DSN", "").strip()
+if _SENTRY_DSN:
+    try:
+        import sentry_sdk
+
+        def _sentry_scrub(event, hint):
+            req = event.get("request")
+            if req:
+                req.pop("data", None)
+                req.pop("cookies", None)
+                req.pop("query_string", None)
+                headers = req.get("headers")
+                if isinstance(headers, dict):
+                    req["headers"] = {
+                        k: v for k, v in headers.items()
+                        if k.lower() not in ("authorization", "cookie", "x-csrf-token")
+                    }
+            event.pop("extra", None)
+            return event
+
+        sentry_sdk.init(
+            dsn=_SENTRY_DSN,
+            environment=os.getenv("ENVIRONMENT", "development"),
+            traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.0") or 0.0),
+            send_default_pii=False,
+            before_send=_sentry_scrub,
+        )
+        logger.info("Sentry feilovervåking aktivert")
+    except Exception as e:
+        logger.warning(f"Sentry-init feilet (fortsetter uten): {e}")
+
 # Initialize FastAPI app.
 # Skru av interaktiv API-dokumentasjon (/docs, /redoc, /openapi.json) i produksjon
 # så API-flaten ikke eksponeres offentlig.

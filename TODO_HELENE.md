@@ -64,8 +64,10 @@ Prioritet: 🔴 gjør nå · 🟡 før ekte brukere · 🟢 senere/vekst.
 - [ ] **(Valgfritt) Be Anthropic om Zero Data Retention (ZDR)** for ekstra trygghet
   rundt at input ikke lagres hos dem.
 
-- [ ] **Backup-strategi for PostgreSQL** på Railway (slå på automatiske backups /
-  point-in-time recovery). *(Jeg kan dokumentere en rutine.)*
+- [ ] **Backup:** rutine + lokalt kryptert dump-script er klart (`BACKUP.md`,
+  `scripts/backup_db.sh`). Railways egne backups/PITR krever **Pro-plan**. Lite ekte
+  data nå = lav risiko. Når ekte brukere kommer: enten Railway Pro (ett klikk) eller
+  kjør scriptet jevnlig. Ingenting å gjøre akkurat nå.
 
 ---
 
@@ -73,7 +75,10 @@ Prioritet: 🔴 gjør nå · 🟡 før ekte brukere · 🟢 senere/vekst.
 
 - [ ] **Lovdata Pro-lisens for rettspraksis (dommer).** Send meg API-dok, så kobler jeg
   inn `lovdata_case_law_search` (lovtekst er allerede inne).
-- [ ] **Feilovervåking (Sentry).** Lag konto → gi meg DSN.
+- [ ] **Feilovervåking (Sentry).** Koden er ferdig og dormant. For å skru på: lag
+  gratis konto på sentry.io → lag et prosjekt (Python/FastAPI) → kopier **DSN** →
+  legg inn som `SENTRY_DSN` i Railway Variables. Da aktiveres den automatisk ved
+  neste deploy (personvern-scrubbing er allerede innebygd - ingen brukerdata sendes).
 - [ ] **Personvernvennlig analyse** (uten sporing).
 - [ ] **Kjør/utvid eval-suiten.** `python -m backend.evals.run_evals` (frivillig; koster litt API).
 

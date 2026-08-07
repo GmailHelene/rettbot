@@ -1,6 +1,6 @@
 # TODO – ting bare du (Helene) kan gjøre
 
-Oppdatert 06.08.2026. Koden er langt på vei ferdig og pushet. Dette er det som
+Oppdatert 07.08.2026. Koden er langt på vei ferdig og pushet. Dette er det som
 krever *deg* – kontoer, nøkler, beslutninger og verifisering.
 Prioritet: 🔴 gjør nå · 🟡 før ekte brukere · 🟢 senere/vekst.
 
@@ -14,13 +14,15 @@ Prioritet: 🔴 gjør nå · 🟡 før ekte brukere · 🟢 senere/vekst.
 - Én web-worker pinnet (in-memory rate limit virker korrekt).
 - Logg-gjennomgang: saksinnhold og e-post fjernet fra logger; reset-token logges aldri i prod.
 - Anthropic-nøkkel, `JWT_SECRET`, `ENCRYPTION_KEY`, `ENVIRONMENT=production`, PostgreSQL og domenet rettbot.com er på plass (bekreftet via `/api/health`).
+- Kostnadstak + spend-alert satt i Anthropic. ✅
+- Gammel OpenAI-nøkkel slettet. ✅
 
 **Juridisk & personvern**
 - Eksplisitt AI-samtykke (art. 9 nr. 2 a) før første AI-kall, registrert server-side.
 - Personvern: art. 9/10-grunnlag, USA-overføring (SCC/DPA), ingen AI-trening, logging, lagringstid, aldersgrense.
-- Behandlingsansvarlig satt: **Grønberg Tech Solutions** (ENK). Kontakt-e-post inne.
+- Behandlingsansvarlig satt: **Grønberg Tech Solutions** (org.nr 927 889 404, ENK). Kontakt-e-post + org.nr inne i personvern.
 - Brukervilkår med lovvalg/verneting.
-- DPIA-utkast (`DPIA_UTKAST.md`) + varslingsrutine ved brudd (`VARSLINGSRUTINE_BRUDD.md`).
+- DPIA ferdigstilt (`DPIA_UTKAST.md`) + varslingsrutine ved brudd (`VARSLINGSRUTINE_BRUDD.md`). Gjenstår kun fagpersons kvalitetssikring (se 🟡). ✅
 - DPA: Anthropic (auto-innbakt) + Railway (signert). ✅
 - «Zero-knowledge»-påstand fjernet; ærlig server-side-kryptering beskrevet.
 
@@ -51,12 +53,6 @@ Prioritet: 🔴 gjør nå · 🟡 før ekte brukere · 🟢 senere/vekst.
   | `MAIL_DEFAULT_SENDER` | verifisert avsender-e-post |
   | `FRONTEND_URL` | `https://rettbot.com` |
 
-- [ ] **Kostnadstak i Anthropic.** `platform.claude.com/usage/limits` → sett spend-tak
-  (~$25/mnd til å begynne med) + spend-alert på ~80 %.
-
-- [ ] **Slett den gamle OpenAI-nøkkelen** (lå i repoet før) på platform.openai.com,
-  og fjern `OPENAI_API_KEY` i Railway hvis den fortsatt står.
-
 ---
 
 ## 🟡 Før du slipper inn mange ekte brukere
@@ -64,11 +60,6 @@ Prioritet: 🔴 gjør nå · 🟡 før ekte brukere · 🟢 senere/vekst.
 - [ ] **Advokat/personvernrådgiver bekrefter art. 9/10-grunnlaget** og ser over
   «ikke juridisk rådgivning»-linjen. Dette er den siste juridiske ryggdekningen
   som *må* være menneske.
-
-- [ ] **Ferdigstill DPIA.** Fyll inn resterende klammefelt i `DPIA_UTKAST.md`
-  (org.nr, konklusjon om restrisiko) og la fagpersonen over kvalitetssikre den.
-
-- [ ] **Send meg org.nr** til Grønberg Tech Solutions, så føyer jeg det inn i personvern (styrker identiteten).
 
 - [ ] **(Valgfritt) Be Anthropic om Zero Data Retention (ZDR)** for ekstra trygghet
   rundt at input ikke lagres hos dem.

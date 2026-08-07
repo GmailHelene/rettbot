@@ -16,7 +16,7 @@ innlogging på en konto, tapt/kompromittert `ENCRYPTION_KEY` eller `JWT_SECRET`,
 med saksdata til feil mottaker, ransomware.
 
 ## 2. Roller
-- **Ansvarlig (behandlingsansvarlig):** Grønberg Tech Solutions v/Helene Åsheim Grønberg.
+- **Ansvarlig (behandlingsansvarlig):** Grønberg Tech Solutions (org.nr 927 889 404) v/Helene Åsheim Grønberg.
 - Kontakt: helene721@gmail.com.
 - (Utpek gjerne en fast stedfortreder hvis du får medhjelpere.)
 

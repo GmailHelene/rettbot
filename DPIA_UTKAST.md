@@ -1,7 +1,7 @@
 # DPIA – Personvernkonsekvensvurdering (FØRSTEUTKAST)
 
 **Tjeneste:** RettBot+ (rettbot.com)
-**Behandlingsansvarlig:** Grønberg Tech Solutions [org.nr: sett inn] / alternativt Helene Åsheim Grønberg privat
+**Behandlingsansvarlig:** Grønberg Tech Solutions (org.nr 927 889 404) v/Helene Åsheim Grønberg
 **Dato:** 06.08.2026
 **Status:** Utkast. Må gjennomgås og ferdigstilles av behandlingsansvarlig, og bør kvalitetssikres av en personvernrådgiver/advokat før lansering til ekte brukere.
 
@@ -76,7 +76,7 @@ rettskrav.
 
 | Rolle | Part | Merknad |
 |---|---|---|
-| Behandlingsansvarlig | [Grønberg Tech Solutions / privat] | Bestemmer formål og midler |
+| Behandlingsansvarlig | Grønberg Tech Solutions (org.nr 927 889 404) | Bestemmer formål og midler |
 | Databehandler (hosting) | Railway | Drift av app og database |
 | Databehandler (AI) | Anthropic | Behandler innlagt tekst for AI-svar |
 | Underleverandør (DB) | PostgreSQL på Railway | Kryptert server-side |
@@ -133,18 +133,20 @@ Gjennomgått 06.08.2026. Status:
       supplert av kryptering i transit (HTTPS), ingen AI-trening og dataminimering.
       Sjekk om Anthropic er DPF-sertifisert (forenkler overføringen). Full TIA bør
       bekreftes av fagperson.
-- [ ] **Signere/bekrefte DPA (Anthropic + Railway).** Anthropic: auto-innbakt i de
-      kommersielle vilkårene (ta vare på kopi). Railway: gjennomgå/aksepter Railways
-      DPA. **Din handling.**
+- [x] **Signere/bekrefte DPA (Anthropic + Railway).** Anthropic: auto-innbakt i de
+      kommersielle vilkårene (kopi arkivert). Railway: DPA akseptert.
 - [ ] **Fagperson bekrefter rettslig grunnlag (art. 9/10).** **Din handling** –
       kan ikke erstattes av kode.
 
 ## 9. Restrisiko og konklusjon
 
-Med tiltakene i punkt 7 vurderes restrisikoen som **[fyll inn: lav/akseptabel /
-må reduseres ytterligere]**. Behandlingen [kan / bør ikke] starte for ekte brukere
-før de gjenstående punktene i punkt 8 er lukket. Ved høy restrisiko som ikke lar seg
-redusere, skal Datatilsynet forhåndskonsulteres (art. 36).
+Med tiltakene i punkt 7 vurderes restrisikoen som **lav til akseptabel**, forutsatt
+at det rettslige grunnlaget for særlige kategorier (art. 9/10) bekreftes av fagperson
+(gjenstående punkt i punkt 8). Behandlingen kan starte i begrenset skala, men bør ikke
+markedsføres bredt mot ekte brukere før dette punktet er lukket. Restrisikoen vurderes
+ikke som «høy» i art. 36-forstand, og forhåndskonsultasjon med Datatilsynet anses derfor
+ikke nødvendig på nåværende tidspunkt. Vurderes restrisikoen senere som høy og ikke
+reduserbar, skal Datatilsynet forhåndskonsulteres (art. 36).
 
 **Ansvarlig for oppfølging:** Helene Åsheim Grønberg
 **Neste gjennomgang:** 06.12.2026

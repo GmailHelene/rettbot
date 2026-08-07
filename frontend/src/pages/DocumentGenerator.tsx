@@ -270,7 +270,7 @@ export default function DocumentGenerator() {
 
           {/* Right Column - Results */}
           {result && (
-            <div className="space-y-6">
+            <div className="space-y-6" aria-live="polite" role="status">
               {/* Document Header */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                 <div className="flex items-center justify-between mb-4">

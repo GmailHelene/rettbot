@@ -274,7 +274,7 @@ async def login(credentials: UserLogin, req: Request, response: Response):
 @router.post("/api/auth/forgot-password")
 async def forgot_password(request: PasswordResetRequest, req: Request):
     """Send password reset email"""
-    check_rate_limit(req, max_requests=3, window_minutes=60)  # Very restrictive
+    check_rate_limit(req, max_requests=5, window_minutes=60)  # Streng, men ikke så streng at en bruker som skriver feil e-post låses ute
     
     try:
         conn = get_connection()

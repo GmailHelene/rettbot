@@ -120,79 +120,6 @@ class PasswordStrengthValidator:
         
         return len(issues) == 0, issues
 
-class SessionSecurity:
-    """Enhanced session security"""
-    
-    def __init__(self):
-        self.active_sessions: Dict[str, Dict] = {}
-    
-    def create_session(self, user_id: int, client_ip: str, user_agent: str) -> str:
-        """Create secure session"""
-        import secrets
-        
-        session_id = secrets.token_urlsafe(32)
-        
-        self.active_sessions[session_id] = {
-            "user_id": user_id,
-            "client_ip": client_ip,
-            "user_agent": user_agent,
-            "created_at": datetime.utcnow(),
-            "last_activity": datetime.utcnow(),
-            "suspicious_activity": 0
-        }
-        
-        return session_id
-    
-    def validate_session(self, session_id: str, client_ip: str, user_agent: str) -> bool:
-        """Validate session and detect suspicious activity"""
-        if session_id not in self.active_sessions:
-            return False
-        
-        session = self.active_sessions[session_id]
-        
-        # Check for IP changes (suspicious)
-        if session["client_ip"] != client_ip:
-            session["suspicious_activity"] += 1
-            
-        # Check for user agent changes (suspicious)
-        if session["user_agent"] != user_agent:
-            session["suspicious_activity"] += 1
-        
-        # If too much suspicious activity, invalidate session
-        if session["suspicious_activity"] >= 3:
-            del self.active_sessions[session_id]
-            return False
-        
-        # Update last activity
-        session["last_activity"] = datetime.utcnow()
-        
-        # Clean up old sessions (24 hours)
-        cutoff = datetime.utcnow() - timedelta(hours=24)
-        expired_sessions = [
-            sid for sid, sess in self.active_sessions.items()
-            if sess["last_activity"] < cutoff
-        ]
-        
-        for expired_sid in expired_sessions:
-            del self.active_sessions[expired_sid]
-        
-        return True
-    
-    def invalidate_session(self, session_id: str):
-        """Invalidate specific session"""
-        if session_id in self.active_sessions:
-            del self.active_sessions[session_id]
-    
-    def invalidate_user_sessions(self, user_id: int):
-        """Invalidate all sessions for a user"""
-        sessions_to_remove = [
-            sid for sid, sess in self.active_sessions.items()
-            if sess["user_id"] == user_id
-        ]
-        
-        for sid in sessions_to_remove:
-            del self.active_sessions[sid]
-
 class RedisRateLimiter:
     """Delt rate limiting via Redis, så grensen virker på tvers av workers/replicas.
 
@@ -235,7 +162,6 @@ def _build_rate_limiter():
 # Global instances
 rate_limiter = _build_rate_limiter()
 password_validator = PasswordStrengthValidator()
-session_security = SessionSecurity()
 
 def get_client_ip(request: Request) -> str:
     """Get real client IP considering proxies"""

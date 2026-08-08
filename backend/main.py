@@ -17,16 +17,11 @@ from pathlib import Path
 from dotenv import load_dotenv
 import logging
 from datetime import datetime, timedelta
-import uuid
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from backend.security_enhancements import (
     check_rate_limit,
     validate_password_strength,
     SecurityHeaders,
     get_client_ip,
-    session_security,
     rate_limiter
 )
 from backend.seo import render_for_path
@@ -57,13 +52,7 @@ from backend.deps import (
     ai_rate_limit,
     user_rate_limit,
 )
-import jwt
-import bcrypt
-import secrets
-import hashlib
-from cryptography.fernet import Fernet
 import json
-import sqlite3
 
 # Import AI engine
 from backend.ai_engine.claude_integration import ClaudeEngine

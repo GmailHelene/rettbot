@@ -285,7 +285,11 @@ async def forgot_password(request: PasswordResetRequest, req: Request):
         user = cursor.fetchone()
         
         if not user:
-            # Don't reveal if email exists or not for security
+            # Svaret til brukeren avslører ikke om e-posten finnes (mot enumerering).
+            # Men vi logger server-side, ellers er "jeg får ingen e-post" umulig å
+            # feilsøke - og den desidert vanligste årsaken er nettopp at e-posten
+            # ikke har en konto (da sendes det ingenting).
+            logger.info("Reset forespurt for e-post uten konto - ingen e-post sendt")
             return {"message": "If the email exists, you will receive a reset link"}
         
         # Generate secure reset token

@@ -72,11 +72,11 @@ class SecurityHeaders:
             "Content-Security-Policy": (
                 "default-src 'self'; "
                 "upgrade-insecure-requests; "
-                "script-src 'self'; "
+                "script-src 'self' https://cloud.umami.is; "
                 "style-src 'self' 'unsafe-inline'; "
                 "img-src 'self' data: https:; "
                 "font-src 'self' data:; "
-                "connect-src 'self'; "
+                "connect-src 'self' https://cloud.umami.is https://gateway.umami.is; "
                 "object-src 'none'; "
                 "base-uri 'self'; "
                 "frame-ancestors 'none'; "

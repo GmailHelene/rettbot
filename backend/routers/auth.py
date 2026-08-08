@@ -245,7 +245,7 @@ Denne e-posten er automatisk generert. Ikke svar på den.
 async def register(user: UserRegister, req: Request, response: Response):
     """Register new user"""
     # Rate limiting for registration attempts
-    check_rate_limit(req, max_requests=3, window_minutes=60)
+    check_rate_limit(req, max_requests=30, window_minutes=60)  # MIDLERTIDIG hevet for e-post-testing (sett tilbake til 3-5 etterpå)
     
     # Validate password strength
     validate_password_strength(user.password)
@@ -341,7 +341,7 @@ async def login(credentials: UserLogin, req: Request, response: Response):
 @router.post("/api/auth/forgot-password")
 async def forgot_password(request: PasswordResetRequest, req: Request):
     """Send password reset email"""
-    check_rate_limit(req, max_requests=5, window_minutes=60)  # Streng, men ikke så streng at en bruker som skriver feil e-post låses ute
+    check_rate_limit(req, max_requests=30, window_minutes=60)  # MIDLERTIDIG hevet for e-post-testing (sett tilbake til 5 etterpå)
     
     try:
         conn = get_connection()

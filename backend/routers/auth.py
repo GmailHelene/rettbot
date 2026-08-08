@@ -6,6 +6,8 @@ import os
 import secrets
 import smtplib
 import uuid
+
+import httpx
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -58,6 +60,63 @@ SMTP_USERNAME = os.getenv("MAIL_USERNAME") or os.getenv("SMTP_USERNAME", "")
 SMTP_PASSWORD = os.getenv("MAIL_PASSWORD") or os.getenv("SMTP_PASSWORD", "")
 FROM_EMAIL = os.getenv("MAIL_DEFAULT_SENDER") or os.getenv("FROM_EMAIL", "noreply@rettbot.com")
 MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "true").strip().lower() not in ("false", "0", "no")
+BREVO_API_KEY = os.getenv("BREVO_API_KEY", "").strip()
+
+
+def _send_email(to_email: str, subject: str, body: str) -> bool:
+    """Send en e-post. Foretrekker Brevos HTTP-API (HTTPS 443), fordi Railway
+    blokkerer utgående SMTP-porter (25/465/587) - da timer smtplib bare ut.
+    Faller tilbake til SMTP kun hvis API-nøkkel mangler."""
+    # 1) Brevo HTTP-API - anbefalt vei i produksjon.
+    if BREVO_API_KEY:
+        try:
+            resp = httpx.post(
+                "https://api.brevo.com/v3/smtp/email",
+                headers={"api-key": BREVO_API_KEY, "content-type": "application/json"},
+                json={
+                    "sender": {"email": FROM_EMAIL},
+                    "to": [{"email": to_email}],
+                    "subject": subject,
+                    "textContent": body,
+                },
+                timeout=15,
+            )
+            if resp.status_code < 300:
+                logger.info("E-post sendt via Brevo API (%s)", resp.status_code)
+                return True
+            # Vanligste årsak til 400 her: avsender (MAIL_DEFAULT_SENDER) er ikke
+            # en verifisert avsender i Brevo. resp.text sier det eksplisitt.
+            logger.error("Brevo API avviste e-post (%s): %s", resp.status_code, resp.text[:300])
+            return False
+        except Exception as e:
+            logger.error("Brevo API-kall feilet: %s: %s", type(e).__name__, e)
+            return False
+    # 2) Fallback: SMTP (kan time ut på Railway pga. blokkerte porter).
+    if SMTP_USERNAME and SMTP_PASSWORD:
+        try:
+            msg = MIMEMultipart()
+            msg["From"] = FROM_EMAIL
+            msg["To"] = to_email
+            msg["Subject"] = subject
+            msg.attach(MIMEText(body, "plain", "utf-8"))
+            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=15)
+            if MAIL_USE_TLS:
+                server.starttls()
+            server.login(SMTP_USERNAME, SMTP_PASSWORD)
+            server.sendmail(FROM_EMAIL, to_email, msg.as_string())
+            server.quit()
+            logger.info("E-post sendt via SMTP")
+            return True
+        except Exception as e:
+            logger.error(
+                "SMTP-sending feilet via %s:%s (avsender=%s): %s: %s",
+                SMTP_SERVER, SMTP_PORT, FROM_EMAIL, type(e).__name__, e,
+            )
+            return False
+    # 3) Ingen e-postkonfig (typisk dev).
+    if os.getenv("ENVIRONMENT", "development").lower() != "production":
+        print(f"[dev] E-post ikke sendt (mangler BREVO_API_KEY/SMTP) til {to_email}: {subject}")
+    return False
 
 
 def _hash_reset_token(token: str) -> str:
@@ -124,18 +183,8 @@ class PasswordResetConfirm(BaseModel):
 
 def send_password_reset_email(email: str, reset_token: str, base_url: str = "http://localhost:5173"):
     """Send password reset email"""
-    try:
-        msg = MIMEMultipart()
-        msg['From'] = FROM_EMAIL
-        msg['To'] = email
-        msg['Subject'] = "RettBot - Tilbakestill passord"
-        
-        # Create reset link
-        reset_url = f"{base_url}/reset-password?token={reset_token}"
-        
-        # Email body in Norwegian
-        body = f"""
-Hei,
+    reset_url = f"{base_url}/reset-password?token={reset_token}"
+    body = f"""Hei,
 
 Du har bedt om å tilbakestille passordet ditt for RettBot.
 
@@ -151,50 +200,21 @@ RettBot Team
 
 ---
 Denne e-posten er automatisk generert. Ikke svar på denne e-posten.
-        """
-        
-        msg.attach(MIMEText(body, 'plain', 'utf-8'))
-        
-        # Send email
-        if SMTP_USERNAME and SMTP_PASSWORD:
-            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-            if MAIL_USE_TLS:
-                server.starttls()
-            server.login(SMTP_USERNAME, SMTP_PASSWORD)
-            text = msg.as_string()
-            server.sendmail(FROM_EMAIL, email, text)
-            server.quit()
+"""
+    # Dev uten e-postkonfig: logg lenken lokalt så flyten kan testes (aldri i prod).
+    if not BREVO_API_KEY and not (SMTP_USERNAME and SMTP_PASSWORD):
+        if os.getenv("ENVIRONMENT", "development").lower() != "production":
+            print(f"[dev] Password reset URL for {email}: {reset_url}")
             return True
-        else:
-            # Kun i utvikling: logg reset-lenken lokalt. Aldri i produksjon
-            # (reset-token gir tilgang til å bytte passord).
-            if os.getenv("ENVIRONMENT", "development").lower() != "production":
-                print(f"[dev] Password reset URL for {email}: {reset_url}")
-            return True
-            
-    except Exception as e:
-        # Tydelig logg så feilen kan leses i Railway (uten å avsløre passord).
-        # Vanlige årsaker: MAIL_PASSWORD er ikke Brevos SMTP-nøkkel, MAIL_USERNAME
-        # er feil, eller MAIL_DEFAULT_SENDER er ikke en verifisert avsender i Brevo.
-        logger.error(
-            "Klarte ikke sende reset-e-post via %s:%s (avsender=%s, bruker=%s): %s: %s",
-            SMTP_SERVER, SMTP_PORT, FROM_EMAIL, SMTP_USERNAME, type(e).__name__, e,
-        )
         return False
+    return _send_email(email, "RettBot - Tilbakestill passord", body)
 
 def send_welcome_email(email: str, full_name: str = "", base_url: str = "http://localhost:5173") -> bool:
     """Kort, ærlig velkomst-e-post til nye brukere. Best-effort: skal aldri
     blokkere registreringen (kalles inne i en egen try/except i register)."""
-    try:
-        fornavn = (full_name or "").strip().split(" ")[0]
-        hilsen = f"Hei {fornavn}," if fornavn else "Hei,"
-
-        msg = MIMEMultipart()
-        msg['From'] = FROM_EMAIL
-        msg['To'] = email
-        msg['Subject'] = "Velkommen til RettBot+"
-
-        body = f"""{hilsen}
+    fornavn = (full_name or "").strip().split(" ")[0]
+    hilsen = f"Hei {fornavn}," if fornavn else "Hei,"
+    body = f"""{hilsen}
 
 Velkommen til RettBot+.
 
@@ -218,27 +238,7 @@ Lykke til med saken din.
 ---
 Denne e-posten er automatisk generert. Ikke svar på den.
 """
-        msg.attach(MIMEText(body, 'plain', 'utf-8'))
-
-        if SMTP_USERNAME and SMTP_PASSWORD:
-            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-            if MAIL_USE_TLS:
-                server.starttls()
-            server.login(SMTP_USERNAME, SMTP_PASSWORD)
-            server.sendmail(FROM_EMAIL, email, msg.as_string())
-            server.quit()
-            logger.info("Velkomst-e-post sendt")
-            return True
-        # Kun dev: ingen SMTP konfigurert.
-        if os.getenv("ENVIRONMENT", "development").lower() != "production":
-            print(f"[dev] Velkomst-e-post (ikke sendt, mangler SMTP) til {email}")
-        return False
-    except Exception as e:
-        logger.error(
-            "Klarte ikke sende velkomst-e-post via %s:%s (avsender=%s): %s: %s",
-            SMTP_SERVER, SMTP_PORT, FROM_EMAIL, type(e).__name__, e,
-        )
-        return False
+    return _send_email(email, "Velkommen til RettBot+", body)
 
 
 @router.post("/api/auth/register", response_model=TokenResponse)

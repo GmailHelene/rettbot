@@ -182,6 +182,65 @@ Denne e-posten er automatisk generert. Ikke svar på denne e-posten.
         )
         return False
 
+def send_welcome_email(email: str, full_name: str = "", base_url: str = "http://localhost:5173") -> bool:
+    """Kort, ærlig velkomst-e-post til nye brukere. Best-effort: skal aldri
+    blokkere registreringen (kalles inne i en egen try/except i register)."""
+    try:
+        fornavn = (full_name or "").strip().split(" ")[0]
+        hilsen = f"Hei {fornavn}," if fornavn else "Hei,"
+
+        msg = MIMEMultipart()
+        msg['From'] = FROM_EMAIL
+        msg['To'] = email
+        msg['Subject'] = "Velkommen til RettBot+"
+
+        body = f"""{hilsen}
+
+Velkommen til RettBot+.
+
+RettBot er et verktøy, ikke en advokat. Det hjelper deg å forstå din egen sak og stå litt stødigere når du står mot systemet.
+
+Tre ting du kan starte med:
+- Forstå et vedtak du har fått
+- Finne ut hvilken klagefrist som gjelder
+- Skrive en klage eller et innsynskrav
+
+Én ting jeg vil være ærlig om: AI-en kan ta feil. Sjekk alltid lover, paragrafer og frister mot Lovdata før du sender noe. Verktøyet sier ifra om dette underveis.
+
+Dataene dine er krypterte, og du kan når som helst laste ned eller slette alt under Min konto.
+
+Kom i gang: {base_url}
+
+Lykke til med saken din.
+
+- RettBot+
+
+---
+Denne e-posten er automatisk generert. Ikke svar på den.
+"""
+        msg.attach(MIMEText(body, 'plain', 'utf-8'))
+
+        if SMTP_USERNAME and SMTP_PASSWORD:
+            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+            if MAIL_USE_TLS:
+                server.starttls()
+            server.login(SMTP_USERNAME, SMTP_PASSWORD)
+            server.sendmail(FROM_EMAIL, email, msg.as_string())
+            server.quit()
+            logger.info("Velkomst-e-post sendt")
+            return True
+        # Kun dev: ingen SMTP konfigurert.
+        if os.getenv("ENVIRONMENT", "development").lower() != "production":
+            print(f"[dev] Velkomst-e-post (ikke sendt, mangler SMTP) til {email}")
+        return False
+    except Exception as e:
+        logger.error(
+            "Klarte ikke sende velkomst-e-post via %s:%s (avsender=%s): %s: %s",
+            SMTP_SERVER, SMTP_PORT, FROM_EMAIL, type(e).__name__, e,
+        )
+        return False
+
+
 @router.post("/api/auth/register", response_model=TokenResponse)
 async def register(user: UserRegister, req: Request, response: Response):
     """Register new user"""
@@ -212,7 +271,15 @@ async def register(user: UserRegister, req: Request, response: Response):
         cursor.execute("SELECT id, email, full_name FROM users WHERE email = ?", (user.email,))
         new_user = cursor.fetchone()
         conn.close()
-        
+
+        # Velkomst-e-post (best-effort: skal ALDRI blokkere registreringen –
+        # brukeren er allerede opprettet og skal inn uansett om e-posten feiler).
+        try:
+            welcome_base_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+            send_welcome_email(user.email, user.full_name or "", welcome_base_url)
+        except Exception as e:
+            logger.error(f"Velkomst-e-post feilet (registrering fortsetter): {e}")
+
         # Create access token
         access_token = create_access_token(data={"sub": user.email})
         _set_auth_cookies(response, access_token)

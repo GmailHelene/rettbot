@@ -173,7 +173,13 @@ Denne e-posten er automatisk generert. Ikke svar på denne e-posten.
             return True
             
     except Exception as e:
-        print(f"Failed to send email: {e}")
+        # Tydelig logg så feilen kan leses i Railway (uten å avsløre passord).
+        # Vanlige årsaker: MAIL_PASSWORD er ikke Brevos SMTP-nøkkel, MAIL_USERNAME
+        # er feil, eller MAIL_DEFAULT_SENDER er ikke en verifisert avsender i Brevo.
+        logger.error(
+            "Klarte ikke sende reset-e-post via %s:%s (avsender=%s, bruker=%s): %s: %s",
+            SMTP_SERVER, SMTP_PORT, FROM_EMAIL, SMTP_USERNAME, type(e).__name__, e,
+        )
         return False
 
 @router.post("/api/auth/register", response_model=TokenResponse)

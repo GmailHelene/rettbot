@@ -46,8 +46,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify({ email, password }),
     });
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || 'Login failed');
+      const errorData = await response.json().catch(() => ({} as any));
+      const d = errorData?.detail;
+      const message = Array.isArray(d)
+        ? d.map((x: any) => x?.msg || x).join(', ')
+        : typeof d === 'string' && d
+        ? d
+        : response.status === 429
+        ? 'For mange forsøk på kort tid. Vent noen minutter og prøv igjen.'
+        : `Innlogging feilet (${response.status}). Prøv igjen.`;
+      throw new Error(message);
     }
     const data = await response.json();
     setUser(data.user);
@@ -65,8 +73,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify({ email, password, full_name: fullName }),
     });
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || 'Registration failed');
+      const errorData = await response.json().catch(() => ({} as any));
+      const d = errorData?.detail;
+      const message = Array.isArray(d)
+        ? d.map((x: any) => x?.msg || x).join(', ')
+        : typeof d === 'string' && d
+        ? d
+        : response.status === 429
+        ? 'For mange forsøk på kort tid. Vent noen minutter og prøv igjen.'
+        : `Registrering feilet (${response.status}). Prøv igjen.`;
+      throw new Error(message);
     }
     const data = await response.json();
     setUser(data.user);

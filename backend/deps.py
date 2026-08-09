@@ -152,6 +152,9 @@ AI_RATE_LIMIT_WINDOW_MIN = int(os.getenv("AI_RATE_LIMIT_WINDOW_MIN", "5"))
 FREE_AI_LIMIT = int(os.getenv("FREE_AI_LIMIT", "3"))
 DAGSPASS_HOURS = int(os.getenv("DAGSPASS_HOURS", "24"))
 TRIAL_DAYS = int(os.getenv("TRIAL_DAYS", "7"))
+# Alle nye brukere får en gratis prøveperiode automatisk ved registrering
+# (ingen betaling, ingen kortinfo). Sett til 0 for å skru av.
+SIGNUP_TRIAL_DAYS = int(os.getenv("SIGNUP_TRIAL_DAYS", "14"))
 
 
 def _has_ai_consent(user_id: int) -> bool:

@@ -17,7 +17,7 @@ from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, EmailStr, Field
 
 from backend.db import get_connection
-from backend.deps import hash_password, verify_password, create_access_token
+from backend.deps import hash_password, verify_password, create_access_token, grant_access, SIGNUP_TRIAL_DAYS
 from backend.security_enhancements import validate_password_strength, check_rate_limit, get_client_ip
 
 logger = logging.getLogger(__name__)
@@ -279,6 +279,13 @@ async def register(user: UserRegister, req: Request, response: Response):
             send_welcome_email(user.email, user.full_name or "", welcome_base_url)
         except Exception as e:
             logger.error(f"Velkomst-e-post feilet (registrering fortsetter): {e}")
+
+        # Gratis prøveperiode automatisk (14 dager, ingen betaling/kort). Best-effort.
+        try:
+            if SIGNUP_TRIAL_DAYS > 0:
+                grant_access(new_user[0], timedelta(days=SIGNUP_TRIAL_DAYS))
+        except Exception as e:
+            logger.error(f"Kunne ikke gi oppstarts-prøve (registrering fortsetter): {e}")
 
         # Create access token
         access_token = create_access_token(data={"sub": user.email})

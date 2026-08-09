@@ -8,9 +8,15 @@ Puppeteer eller endringer i frontend-bygget. React overskriver blokken når
 JavaScript kjører, så vanlige brukere merker ingenting.
 """
 
+import os
 import re
 import json
 import html as _html
+
+# Umami besøksstatistikk (cookieless). Injiseres kun når UMAMI_WEBSITE_ID er satt
+# i miljøet (Railway), så det er «av» som standard og krever ingen rebuild.
+UMAMI_WEBSITE_ID = os.getenv("UMAMI_WEBSITE_ID", "").strip()
+UMAMI_SRC = os.getenv("UMAMI_SRC", "https://cloud.umami.is/script.js").strip()
 from functools import lru_cache
 
 SITE = "https://rettbot.com"
@@ -248,6 +254,11 @@ def render_index_html(base_html: str, path: str) -> str:
             graph["step"] = [{"@type": "HowToStep", "name": lbl} for lbl, _ in cfg.get("links", [])]
         script = '<script type="application/ld+json">' + json.dumps(graph, ensure_ascii=False) + "</script>"
         html = html.replace("</head>", f"    {script}\n</head>", 1)
+
+    # Umami besøksstatistikk (cookieless) - kun hvis konfigurert via env.
+    if UMAMI_WEBSITE_ID:
+        umami = f'<script defer src="{_esc(UMAMI_SRC)}" data-website-id="{_esc(UMAMI_WEBSITE_ID)}"></script>'
+        html = html.replace("</head>", f"    {umami}\n</head>", 1)
 
     # Crawlbart innhold som React overskriver når JS kjører.
     html = html.replace('<div id="root"></div>', f'<div id="root">{_content_block(cfg)}</div>', 1)

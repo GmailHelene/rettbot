@@ -17,6 +17,11 @@ from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
+# Umami (cookieless besøksstatistikk) åpnes i CSP kun når den er slått på via env.
+_UMAMI_ON = bool(os.getenv("UMAMI_WEBSITE_ID", "").strip())
+_CSP_SCRIPT_EXTRA = " https://cloud.umami.is" if _UMAMI_ON else ""
+_CSP_CONNECT_EXTRA = " https://cloud.umami.is https://gateway.umami.is" if _UMAMI_ON else ""
+
 class RateLimiter:
     """Rate limiter for API endpoints"""
     
@@ -72,11 +77,11 @@ class SecurityHeaders:
             "Content-Security-Policy": (
                 "default-src 'self'; "
                 "upgrade-insecure-requests; "
-                "script-src 'self'; "
+                f"script-src 'self'{_CSP_SCRIPT_EXTRA}; "
                 "style-src 'self' 'unsafe-inline'; "
                 "img-src 'self' data: https:; "
                 "font-src 'self' data:; "
-                "connect-src 'self'; "
+                f"connect-src 'self'{_CSP_CONNECT_EXTRA}; "
                 "object-src 'none'; "
                 "base-uri 'self'; "
                 "frame-ancestors 'none'; "

@@ -39,8 +39,9 @@ export default function CookieConsent() {
     >
       <div className="max-w-5xl mx-auto px-4 py-4 sm:px-6 flex flex-col sm:flex-row sm:items-center gap-3">
         <p className="text-sm text-slate-700 flex-1">
-          RettBot+ bruker kun <strong>nødvendig lagring</strong> for innlogging - ingen sporing eller
-          analyse. Merk at tekst du sender inn behandles av en AI-leverandør. Les mer i{' '}
+          RettBot+ bruker kun <strong>nødvendig lagring</strong> for innlogging, og en cookieless
+          besøksstatistikk som teller sidevisninger uten informasjonskapsler eller personopplysninger.
+          Merk at tekst du sender inn behandles av en AI-leverandør. Les mer i{' '}
           <Link to="/personvern" className="text-primary-700 underline hover:text-primary-800">
             personvernerklæringen
           </Link>

@@ -19,8 +19,15 @@ logger = logging.getLogger(__name__)
 
 # Umami (cookieless besøksstatistikk) åpnes i CSP kun når den er slått på via env.
 _UMAMI_ON = bool(os.getenv("UMAMI_WEBSITE_ID", "").strip())
-_CSP_SCRIPT_EXTRA = " https://cloud.umami.is" if _UMAMI_ON else ""
-_CSP_CONNECT_EXTRA = " https://cloud.umami.is https://gateway.umami.is" if _UMAMI_ON else ""
+_CF_ON = bool(os.getenv("CF_BEACON_TOKEN", "").strip())
+_CSP_SCRIPT_EXTRA = (
+    (" https://cloud.umami.is" if _UMAMI_ON else "")
+    + (" https://static.cloudflareinsights.com" if _CF_ON else "")
+)
+_CSP_CONNECT_EXTRA = (
+    (" https://cloud.umami.is https://gateway.umami.is" if _UMAMI_ON else "")
+    + (" https://cloudflareinsights.com" if _CF_ON else "")
+)
 
 class RateLimiter:
     """Rate limiter for API endpoints"""

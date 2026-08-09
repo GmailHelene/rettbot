@@ -44,7 +44,7 @@ export default function Personvern() {
             <ul className="list-disc pl-5 space-y-1">
               <li><strong>Konto:</strong> e-postadresse, navn og et hashet passord (vi ser aldri passordet i klartekst).</li>
               <li><strong>Saker og bevis:</strong> tekst, dokumenter og filer du selv legger inn. Dette lagres kryptert på serveren.</li>
-              <li><strong>Teknisk:</strong> vanlige tjenerlogger (tidspunkt, feilmeldinger). Vi bruker en personvernvennlig, cookieless besøksstatistikk (Umami) som teller sidevisninger og hvor mange som er innom. Den setter ingen informasjonskapsler og lagrer ingen personopplysninger om deg.</li>
+              <li><strong>Teknisk:</strong> vanlige tjenerlogger (tidspunkt, feilmeldinger). Vi bruker en personvernvennlig, cookieless besøksstatistikk som teller sidevisninger og hvor mange som er innom. Den setter ingen informasjonskapsler og lagrer ingen personopplysninger om deg.</li>
             </ul>
           </section>
 

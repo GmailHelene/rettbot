@@ -17,6 +17,10 @@ import html as _html
 # i miljøet (Railway), så det er «av» som standard og krever ingen rebuild.
 UMAMI_WEBSITE_ID = os.getenv("UMAMI_WEBSITE_ID", "").strip()
 UMAMI_SRC = os.getenv("UMAMI_SRC", "https://cloud.umami.is/script.js").strip()
+
+# Alternativ: Cloudflare Web Analytics (gratis, ubegrenset, cookieless).
+# Sett CF_BEACON_TOKEN i miljøet. Bruk enten denne ELLER Umami, ikke begge.
+CF_BEACON_TOKEN = os.getenv("CF_BEACON_TOKEN", "").strip()
 from functools import lru_cache
 
 SITE = "https://rettbot.com"
@@ -255,10 +259,16 @@ def render_index_html(base_html: str, path: str) -> str:
         script = '<script type="application/ld+json">' + json.dumps(graph, ensure_ascii=False) + "</script>"
         html = html.replace("</head>", f"    {script}\n</head>", 1)
 
-    # Umami besøksstatistikk (cookieless) - kun hvis konfigurert via env.
+    # Besøksstatistikk (cookieless) - injiseres kun hvis konfigurert via env.
     if UMAMI_WEBSITE_ID:
         umami = f'<script defer src="{_esc(UMAMI_SRC)}" data-website-id="{_esc(UMAMI_WEBSITE_ID)}"></script>'
         html = html.replace("</head>", f"    {umami}\n</head>", 1)
+    elif CF_BEACON_TOKEN:
+        cf = (
+            '<script defer src="https://static.cloudflareinsights.com/beacon.min.js" '
+            f"data-cf-beacon='{{\"token\": \"{_esc(CF_BEACON_TOKEN)}\"}}'></script>"
+        )
+        html = html.replace("</head>", f"    {cf}\n</head>", 1)
 
     # Crawlbart innhold som React overskriver når JS kjører.
     html = html.replace('<div id="root"></div>', f'<div id="root">{_content_block(cfg)}</div>', 1)

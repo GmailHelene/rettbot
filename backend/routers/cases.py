@@ -10,7 +10,7 @@ from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Form
 from pydantic import BaseModel, Field
 
 from backend.db import get_connection
-from backend.deps import get_current_user, encrypt_data, decrypt_data, fernet
+from backend.deps import get_current_user, encrypt_data, decrypt_data, fernet, has_active_pass
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -238,6 +238,13 @@ async def download_saksmappe_pdf(
 
     Valgfri `case_ref` avgrenser til én sak; uten den tas alt brukeren har lagret.
     """
+    # Betalt funksjon: krever aktivt dagspass eller prøveperiode.
+    if not has_active_pass(current_user["id"]):
+        raise HTTPException(
+            status_code=402,
+            detail="PDF-saksmappe krever dagspass. Kjøp dagspass for 24 timer full tilgang, eller løs inn en prøvekode.",
+        )
+
     from io import BytesIO
     from xml.sax.saxutils import escape
     from fastapi import Response

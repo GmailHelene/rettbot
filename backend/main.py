@@ -30,6 +30,7 @@ from backend.routers.auth import router as auth_router
 from backend.routers.user import router as user_router
 from backend.routers.cases import router as cases_router
 from backend.routers.ai import router as ai_router
+from backend.routers.billing import router as billing_router
 from backend.routers.spa import router as spa_router
 from backend.deps import (
     IS_PRODUCTION,
@@ -186,7 +187,10 @@ def init_database():
             password_hash TEXT NOT NULL,
             full_name TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            last_login TIMESTAMP
+            last_login TIMESTAMP,
+            access_until TEXT,
+            ai_free_used INTEGER DEFAULT 0,
+            trial_used INTEGER DEFAULT 0
         )
     """)
 
@@ -305,6 +309,7 @@ app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(cases_router)
 app.include_router(ai_router)
+app.include_router(billing_router)
 
 # Mount static files (frontend)
 # Check if frontend/dist exists (production) or serve placeholder

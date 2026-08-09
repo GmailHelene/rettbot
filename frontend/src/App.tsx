@@ -6,6 +6,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import Dagspass from './pages/Dagspass';
+import DagspassKvittering from './pages/DagspassKvittering';
 import NotFound from './pages/NotFound';
 import CookieConsent from './components/CookieConsent';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -86,6 +88,9 @@ function App() {
           <Route path="/corruption-assessment" element={<ProtectedRoute><AiConsentGate><CorruptionAssessment /></AiConsentGate></ProtectedRoute>} />
           <Route path="/evidence-upload" element={<ProtectedRoute><EvidenceUpload /></ProtectedRoute>} />
           <Route path="/legal-chat" element={<ProtectedRoute><AiConsentGate><LegalChat /></AiConsentGate></ProtectedRoute>} />
+
+          <Route path="/dagspass" element={<ProtectedRoute><Dagspass /></ProtectedRoute>} />
+          <Route path="/dagspass/kvittering" element={<ProtectedRoute><DagspassKvittering /></ProtectedRoute>} />
 
           {/* Auth-required routes */}
           <Route

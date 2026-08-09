@@ -234,6 +234,21 @@ export default function Dashboard() {
           ))}
         </div>
 
+        {/* Pris / dagspass */}
+        <div className="mt-10 rounded-xl border border-primary-200 bg-primary-50 p-6 sm:flex sm:items-center sm:justify-between gap-6">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">Gratis å bruke</h2>
+            <p className="text-sm text-slate-600 mt-1 max-w-xl">
+              Å forstå vedtak, finne frister, bruke maler og skrive innsynskrav er alltid gratis – i tillegg
+              til noen gratis AI-kjøringer. Trenger du mer AI-hjelp til saken din, får du et
+              <strong> dagspass: 24 timer full tilgang for 79 kr</strong>. Engangsbetaling, fornyes ikke.
+            </p>
+          </div>
+          <Link to="/dagspass" className="btn-primary whitespace-nowrap mt-4 sm:mt-0 inline-block">
+            Se dagspass
+          </Link>
+        </div>
+
         {/* Ærlige begrensninger */}
         <div className="mt-10 rounded-xl border border-slate-200 bg-white p-6">
           <h2 className="text-lg font-semibold text-slate-900 mb-3">Dette kan RettBot+ ikke</h2>

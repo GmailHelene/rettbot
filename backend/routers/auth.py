@@ -300,6 +300,9 @@ async def register(user: UserRegister, req: Request, response: Response):
                 "full_name": new_user[2]
             }
         }
+    except HTTPException:
+        # Egne feil (f.eks. 400 «Email already registered») skal ikke pakkes om til 500.
+        raise
     except Exception as e:
         logger.error(f"Registration error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")

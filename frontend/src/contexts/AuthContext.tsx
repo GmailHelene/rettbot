@@ -47,7 +47,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({} as any));
-      const d = errorData?.detail;
+      // Backend bruker en egen feil-handler som returnerer feltet «error»
+      // (ikke «detail»). Les begge for sikkerhets skyld.
+      const d = errorData?.error ?? errorData?.detail;
       const message = Array.isArray(d)
         ? d.map((x: any) => x?.msg || x).join(', ')
         : typeof d === 'string' && d
@@ -74,7 +76,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({} as any));
-      const d = errorData?.detail;
+      // Backend bruker en egen feil-handler som returnerer feltet «error»
+      // (ikke «detail»). Les begge for sikkerhets skyld.
+      const d = errorData?.error ?? errorData?.detail;
       const message = Array.isArray(d)
         ? d.map((x: any) => x?.msg || x).join(', ')
         : typeof d === 'string' && d

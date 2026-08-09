@@ -17,5 +17,21 @@ export async function apiFetch(input: string, init: RequestInit = {}): Promise<R
     const csrf = getCookie('csrf_token');
     if (csrf) headers.set('X-CSRF-Token', csrf);
   }
-  return fetch(input, { ...init, headers, credentials: 'include' });
+  const res = await fetch(input, { ...init, headers, credentials: 'include' });
+
+  // 402 = betaling kreves (gratiskvote/prøveperiode oppbrukt). Meld fra globalt
+  // så en «kjøp dagspass»-dialog kan vises uansett hvilket verktøy som ble truffet.
+  // Kloner responsen så siden fortsatt kan lese den selv.
+  if (res.status === 402) {
+    let message = '';
+    try {
+      const data = await res.clone().json();
+      message = data?.error ?? data?.detail ?? '';
+    } catch {
+      /* ignorer - dialogen har en standardtekst */
+    }
+    window.dispatchEvent(new CustomEvent('rettbot:paywall', { detail: message }));
+  }
+
+  return res;
 }

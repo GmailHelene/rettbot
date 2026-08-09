@@ -257,7 +257,7 @@ async def register(user: UserRegister, req: Request, response: Response):
         # Check if user already exists
         cursor.execute("SELECT id FROM users WHERE email = ?", (user.email,))
         if cursor.fetchone():
-            raise HTTPException(status_code=400, detail="Email already registered")
+            raise HTTPException(status_code=400, detail="E-posten er allerede registrert.")
         
         # Hash password and create user
         password_hash = hash_password(user.password)
@@ -305,7 +305,7 @@ async def register(user: UserRegister, req: Request, response: Response):
         raise
     except Exception as e:
         logger.error(f"Registration error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Registrering feilet. Prøv igjen om litt.")
 
 @router.post("/api/auth/login", response_model=TokenResponse)
 async def login(credentials: UserLogin, req: Request, response: Response):
@@ -322,7 +322,7 @@ async def login(credentials: UserLogin, req: Request, response: Response):
         user = cursor.fetchone()
         
         if not user or not verify_password(credentials.password, user[2]):
-            raise HTTPException(status_code=401, detail="Incorrect email or password")
+            raise HTTPException(status_code=401, detail="Feil e-post eller passord.")
         
         # Update last login
         cursor.execute("UPDATE users SET last_login = ? WHERE id = ?", (datetime.utcnow(), user[0]))
@@ -346,7 +346,7 @@ async def login(credentials: UserLogin, req: Request, response: Response):
         raise
     except Exception as e:
         logger.error(f"Login error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Login failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Innlogging feilet. Prøv igjen om litt.")
 
 @router.post("/api/auth/forgot-password")
 async def forgot_password(request: PasswordResetRequest, req: Request):

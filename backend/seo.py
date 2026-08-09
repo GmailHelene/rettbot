@@ -21,6 +21,10 @@ UMAMI_SRC = os.getenv("UMAMI_SRC", "https://cloud.umami.is/script.js").strip()
 # Alternativ: Cloudflare Web Analytics (gratis, ubegrenset, cookieless).
 # Sett CF_BEACON_TOKEN i miljøet. Bruk enten denne ELLER Umami, ikke begge.
 CF_BEACON_TOKEN = os.getenv("CF_BEACON_TOKEN", "").strip()
+
+# Alternativ: GoatCounter (gratis, cookieless, superenkelt). Sett GOATCOUNTER_CODE
+# til kontokoden din (subdomenet, f.eks. "rettbot" for rettbot.goatcounter.com).
+GOATCOUNTER_CODE = os.getenv("GOATCOUNTER_CODE", "").strip()
 from functools import lru_cache
 
 SITE = "https://rettbot.com"
@@ -269,6 +273,12 @@ def render_index_html(base_html: str, path: str) -> str:
             f"data-cf-beacon='{{\"token\": \"{_esc(CF_BEACON_TOKEN)}\"}}'></script>"
         )
         html = html.replace("</head>", f"    {cf}\n</head>", 1)
+    elif GOATCOUNTER_CODE:
+        gc = (
+            f'<script data-goatcounter="https://{_esc(GOATCOUNTER_CODE)}.goatcounter.com/count" '
+            'async src="https://gc.zgo.at/count.js"></script>'
+        )
+        html = html.replace("</head>", f"    {gc}\n</head>", 1)
 
     # Crawlbart innhold som React overskriver når JS kjører.
     html = html.replace('<div id="root"></div>', f'<div id="root">{_content_block(cfg)}</div>', 1)

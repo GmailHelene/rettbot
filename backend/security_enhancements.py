@@ -20,13 +20,16 @@ logger = logging.getLogger(__name__)
 # Umami (cookieless besøksstatistikk) åpnes i CSP kun når den er slått på via env.
 _UMAMI_ON = bool(os.getenv("UMAMI_WEBSITE_ID", "").strip())
 _CF_ON = bool(os.getenv("CF_BEACON_TOKEN", "").strip())
+_GC_CODE = os.getenv("GOATCOUNTER_CODE", "").strip()
 _CSP_SCRIPT_EXTRA = (
     (" https://cloud.umami.is" if _UMAMI_ON else "")
     + (" https://static.cloudflareinsights.com" if _CF_ON else "")
+    + (" https://gc.zgo.at" if _GC_CODE else "")
 )
 _CSP_CONNECT_EXTRA = (
     (" https://cloud.umami.is https://gateway.umami.is" if _UMAMI_ON else "")
     + (" https://cloudflareinsights.com" if _CF_ON else "")
+    + (f" https://{_GC_CODE}.goatcounter.com" if _GC_CODE else "")
 )
 
 class RateLimiter:

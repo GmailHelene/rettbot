@@ -14,6 +14,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import SiteFooter from './components/SiteFooter';
 import TitleManager from './components/TitleManager';
 import TopNav from './components/TopNav';
+import AccessBanner from './components/AccessBanner';
 import AiConsentGate from './components/AiConsentGate';
 
 // Rute-basert code splitting: tunge sider lastes først når de faktisk besøkes.
@@ -65,6 +66,7 @@ function App() {
           Hopp til innhold
         </a>
         <TopNav />
+        <AccessBanner />
         <div id="main-content">
         <Suspense fallback={<PageFallback />}>
         <Routes>

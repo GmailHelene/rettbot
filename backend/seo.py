@@ -273,12 +273,6 @@ def render_index_html(base_html: str, path: str) -> str:
             f"data-cf-beacon='{{\"token\": \"{_esc(CF_BEACON_TOKEN)}\"}}'></script>"
         )
         html = html.replace("</head>", f"    {cf}\n</head>", 1)
-    elif GOATCOUNTER_CODE:
-        gc = (
-            f'<script data-goatcounter="https://{_esc(GOATCOUNTER_CODE)}.goatcounter.com/count" '
-            'async src="https://gc.zgo.at/count.js"></script>'
-        )
-        html = html.replace("</head>", f"    {gc}\n</head>", 1)
 
     # Crawlbart innhold som React overskriver når JS kjører.
     html = html.replace('<div id="root"></div>', f'<div id="root">{_content_block(cfg)}</div>', 1)

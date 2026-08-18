@@ -275,6 +275,10 @@ export default function Dashboard() {
             </li>
           </ul>
           <p className="mt-4 text-sm text-slate-600">
+            Husk også at rettigheter henger sammen med plikter. RettBot hjelper deg å forstå hele
+            situasjonen din - både det du kan kreve og det som forventes av deg.
+          </p>
+          <p className="mt-4 text-sm text-slate-600">
             Ved en konkret, alvorlig sak: kontakt advokat eller offentlig rettshjelp. Se{' '}
             <Link to="/hvor-klager-du" className="text-primary-700 underline hover:text-primary-800">
               hvor du klager
